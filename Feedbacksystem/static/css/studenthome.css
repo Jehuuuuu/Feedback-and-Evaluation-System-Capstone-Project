@@ -1,0 +1,68 @@
+
+#headerbar{
+    padding: 10px;
+    background-color: #2a9134;
+ 
+}
+#headerlogo{
+    font-size: 24px;
+    cursor: pointer;
+    font-weight: bold;
+    text-transform: uppercase;
+  margin-left: 50px;
+}
+#cvsulogo{
+    margin-right: 20px;
+}
+.subtitle{
+    font-size: 14px;
+    margin-left: 135px;
+
+}
+#cvsulogin{
+    margin-right: 100px;
+    letter-spacing: 1px;
+    background-color: #025400;
+
+}
+.lightsidebar{
+    background-color:#fafafa;
+    box-sizing: border-box;
+    box-shadow: 2px 2px 5px 0px rgba(0,0,0,0.2);
+    min-height: 100vh;
+}
+.nav-item {/* Add padding to the items */
+    margin: 12px; /* Add margin to create space between items */
+    
+ 
+  }
+  .nav-link{
+    color: #333;
+}
+.nav-link:hover {
+    background-color: gray;
+}
+#main-content {
+    flex: 1;
+    padding: 16px;
+  }
+  #navbarDropdown{
+    font-weight: bold;
+  }
+
+  #eval{
+    padding: 10px;
+    box-sizing: border-box;
+    box-shadow: 2px 2px 5px 3px rgba(0,0,0,0.2);
+    height: 120px;
+  }
+
+#profile{
+  padding: 10px;
+  box-sizing: border-box;
+  box-shadow: 2px 2px 5px 3px rgba(0,0,0,0.2);
+  height: 450px;
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+}

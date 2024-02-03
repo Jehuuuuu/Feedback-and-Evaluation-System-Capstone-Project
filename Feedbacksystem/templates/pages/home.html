@@ -1,0 +1,175 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+
+<head>
+  <title>{% block title %}Feedback and Evaluation System - CvSU Bacoor Campus {% endblock %}</title>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+  <link rel="icon" href="static/images/cvsulogo.png" type="image/png">
+  <link rel="stylesheet" href="{% static 'css/studenthome.css'%}">
+  <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+  
+
+</head>
+
+<body>
+  <div class="container-fluid">
+    <div class="row">
+      <nav id="headerbar" class="col-md-12 col-lg-12 d-md-block sidebar headerbar"> 
+  <a class="navbar-brand" style="color: white;" href="{% url 'home' %}" id="headerlogo"><img src="{% static 'images/cvsulogo.png'%}" alt="Cavite State Univeristy Logo" width="64px" height="64px" id="cvsulogo">Feedback and Evaluation System <br> <div class=subtitle>Cavite State University Bacoor City Campus</div></a>
+</div>
+</div>
+</nav>
+  <div class="container-fluid">
+  <div class="row">
+    <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block sidebar lightsidebar"> 
+      <ul class="nav flex-column nav-pills">
+        <li class="nav-item">
+        <a class="nav-link" href="{% url 'home' %}">
+              <b>DASHBOARD</b>
+        
+        
+        </a>
+      </li>
+       
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'student_profile' %}">
+               <b>PROFILE</b>
+            </a>
+        </li>
+        <li class="nav-item dropdown">
+          <button class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              FEATURES
+          </button>
+          <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+              <a class="dropdown-item" href="{% url 'facultyeval' %}">Faculty Evaluation</a>
+              <a class="dropdown-item" href="{% url 'eventhub' %}">Event Experience Hub</a>
+              <a class="dropdown-item" href="{% url 'suggestionbox' %}">Virtual Suggestion Box</a>
+      </li>
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'about' %}">
+                 <b>ABOUT</b>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'contactUs' %}">
+              <b>CONTACT US</b>
+            </a>
+        </li>
+        <!-- Add more navigation items here -->
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'studentlogout' %}">
+            <b>LOG OUT</b>
+          </a>
+      </li>
+    </ul>
+  </nav>
+  <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
+    <!-- Main content area -->
+    
+    <div class="container" style="padding:10px; margin-top:10px;">
+      {% block header %}
+    <h4>Welcome {{ student.name }}!</h4>
+    <hr>
+    <div id="eval" class = "container">
+      <h3>Academic Year: 2024-2025</h3>
+      <h4>Evaluation Status: Ongoing </h4>
+     </div>
+    {% endblock header %}
+   
+    {% block feature %}
+    <div class="container">
+      <div class="row">
+        <div class="col-md-10 offset-md-1">
+          <h2 class="text-center mt-4 mb-4" style="color: darkgreen">Latest News and Announcements</h2>
+    
+    
+    
+          <div class="card mb-4">
+            <div class="card-body">
+              <h3 class="card-title" style="color: darkgreen">𝐀𝐓𝐓𝐄𝐍𝐓𝐈𝐎𝐍, 𝐒𝐓𝐈𝐍𝐆𝐑𝐀𝐘𝐒!</h3>
+              <p class="card-text">Date: 𝐃𝐞𝐜𝐞𝐦𝐛𝐞𝐫 𝟏𝟐, 𝟐𝟎𝟐𝟑</p>
+              <p class="card-text">Excitement is building up for the 𝐆𝐚𝐰𝐚𝐝 𝐏𝐚𝐫𝐚𝐧𝐠𝐚𝐥 𝐁𝐚𝐭𝐜𝐡 𝟐𝟎𝟐𝟐-𝟐𝟎𝟐𝟑 at 𝐂𝐯𝐒𝐔 - 𝐁𝐚𝐜𝐨𝐨𝐫 𝐂𝐢𝐭𝐲 𝐂𝐚𝐦𝐩𝐮𝐬! Save the date: 𝐃𝐞𝐜𝐞𝐦𝐛𝐞𝐫 𝟏𝟐, 𝟐𝟎𝟐𝟑. Calling all top-performing students - this is your moment! 🌟 Be recognized for your outstanding achievements.
+                𝐏𝐋𝐄𝐀𝐒𝐄 𝐁𝐄 𝐆𝐔𝐈𝐃𝐄𝐃 𝐀𝐂𝐂𝐎𝐑𝐃𝐈𝐍𝐆𝐋𝐘!</p>
+            </div>
+          </div>
+    
+          <div class="card mb-4">
+            <div class="card-body">
+              <h3 class="card-title" style="color: darkgreen">Exciting Event Coming Up!</h3>
+              <p class="card-text">Date: 𝐍𝐨𝐯𝐞𝐦𝐛𝐞𝐫 𝟐𝟗, 𝟐𝟎𝟐𝟑 (𝐖𝐞𝐝𝐧𝐞𝐬𝐝𝐚𝐲)</p>
+              <p class="card-text">𝐓𝐡𝐞 𝐎𝐟𝐟𝐢𝐜𝐞 𝐨𝐟 𝐭𝐡𝐞 𝐂𝐚𝐦𝐩𝐮𝐬 𝐀𝐝𝐦𝐢𝐧𝐢𝐬𝐭𝐫𝐚𝐭𝐨𝐫 𝐡𝐚𝐬 𝐫𝐞𝐥𝐞𝐚𝐬𝐞𝐝 𝐭𝐡𝐞 𝐎𝐟𝐟𝐢𝐜𝐞 𝐌𝐞𝐦𝐨. 𝐍𝐨. 𝟑𝟐, 𝐬. 𝟐𝟎𝟐𝟑 𝐫𝐞𝐠𝐚𝐫𝐝𝐢𝐧𝐠 𝐭𝐡𝐞 𝐀𝐭𝐭𝐞𝐧𝐝𝐚𝐧𝐜𝐞 𝐭𝐨 𝐎𝐫𝐢𝐞𝐧𝐭𝐚𝐭𝐢𝐨𝐧/𝐑𝐞-𝐎𝐫𝐢𝐞𝐧𝐭𝐚𝐭𝐢𝐨𝐧 𝐂𝐮𝐦 𝐂𝐚𝐩𝐚𝐛𝐢𝐥𝐢𝐭𝐲 𝐄𝐧𝐡𝐚𝐧𝐜𝐞𝐦𝐞𝐧𝐭 𝐟𝐨𝐫 𝐅𝐚𝐜𝐮𝐥𝐭𝐲.
+                Whereas, the 𝐇𝐮𝐦𝐚𝐧 𝐑𝐞𝐬𝐨𝐮𝐫𝐜𝐞 will sponsor an orientation/re-orientation program for all CvSU-Bacoor City Campus employees and Capability Enhancement for Faculty on 𝐍𝐨𝐯𝐞𝐦𝐛𝐞𝐫 𝟐𝟗, 𝟐𝟎𝟐𝟑 (𝐖𝐞𝐝𝐧𝐞𝐬𝐝𝐚𝐲) 𝐟𝐫𝐨𝐦 𝟕:𝟑𝟎 𝐚𝐦-𝟓:𝟎𝟎 𝐩𝐦 𝐚𝐭 𝐭𝐡𝐞 𝐒𝐚𝐭𝐢𝐬 𝐏𝐥𝐚𝐜𝐞 𝐚𝐧𝐝 𝐏𝐚𝐫𝐭𝐲 𝐕𝐞𝐧𝐮𝐞, 𝐁𝐚𝐡𝐚𝐲𝐚𝐧𝐠 𝐏𝐚𝐠-𝐀𝐬𝐚, 𝐌𝐨𝐥𝐢𝐧𝐨 𝐕, 𝐁𝐚𝐜𝐨𝐨𝐫 𝐂𝐢𝐭𝐲, 𝐂𝐚𝐯𝐢𝐭𝐞.
+                In line with this, 𝐚𝐥𝐥 𝐟𝐚𝐜𝐞-𝐭𝐨-𝐟𝐚𝐜𝐞 𝐜𝐥𝐚𝐬𝐬𝐞𝐬 𝐚𝐧𝐝 𝐨𝐟𝐟𝐢𝐜𝐞 𝐭𝐫𝐚𝐧𝐬𝐚𝐜𝐭𝐢𝐨𝐧𝐬 𝐚𝐫𝐞 𝐬𝐮𝐬𝐩𝐞𝐧𝐝𝐞𝐝. Faculty members are advised to conduct asynchronous activities on this day to ensure continuous delivery of instruction.
+                𝗣𝗟𝗘𝗔𝗦𝗘 𝗕𝗘 𝗚𝗨𝗜𝗗𝗘𝗗 𝗔𝗖𝗖𝗢𝗥𝗗𝗜𝗡𝗚𝗟𝗬.
+                </p>
+            </div>
+          </div>
+    
+          <div class="card mb-4">
+            <div class="card-body">
+              <h3 class="card-title" style="color: darkgreen">𝐀𝐓𝐓𝐄𝐍𝐓𝐈𝐎𝐍 𝐆𝐑𝐀𝐃𝐔𝐀𝐓𝐈𝐍𝐆 𝐒𝐓𝐔𝐃𝐄𝐍𝐓𝐒! </h3>
+              <p class="card-text">Date: 𝗡𝗼𝘃𝗲𝗺𝗯𝗲𝗿 𝟮𝟵, 𝟮𝟬𝟮𝟯</p>
+              <p class="card-text">The 𝗢𝗳𝗳𝗶𝗰𝗲 𝗼𝗳 𝗦𝘁𝘂𝗱𝗲𝗻𝘁 𝗔𝗳𝗳𝗮𝗶𝗿𝘀 𝗮𝗻𝗱 𝗦𝗲𝗿𝘃𝗶𝗰𝗲𝘀, in collaboration with 𝗘𝘃𝗲𝗿𝘆 𝗡𝗮𝘁𝗶𝗼𝗻 𝗖𝗮𝗺𝗽𝘂𝘀 (𝗘𝗡𝗖) brings you a 𝗖𝗮𝗿𝗲𝗲𝗿 𝗧𝗮𝗹𝗸 𝗼𝗻 𝗡𝗼𝘃𝗲𝗺𝗯𝗲𝗿 𝟮𝟵, 𝟮𝟬𝟮𝟯, 𝗳𝗿𝗼𝗺 𝟴:𝟯𝟬 𝗔𝗠 𝘁𝗼 𝟭𝟮:𝟬𝟬 𝗡𝗡 at the 𝗖𝘃𝗦𝗨 - 𝗕𝗮𝗰𝗼𝗼𝗿 𝗖𝗶𝘁𝘆 𝗖𝗮𝗺𝗽𝘂𝘀 𝗖𝗼𝘃𝗲𝗿𝗲𝗱 𝗖𝗼𝘂𝗿𝘁.
+                All 4th-year students are required to attend. OJT/Practice Teaching Coordinators, must inform the immediate supervisors of students with ongoing OJT/Practice Teaching. Mark your calendars! 🌟
+                𝗣𝗟𝗘𝗔𝗦𝗘 𝗕𝗘 𝗚𝗨𝗜𝗗𝗘𝗗 𝗔𝗖𝗖𝗢𝗥𝗗𝗜𝗡𝗚𝗟𝗬
+                𝙎𝙊𝙐𝙍𝘾𝙀: 𝙊𝙁𝙁𝙄𝘾𝙀 𝙊𝙁 𝙏𝙃𝙀 𝘾𝘼𝙈𝙋𝙐𝙎 𝘼𝘿𝙈𝙄𝙉𝙄𝙎𝙏𝙍𝘼𝙏𝙊𝙍</p>
+            </div>
+          </div>
+    
+          <div class="card mb-4">
+            <div class="card-body">
+              <h3 class="card-title" style="color: darkgreen">𝗔𝗧𝗧𝗘𝗡𝗧𝗜𝗢𝗡, 𝗦𝗧𝗜𝗡𝗚𝗥𝗔𝗬𝗦!</h3>
+              <p class="card-text">Date: 𝗢𝗰𝘁𝗼𝗯𝗲𝗿 𝟮𝟭, 𝟮𝟬𝟮𝟯</p>
+              <p class="card-text">𝗧𝗵𝗲 𝗖𝗼𝗻𝗰𝗲𝗿𝗻𝗲𝗱 𝗛𝗼𝗺𝗲𝗼𝘄𝗻𝗲𝗿𝘀 𝗔𝘀𝘀𝗼𝗰𝗶𝗮𝘁𝗶𝗼𝗻 𝗨𝗻𝗶𝗼𝗻 𝗼𝗳 𝗠𝗼𝗹𝗶𝗻𝗼 (𝗖𝗛𝗨𝗠) 𝗜𝗻𝗰. 𝗿𝗲𝗹𝗲𝗮𝘀𝗲𝗱 𝗮 𝗕𝗼𝗮𝗿𝗱 𝗥𝗲𝘀𝗼𝗹𝘂𝘁𝗶𝗼𝗻 𝗡𝗼. 𝟭𝟬-𝟬𝟬𝟵 𝗦𝗲𝗿𝗶𝗲𝘀 𝗼𝗳 𝟮𝟬𝟮𝟯 𝗿𝗲𝗴𝗮𝗿𝗱𝗶𝗻𝗴 𝘁𝗵𝗲 𝗜𝗺𝗽𝗹𝗲𝗺𝗲𝗻𝘁𝗮𝘁𝗶𝗼𝗻 𝗼𝗳 𝗖𝗹𝗲𝗮𝗿𝗶𝗻𝗴 𝗼𝗳 𝗢𝗯𝘀𝘁𝗿𝘂𝗰𝘁𝗶𝗼𝗻 𝗮𝗹𝗼𝗻𝗴 𝗖𝗮𝘃𝗶𝘁𝗲 𝗦𝘁𝗮𝘁𝗲 𝗨𝗻𝗶𝘃𝗲𝗿𝘀𝗶𝘁𝘆 (𝗖𝘃𝗦𝗨) 𝗣𝗿𝗲𝗺𝗶𝘀𝗲𝘀.
+                Whereas, a special meeting was held on 𝗢𝗰𝘁𝗼𝗯𝗲𝗿 𝟮𝟬, 𝟮𝟬𝟮𝟯 where the officers and the board members of CHUM discussed the various obstructions surrounding the Cavite State University-Bacoor City Campus.
+                𝗧𝗵𝗲 𝗳𝗼𝗹𝗹𝗼𝘄𝗶𝗻𝗴 𝘀𝗼𝗹𝘂𝘁𝗶𝗼𝗻 𝗵𝗮𝘀 𝗯𝗲𝗲𝗻 𝗿𝗲𝗰𝗼𝗺𝗺𝗲𝗻𝗱𝗲𝗱 𝗯𝘆 𝘁𝗵𝗲 𝗔𝗱𝗺𝗶𝗻𝗶𝘀𝘁𝗿𝗮𝘁𝗶𝗼𝗻 𝗼𝗳 𝗖𝗮𝘃𝗶𝘁𝗲 𝗦𝘁𝗮𝘁𝗲 𝗨𝗻𝗶𝘃𝗲𝗿𝘀𝗶𝘁𝘆-𝗕𝗮𝗰𝗼𝗼𝗿 𝗖𝗶𝘁𝘆 𝗖𝗮𝗺𝗽𝘂𝘀:
+                1. All debris/infrastructure beside the perimeter fence of the school should be removed and cleared.
+                2. Vehicles and motorcycles should not park on the road way beside the perimeter fence of the school.
+                3. Roads near the perimeter fence of the school along Block 4 and 6 should be free from debris, infrastructure and motor vehicles for efficient and fast movement of traffic. 
+                4. All motor vehicles coming from Block 4 should exit to Block 18.
+                5. Motorcycle parking will be designated by the school administration based on the recommendation of the HOA.
+                6. Drop off and pick up point of tricycle drivers should be designated at Block 4 exit of the campus.
+                𝗧𝗵𝗲 𝗿𝗲𝘀𝗼𝗹𝘂𝘁𝗶𝗼𝗻 𝘄𝗮𝘀 𝘀𝗶𝗴𝗻𝗲𝗱 𝗼𝗻 𝗢𝗰𝘁𝗼𝗯𝗲𝗿 𝟮𝟭, 𝟮𝟬𝟮𝟯 𝗮𝘁 𝗠𝗼𝗹𝗶𝗻𝗼 𝟲, 𝗖𝗶𝘁𝘆 𝗼𝗳 𝗕𝗮𝗰𝗼𝗼𝗿</p>
+            </div>
+          </div>
+    
+        </div>
+      </div>
+   
+    {% endblock feature %}
+ 
+ 
+  </main>
+
+
+  <!-- Content goes here -->
+
+  <footer>
+    <!-- place footer here -->
+  </footer>
+  <!-- Bootstrap JavaScript Libraries -->
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"
+    integrity="sha384-oBqDVmMz9ATKxIep9tiCxS/Z9fNfEXiDAYTujMAeBAsjFuCZSmKbSSUnQlmh/jp3" crossorigin="anonymous">
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/js/bootstrap.min.js"
+    integrity="sha384-7VPbUDkoPSGFnVtYi0QogXtr74QeVeeIs99Qfg5YCF+TidwNdjvaKZX19NZ/e6oz" crossorigin="anonymous">
+    
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+
+ 
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+   
+   
+</body>
+
+</html>

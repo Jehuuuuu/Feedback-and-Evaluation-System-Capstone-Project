@@ -1,0 +1,20 @@
+{% extends "pages/admin.html" %}
+
+{% block title %}Edit Section{% endblock %}
+
+{% block header %}
+
+    <h2> Edit Section</h2>
+    <hr>
+   
+{% endblock header %}
+<hr>
+{% block feature %}
+<form method="POST" action="">
+    {% csrf_token %}
+    {{ form.as_p }}
+
+
+<input type = "submit" value="Save changes">
+</form>
+{% endblock feature %}

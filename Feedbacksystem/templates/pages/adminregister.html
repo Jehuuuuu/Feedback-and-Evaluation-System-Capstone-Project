@@ -1,0 +1,27 @@
+{% extends "pages/admin.html" %}
+
+{% block title %}Admin Registration Form{% endblock %}
+
+{% block header %}
+
+    <h2> Register Admin</h2>
+    <hr>
+   
+{% endblock header %}
+<hr>
+{% block feature %}
+{% if messages %}
+<ul class="messages">
+    {% for message in messages %}
+    <li>{{ message }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+<form method="POST" action="">
+    {% csrf_token %}
+    {{ form.as_p }}
+
+
+<input type = "submit" value="Register">
+</form>
+{% endblock feature %}

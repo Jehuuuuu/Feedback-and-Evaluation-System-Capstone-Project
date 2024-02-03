@@ -1,0 +1,47 @@
+{% extends "pages/home.html" %}
+{% load static %}
+{% block title %}Profile{% endblock %}
+
+{% block header %}
+
+    <h2> Profile</h2>
+    <hr>
+    {% endblock header %}
+    {% block feature %}
+    <div class="container">
+       
+        <div id="profile" class = "container">
+           
+            <img src="{{ student.profile_picture.url }}" alt="Student Profile"  width="150">
+            <h4>Student Number: {{ student.student_number }} </h4> 
+            <h4>Name: {{ student.name }} </h4>
+            <h4>Age: {{ student.age}} </h4>
+            <h4>Sex: {{student.sex}} </h4>
+            <h4>Course: {{student.Course}}</h4>
+            <h4>Section: {{student.Section}}</h4>
+            
+           </div>
+
+    </div>
+    <hr>
+
+    <h3>Section: {{student.Section}}</h3>
+    <table class="table table-hover table-striped table-bordered table-responsive  ">
+        <tr>
+        <th>Subject</th>
+        <th>Teacher</th>
+        <th>Options</th>
+    </tr>
+    <tr>
+        {% for i in section_subjects_faculty %}
+            <td>{{ i.subjects.subject_code }}</td>
+            <td>{{ i.faculty.last_name }}</td>
+            <td> <a class="nav-link" href="{% url 'evaluate_subject_faculty' i.pk %}"> Evaluate</td>
+ 
+    </tr>
+
+    {% endfor %}
+    
+    </table>
+    {% endblock feature %}
+

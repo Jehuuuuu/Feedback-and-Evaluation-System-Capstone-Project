@@ -1,0 +1,33 @@
+{% extends "pages/admin.html" %}
+
+{% block title %}Courses{% endblock %}
+
+{% block header %}
+
+    <h2> Evaluations </h2>
+    <hr>
+   
+{% endblock header %}
+<hr>
+{% block feature %}
+
+<table class="table table-hover table-striped table-bordered table-responsive  ">
+    <tr>
+        <th scope="col" class="bg-success">EVALUATOR </th>
+        <th  scope="col" class="bg-success">SUBJECT-FACULTY </th>
+        <th  scope="col" class="bg-success">RATING </th>
+        <th  scope="col" class="bg-success">COMMENTS </th>
+    </tr>
+    {% for i in evaluation %}
+    <tr>
+        <td>{{ i.student }}</td>
+        <td>{{ i.section_subject_faculty }}</td>
+        <td>{{ i.rating }}</td>
+        <td>{{ i.comments }}</td>
+
+    </tr>
+
+    {% endfor %}
+
+</table>
+{% endblock feature %}

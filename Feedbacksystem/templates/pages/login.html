@@ -1,0 +1,90 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="icon" href="static/images/cvsulogo.png" type="image/png">
+    <link rel="stylesheet" href="{%static 'css/loginpage.css' %}">
+    <link href="https://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet">
+    <a href="#"></a>
+    <title>Feedback and Evaluation System - CvSU Bacoor Campus</title>
+</head>
+
+<body>
+    {% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+        <li>{{ message }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+    <div class="container" id="container">
+        
+        <div class="form-container sign-up" {% if request.POST and 'register' in request.POST %} id="active" {% endif %}>
+            <form method="POST" action="">
+    
+                <br>
+                {% csrf_token %}
+                {{ registration_form.as_p }}
+                
+                <button onclick="showAlert()" type = "Submit" name="register">Register</button>
+          
+            </form>
+        </div>
+        <div class="form-container sign-in" {% if request.POST and 'login' in request.POST %} id="active" {% endif %}>
+            <form method="POST" action="">
+                <h1>CvSU</h1>
+                <h5>Feedback and Evaluation System</h5>
+              
+                {% csrf_token %}
+                {{ login_form.as_p }}
+                <a id="resetpw" href="#">Forgot Your Password?</a>
+                <button type = "Submit" name = "signin">Sign In</button>
+                <a id="admin" href="{% url 'adminlogin' %}">Sign In as Admin</a>
+
+            </form>
+        </div>
+        <div class="toggle-container">
+            <div class="toggle">
+                <div class="toggle-panel toggle-left">
+                    <div style="padding: 10px;">
+                    <h1>Creating Account</h1>
+                    <br>
+                  <ul>
+                    <li>Provide the requested information to register</li>
+                    <br>
+                    <li>Make sure to enter valid student number and password</li>
+                    <br>
+                    <li>Information must match our record</li>
+
+                  </ul>
+                </div>
+                <br>
+                    <button class="hidden" id="login">Sign In</button>
+                </div>
+                <div class="toggle-panel toggle-right">
+                    <h1>Trouble logging into your account?</h1>
+                    <br>
+                   <ul>
+                    <li>Make sure to enter valid student number and password</li>
+                    <br>
+                    <li>Information must match our record</li>
+                    <br>
+                    <li>Account must be activated</li>
+                    <br>
+                   </ul>
+                  
+                    <button class="hidden" id="register">REGISTER</button>
+                </div>
+            </div>
+        </div>
+    </div>
+<script src="{%static 'js/scripts.js' %}">
+</script>
+
+</body>
+
+</html>

@@ -1,0 +1,38 @@
+{% extends "pages/home.html" %}
+
+{% block title %}Event Experience Hub Feature{% endblock %}
+
+{% block header %}
+
+    <h2> Evaluate</h2>
+   
+    <hr>
+{% endblock header %}
+{% block feature %}
+<h1>Evaluate {{ section_subject_faculty.faculty }}</h1>
+<form method="POST" action="">
+    {% csrf_token %}
+    <table class="table table-hover table-striped table-bordered table-responsive  ">
+        <tr>
+            
+            <th  scope="col" class="bg-success">QUESTION </th>
+            <th  scope="col" class="bg-success">RATING </th>
+            
+           
+           
+        </tr>
+      
+        <tr>
+            <td>How would you rate the overall performance of the faculty?</td>
+            <td>{{ form.rating }}</td>
+        </tr>
+        
+    
+</table>
+    <label for="{{ form.comments.id_for_label }}">Provide additional comments or feedback:</label>
+  {{ form.comments }}
+  <br>
+    <input type="submit" value="Submit">
+</form>
+
+{% endblock feature %}

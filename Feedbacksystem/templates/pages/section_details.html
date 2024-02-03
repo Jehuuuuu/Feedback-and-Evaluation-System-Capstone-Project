@@ -1,0 +1,31 @@
+{% extends "pages/admin.html" %}
+
+{% block title %}{{ section.name }} Details{% endblock %}
+
+{% block header %}
+
+    <h2>{{section.name}} Details</h2>
+    <hr>
+   
+{% endblock header %}
+<hr>
+{% block feature %}
+<a style = "color: black;" href="{% url 'addsub_section' %}"><b>+ Add Subject and Teacher</b></a>
+<br>
+<br>
+    <table class="table table-hover table-striped table-bordered table-responsive  ">
+        <tr>
+        <th>Subject</th>
+        <th>Teacher</th>
+    </tr>
+    <tr>
+        {% for i in subjects_faculty %}
+            <td>{{ i.subjects.subject_code }}</td>
+            <td>{{ i.faculty.last_name }}</td>
+ 
+    </tr>
+
+    {% endfor %}
+    
+    </table>
+{% endblock feature %}

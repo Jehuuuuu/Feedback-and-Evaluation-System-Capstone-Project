@@ -1,0 +1,40 @@
+{% extends "pages/admin.html" %}
+
+{% block title %}Subjects{% endblock %}
+
+{% block header %}
+
+    <h2> Manage Subjects</h2>
+    <hr>
+   
+{% endblock header %}
+<hr>
+{% block feature %}
+<a style = "color: black;" href="{% url 'addsubject' %}"><b>+ Add Subject</b></a>
+<br>
+<br>
+<table class="table table-hover table-striped table-bordered table-responsive  ">
+    <tr>
+        <th scope="col" class="bg-success">ID </th>
+        <th  scope="col" class="bg-success">SUBJECT CODE </th>
+        <th  scope="col" class="bg-success">SUBJECT NAME </th>
+        <th  scope="col" class="bg-success">OPTIONS </th>
+       
+       
+    </tr>
+    {% for i in subject %}
+    <tr>
+        <td>{{ i.pk }}</td>
+        <td>{{ i.subject_code }}</td>
+        <td>{{ i.subject_name }}</td>   
+        <td style="display: flex; flex-direction: row;"> 
+  
+        <a style="margin-right: 10px;" class="nav-link" href="{% url 'editsubject' i.pk %}"><b>EDIT</b></a>
+        <a style="margin-right: 10px;" class="nav-link" href="{% url 'deleteSubject' i.pk %}"><b>DELETE</b></a>
+          </td>
+    </tr>
+
+    {% endfor %}
+
+</table>
+{% endblock feature %}

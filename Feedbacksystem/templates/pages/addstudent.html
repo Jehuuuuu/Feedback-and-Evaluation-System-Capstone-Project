@@ -1,0 +1,20 @@
+{% extends "pages/admin.html" %}
+
+{% block title %}Add New Student{% endblock %}
+
+{% block header %}
+
+    <h2> Add Student</h2>
+    <hr>
+   
+{% endblock header %}
+<hr>
+{% block feature %}
+<form method="POST" action="" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+
+
+<input type = "submit" value="Add" enctype="multipart/form-data">
+</form>
+{% endblock feature %}

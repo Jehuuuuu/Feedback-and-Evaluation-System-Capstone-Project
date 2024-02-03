@@ -1,0 +1,36 @@
+{% extends "pages/admin.html" %}
+
+{% block title %}Courses{% endblock %}
+
+{% block header %}
+
+    <h2> Manage Courses</h2>
+    <hr>
+   
+{% endblock header %}
+<hr>
+{% block feature %}
+<a style = "color: black;" href="{% url 'addcourse' %}"><b>+ Add Course</b></a>
+<br>
+<br>
+<table class="table table-hover table-striped table-bordered table-responsive  ">
+    <tr>
+        <th scope="col" class="bg-success">ID </th>
+        <th  scope="col" class="bg-success">COURSE </th>
+     
+        <th  scope="col" class="bg-success">OPTIONS </th>
+    </tr>
+    {% for i in course %}
+    <tr>
+        <td>{{ i.id }}</td>
+        <td>{{ i.name }}</td>
+        <td>
+        <a class="nav-link" href="{% url 'editcourse'  i.pk  %}"><b>EDIT</b></a>
+          <a class="nav-link" href="{% url 'deleteCourse'  i.pk  %}"><b>DELETE</b></a>
+        </td>
+    </tr>
+
+    {% endfor %}
+
+</table>
+{% endblock feature %}

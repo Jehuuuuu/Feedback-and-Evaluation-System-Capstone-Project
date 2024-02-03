@@ -1,0 +1,46 @@
+{% extends "pages/admin.html" %}
+
+{% block title %}Students{% endblock %}
+
+{% block header %}
+
+    <h2> Manage Students</h2>
+    <hr>
+   
+{% endblock header %}
+<hr>
+{% block feature %}
+<a style = "color: black;" href="{% url 'addstudent' %}"><b>+ Add Student</b></a>
+<br>
+<br>
+<table class="table table-hover table-striped table-bordered table-responsive  ">
+    <tr>
+        <th  scope="col" class="bg-success">STUDENT NUMBER </th>
+        <th  scope="col" class="bg-success">NAME </th>
+        <th  scope="col" class="bg-success">PROFILE PICTURE </th>
+        <th  scope="col" class="bg-success">AGE </th>
+        <th  scope="col" class="bg-success">SEX </th>
+        <th  scope="col" class="bg-success">COURSE </th>
+        <th  scope="col" class="bg-success">SECTION </th>
+        <th  scope="col" class="bg-success">OPTION </th>
+       
+       
+    </tr>
+    {% for i in students %}
+    <tr>
+        <td>{{ i.pk }}</td>
+        <td>{{ i.name }}</td>
+        <td>{% if i.profile_picture %} <img src="{{ i.profile_picture.url }}" width="150"> {% endif %}</td>
+        <td>{{ i.age }}</td> 
+        <td>{{ i.sex }}</td> 
+        <td>{{ i.Course }}</td>
+        <td>{{ i.Section }}</td>    
+        <td style="display: flex; flex-direction: row;"> <a style="margin-right: 10px;"class="nav-link" href="{}"><b>VIEW</b></a><a style="margin-right: 10px;" class="nav-link" href="{% url 'editstudent'  i.pk  %}"><b>EDIT</b></a>
+            <a style="margin-right: 10px;" class="nav-link" href="{% url 'deleteStudent'  i.pk  %}"><b>DELETE</b></a>
+          </td>
+    </tr>
+
+    {% endfor %}
+
+</table>
+{% endblock feature %}
