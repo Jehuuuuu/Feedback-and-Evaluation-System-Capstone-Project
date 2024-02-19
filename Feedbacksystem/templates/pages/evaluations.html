@@ -16,12 +16,14 @@
         <th  scope="col" class="bg-success">SUBJECT-FACULTY </th>
         <th  scope="col" class="bg-success">RATING </th>
         <th  scope="col" class="bg-success">COMMENTS </th>
+        <th  scope="col" class="bg-success">OPTIONS </th>
     </tr>
     {% for i in evaluation %}
     <tr>
         <td>{{ i.section_subject_faculty }}</td>
         <td>{{ i.rating }}</td>
         <td>{{ i.comments }}</td>
+        <td><a class="nav-link" href="{% url 'deleteEvaluation'  i.pk  %}"><b>DELETE</b></a></td>
 
     </tr>
 

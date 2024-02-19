@@ -176,10 +176,7 @@ def deleteTeacher(request, pk):
 
     return render(request, 'pages/delete.html', {'obj':faculty})
 
-def section_details(request, pk):
-    section = Section.objects.get(pk=pk)
-    subjects_faculty = SectionSubjectFaculty.objects.filter(section=section)
-    return render(request, 'pages/section_details.html', {'section': section, 'subjects_faculty': subjects_faculty})
+
 
 def students(request):
     students = Student.objects.all()
@@ -401,7 +398,6 @@ def evaluate_subject_faculty(request,pk):
 
             # Save the data to the database
             form = LikertEvaluation(
-                student=request.user.student,
                 section_subject_faculty=section_subject_faculty,
                 rating=rating,
                 comments=comments
@@ -431,4 +427,10 @@ def facultyevaluations(request, pk):
 
     return render(request, 'pages/facultyevaluations.html', context)
 
-    
+def deleteEvaluation(request, pk):
+    evaluation = LikertEvaluation.objects.get(pk=pk)
+    if request.method == 'POST':
+            evaluation.delete()
+            return redirect('evaluations')
+
+    return render(request, 'pages/delete.html', {'obj':evaluation})
