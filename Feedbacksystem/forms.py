@@ -9,7 +9,7 @@ from django.forms import formset_factory
 class TeacherForm(ModelForm):
     class Meta:
         model = Faculty
-        fields = '__all__'
+        fields = ['first_name', 'last_name',  'gender', 'email', 'contact_number']
 
 class StudentForm(ModelForm):
     class Meta:

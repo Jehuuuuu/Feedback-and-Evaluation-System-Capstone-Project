@@ -74,6 +74,7 @@ class SectionSubjectFaculty(models.Model):
 
 class Student(models.Model):
 
+    
     student_number = models.CharField(max_length=9, primary_key=True)
     name = models.CharField(max_length=100)
     profile_picture = models.ImageField(upload_to='profile_picture/', null=True, blank = True)
@@ -90,11 +91,17 @@ class Student(models.Model):
     
   
 class LikertEvaluation(models.Model):
-    student = models.ForeignKey(Student, on_delete=models.CASCADE)
     section_subject_faculty = models.ForeignKey(SectionSubjectFaculty, on_delete=models.CASCADE)
     rating = models.IntegerField(choices=[(1, 'Strongly Disagree'), (2, 'Disagree'), (3, 'Neutral'),
                                           (4, 'Agree'), (5, 'Strongly Agree')])
     comments = models.TextField()
+    predicted_sentiment = models.CharField(max_length=50)
+
+    def sentiment_label(self):
+        if self.predicted_sentiment == 1:
+            return 'Positive'
+        else:
+            return 'Negative'
 
     def __str__(self):
        return f"{self. section_subject_faculty} - {self. rating} - {self. comments}"

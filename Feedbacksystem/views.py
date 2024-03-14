@@ -6,6 +6,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import UserCreationForm
 from django.db.models import Avg
+from .utils import load_prediction_models, single_prediction
 
 # Create your views here.
 
@@ -395,12 +396,13 @@ def evaluate_subject_faculty(request,pk):
             # Process the evaluation form
             rating = form.cleaned_data['rating']
             comments = form.cleaned_data['comments']
-
+            predicted_sentiment = single_prediction(comments)
             # Save the data to the database
             form = LikertEvaluation(
                 section_subject_faculty=section_subject_faculty,
                 rating=rating,
-                comments=comments
+                comments=comments,
+                predicted_sentiment=predicted_sentiment
             )
             form.save()
 
@@ -434,3 +436,11 @@ def deleteEvaluation(request, pk):
             return redirect('evaluations')
 
     return render(request, 'pages/delete.html', {'obj':evaluation})
+
+def deleteSub_Section(request, pk):
+    subject = SectionSubjectFaculty.objects.get(pk=pk)
+    if request.method == 'POST':
+            subject.delete()
+            return redirect('sections')
+
+    return render(request, 'pages/delete.html', {'obj':subject})

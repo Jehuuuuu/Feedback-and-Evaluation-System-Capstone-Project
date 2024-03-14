@@ -44,6 +44,7 @@ urlpatterns = [
     path('evaluations', views.evaluations, name='evaluations'),
     path('facultyevaluations/<int:pk>/', views.facultyevaluations, name='facultyevaluations'),
     path('deleteEvaluation/<int:pk>/', views.deleteEvaluation, name='deleteEvaluation'),
+    path('deleteSub_Section/<int:pk>/', views.deleteSub_Section, name='deleteSub_Section'),
     
 
 ]

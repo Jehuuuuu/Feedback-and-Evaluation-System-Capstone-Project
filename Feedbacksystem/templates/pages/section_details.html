@@ -17,12 +17,13 @@
         <tr>
         <th>Subject</th>
         <th>Teacher</th>
+        <th>Options</th>
     </tr>
     <tr>
         {% for i in subjects_faculty %}
             <td>{{ i.subjects.subject_code }}</td>
             <td>{{ i.faculty.last_name }}</td>
- 
+            <td><a class="nav-link" href="{% url 'deleteSub_Section'  i.pk  %}"><b>DELETE</b></a></td>
     </tr>
 
     {% endfor %}
