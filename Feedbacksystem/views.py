@@ -1,11 +1,12 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from Feedbacksystem.models import Course, Section, SectionSubjectFaculty, Faculty, Student, Subject, LikertEvaluation
-from .forms import TeacherForm, StudentForm, CourseForm, SectionForm, SectionSubjectFacultyForm, SubjectForm, StudentRegistrationForm, StudentLoginForm, LikertEvaluationForm
+from .forms import TeacherForm, StudentForm, CourseForm, SectionForm, SectionSubjectFacultyForm, SubjectForm, StudentRegistrationForm, StudentLoginForm, LikertEvaluationForm, FacultyRegistrationForm, FacultyLoginForm
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import UserCreationForm
 from django.db.models import Avg
+from django.http import Http404
 from .utils import load_prediction_models, single_prediction
 
 # Create your views here.
@@ -59,9 +60,6 @@ def studentlogout(request):
 
 def home(request):
     student = Student.objects.filter(student_number=request.user.username).first()
-
-    
-    
     context = {'student': student}
     return render(request, 'pages/home.html', context)
     
@@ -105,19 +103,26 @@ def admin(request):
     return render(request, 'pages/admin.html', context)
 
 def facultyeval(request):
-    return render(request, 'pages/facultyeval.html')
+    student = Student.objects.filter(student_number=request.user.username).first()
+    section_subjects_faculty = SectionSubjectFaculty.objects.filter(section=student.Section)
+    
+    return render(request, 'pages/facultyeval.html', {'student': student, 'section_subjects_faculty': section_subjects_faculty})
 
 def eventhub(request):
-    return render(request, 'pages/eventhub.html')
+    student = Student.objects.filter(student_number=request.user.username).first()
+    return render(request, 'pages/eventhub.html', {'student': student})
 
 def suggestionbox(request):
-    return render(request, 'pages/suggestionbox.html')
+    student = Student.objects.filter(student_number=request.user.username).first()
+    return render(request, 'pages/suggestionbox.html', {'student': student})
 
 def contactUs(request):
-    return render(request, 'pages/contactUs.html')
+    student = Student.objects.filter(student_number=request.user.username).first()
+    return render(request, 'pages/contactUs.html', {'student': student})
 
 def about(request):
-    return render(request, 'pages/about.html')
+    student = Student.objects.filter(student_number=request.user.username).first()
+    return render(request, 'pages/about.html', {'student': student})
 
 def courses(request):
     course = Course.objects.all()
@@ -390,6 +395,8 @@ def adminregister(request):
 
 def evaluate_subject_faculty(request,pk):
     section_subject_faculty = get_object_or_404(SectionSubjectFaculty, pk=pk)
+    student = Student.objects.filter(student_number=request.user.username).first()
+    section_subjects_faculty = SectionSubjectFaculty.objects.filter(section=student.Section)
     if request.method == 'POST':
         form = LikertEvaluationForm(request.POST)
         if form.is_valid():
@@ -406,10 +413,10 @@ def evaluate_subject_faculty(request,pk):
             )
             form.save()
 
-            return redirect('student_profile')  # Redirect to a success page or wherever you want
+            return redirect('facultyeval')  # Redirect to a success page or wherever you want
     else:
         form = LikertEvaluationForm()
-        context = { 'form': form, 'section_subject_faculty': section_subject_faculty,
+        context = { 'form': form, 'section_subject_faculty': section_subject_faculty, 'section_subjects_faculty': section_subjects_faculty
     }
     return render(request, 'pages/evaluate_subject_faculty.html', context)
 
@@ -444,3 +451,81 @@ def deleteSub_Section(request, pk):
             return redirect('sections')
 
     return render(request, 'pages/delete.html', {'obj':subject})
+
+def facultydashboard(request):
+    faculty = Faculty.objects.filter(email=request.user.username).first()    
+    context = {'faculty': faculty}
+    return render(request, 'pages/facultydashboard.html', context)
+
+def facultylogin(request):
+    registration_form = FacultyRegistrationForm()
+    login_form = FacultyLoginForm()
+
+    if request.method == 'POST':
+
+        if 'signin' in request.POST:
+            # Handle login form submission
+            login_form = FacultyLoginForm(request.POST)
+            if login_form.is_valid():
+               email = login_form.cleaned_data['email']
+               password = login_form.cleaned_data['password']
+
+            # Authenticate the user
+            user = authenticate(request, username=email, password=password)
+
+            if user is not None:
+                # Login the user
+                login(request, user)
+                return redirect('facultydashboard')  # Redirect to the home page or any desired URL after successful login
+            else:
+
+                try:
+                        user = User.objects.get(username=email)
+                except User.DoesNotExist:
+                        messages.error(request, 'Your email is not registered.')
+                
+                else:
+                        messages.error(request, 'Invalid password.')
+               
+              
+        elif 'register' in request.POST:
+            # Handle registration form submission
+            registration_form = FacultyRegistrationForm(request.POST)
+            if registration_form.is_valid():
+                registration_form.save()
+                messages.success(request, 'Registration successful!')
+                return redirect('facultylogin')  # Redirect to the home page or any desired URL after successful registration
+
+    context = {'registration_form': registration_form, 'login_form': login_form,}
+    
+    return render(request, 'pages/facultylogin.html', context)
+
+def facultyprofile(request):
+    faculty = Faculty.objects.filter(email=request.user.username).first()    
+    context = {'faculty': faculty}
+    return render(request, 'pages/facultyprofile.html', context)
+   
+    
+def facultyfeedbackandevaluations(request):
+    faculty = Faculty.objects.filter(email=request.user.username).first()       
+    email = request.user.email
+
+    try:
+        # Query the Faculty model using the email address
+        teacher = Faculty.objects.get(email=email)
+    except Faculty.DoesNotExist:
+        # Handle the case where the faculty with the given email does not exist
+        raise Http404("Faculty does not exist for the logged-in user")
+
+    # Now you have the faculty object, you can proceed with further processing
+    # For example, fetching evaluations related to this faculty
+
+    # Assuming you have the necessary logic to fetch evaluations
+    teacher_evaluations = LikertEvaluation.objects.filter(section_subject_faculty__faculty=teacher)
+
+    # Calculate average rating or any other necessary processing
+    avg_rating = teacher_evaluations.aggregate(Avg('rating'))['rating__avg']
+
+    context = {'faculty': faculty, 'teacher': teacher, 'teacher_evaluations': teacher_evaluations, 'avg_rating': avg_rating}
+
+    return render(request, 'pages/facultyfeedbackandevaluations.html', context)

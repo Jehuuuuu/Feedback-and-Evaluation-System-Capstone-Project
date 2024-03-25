@@ -45,7 +45,10 @@ urlpatterns = [
     path('facultyevaluations/<int:pk>/', views.facultyevaluations, name='facultyevaluations'),
     path('deleteEvaluation/<int:pk>/', views.deleteEvaluation, name='deleteEvaluation'),
     path('deleteSub_Section/<int:pk>/', views.deleteSub_Section, name='deleteSub_Section'),
-    
+    path('facultydashboard', views.facultydashboard, name='facultydashboard'),
+    path('facultylogin', views.facultylogin, name='facultylogin'),
+    path('facultyprofile', views.facultyprofile, name='facultyprofile'),
+    path('facultyfeedbackandevaluations', views.facultyfeedbackandevaluations, name='facultyfeedbackandevaluations'),
 
 ]
 
