@@ -1,0 +1,35 @@
+{% extends "pages/facultydashboard.html" %}
+{% load static %}
+{% block title %}Profile{% endblock %}
+
+{% block header %}
+
+    <h2> Profile</h2>
+    <hr>
+    {% endblock header %}
+    {% block feature %}
+    <div class="container" id="profilecontainer">
+       
+        <div id="profile" class = "container">
+           
+            {% if faculty.profile_picture %}
+            <img src="{{ faculty.profile_picture.url }}" alt="Profile Picture" width="150" style="margin-bottom: 2em;">
+            {% else %}
+            <img src="{% static 'images/Default_avatar.webp' %}" alt="Default Profile Picture" width="150" style="margin-bottom: 2em;" >
+            {% endif %}
+            <h4>Name: {{ faculty.first_name }} {{ faculty.last_name }} </h4>
+            <h4>Email: {{ faculty.email }} </h4> 
+            <h4>Gender: {{faculty.gender}} </h4>
+            <h4>Contact Number: {{faculty.contact_number}}</h4>
+            <h4>Department: {{faculty.department}}</h4>
+
+            
+            
+            
+           </div>
+
+    
+    
+    </table>
+    {% endblock feature %}
+
