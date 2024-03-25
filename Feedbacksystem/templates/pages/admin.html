@@ -11,16 +11,27 @@
   
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
   <link rel="icon" href="static/images/cvsulogo.png" type="image/png">
-  <link rel="stylesheet" href="{% static 'css/adminpage.css'%}">
+  <link rel="stylesheet" href="{% static 'css/admin.css'%}">
   <link href="https://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet">
 
 </head>
 
 <body>
-  <div class="container-fluid">
-    <div class="row">
-      <nav id="headerbar" class="col-md-12 col-lg-12 d-md-block sidebar headerbar"> 
-  <a class="navbar-brand" style="color: white;" href="{% url 'admin' %}" id="headerlogo"><img src="{% static 'images/cvsulogo.png'%}" alt="Cavite State Univeristy Logo" width="64px" height="64px" id="cvsulogo">Feedback and Evaluation System <br> <div class=subtitle>Cavite State University Bacoor City Campus</div> </a> 
+  <div class="container-fluid" style="padding: 0;">
+    <div style="display: flex; align-items: center; background-color: #2a9134; margin: 0; width: 100%; height: 20vh;">
+        <a class="navbar-brand" style="color: #fafafa;" href="{% url 'home' %}" id="headerlogo">
+            <img src="{% static 'images/cvsulogo.png'%}" alt="Cavite State Univeristy Logo" width="64px" height="64px" id="cvsulogo"> Feedback and Evaluation System 
+            <div class="subtitle">Cavite State University Bacoor City Campus</div>
+        </a>
+        <div style="margin-left: 30rem;">
+          {% if faculty.profile_picture %}
+          <img src="{{ faculty.profile_picture.url }}" alt="Profile Picture" width="60" style=" border-radius: 50%;">
+          {% else %}
+          <img src="{% static 'images/Default_avatar.webp' %}" alt="Default Profile Picture" width="60" style="margin-right: 1em; border-radius: 50%;" >
+          {% endif %}
+         <p id="profile_name" style="color: #fafafa; display: inline-block; font-weight: 500;">{{ request.user }}</p> </a>
+        </div>
+    </div>
 </div>
 </div>
 </nav>
@@ -83,7 +94,7 @@
     
     <div class="container" style="padding:10px; margin-top:10px;">
       {% block header %}
-    <h4 >Welcome {{ request.user }}!</h4> <a style = "color: black;" href="{% url 'adminregister' %}"><b>+ Add New Admin</b></a>
+     <a style = "color: black; text-decoration: none;" href="{% url 'adminregister' %}"><b>+ Add New Admin</b></a>
     <hr>
     <div id="eval" class = "container">
       <h3>Academic Year: 2024-2025 </h3>

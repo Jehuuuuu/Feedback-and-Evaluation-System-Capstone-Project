@@ -14,7 +14,10 @@
   <link rel="stylesheet" href="{% static 'css/loginpage.css'%}">
   <style>
     input[type="submit"] {
-      background-color: #f7b205; /* Change the color as per your preference */
+      background-color: #f7b205; 
+      font-weight: 600;
+      margin-top: 1.5em;
+     
     }
   </style>
 
@@ -32,11 +35,11 @@
 <form method="POST" action="">
     {% csrf_token %}
     <a style = "margin-right: 20px;" href = "{% url 'signin' %}"> <- Back to Student Login </a> 
-    <label>Admin Username:</label>
-    <input type = "text" name="username" placeholder="Enter Admin Username">
-    <label>Admin Password:</label>
-    <input type = "password" name="password" placeholder="Enter Admin Password">
-<input type = "submit" value="Submit"> 
+    <label id ="admin">Admin Username:</label>
+    <input class="admininput" type = "text" name="username" placeholder="Enter Admin Username">
+    <label id ="admin">Admin Password:</label>
+    <input class="admininput" type = "password" name="password" placeholder="Enter Admin Password">
+<input  type = "submit" value="Submit"> 
 
 </form>
 </div>
