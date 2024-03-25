@@ -4,12 +4,27 @@
 
 {% block header %}
 
-    <h2> Evaluate</h2>
+    <h2> Faculty Evaluation</h2>
    
     <hr>
 {% endblock header %}
 {% block feature %}
 <h1>Evaluate {{ section_subject_faculty.faculty }}</h1>
+<select id="faculty-select" onchange="redirectToEvaluation(this)">
+    <option value="">Select Faculty</option> <!-- Placeholder option -->
+    {% for i in section_subjects_faculty %}
+    <option value="{% url 'evaluate_subject_faculty' i.pk %}">{{ i.faculty.first_name }} {{ i.faculty.last_name }}</option>
+    {% endfor %}
+
+</select>
+<script>
+    function redirectToEvaluation(selectElement) {
+        var selectedValue = selectElement.value;
+        if (selectedValue) {
+            window.location.href = selectedValue;
+        }
+    }
+</script>
 <form method="POST" action="">
     {% csrf_token %}
     <table class="table table-hover table-striped table-bordered table-responsive  ">
@@ -30,9 +45,9 @@
     
 </table>
     <label for="{{ form.comments.id_for_label }}">Provide additional comments or feedback:</label>
-  {{ form.comments }}
+  {{ form.comments }} 
   <br>
-    <input type="submit" value="Submit">
+  <input type="submit"  class="btn btn-warning" value="Submit">
 </form>
 
 {% endblock feature %}
