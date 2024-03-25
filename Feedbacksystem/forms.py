@@ -43,7 +43,7 @@ class StudentRegistrationForm(UserCreationForm):
 
     class Meta:
         model = User
-        fields = ( 'student_number', 'password1', 'password2')
+        fields = ('student_number', 'password1', 'password2')
 
     def clean_student_number(self):
         student_number = self.cleaned_data['student_number']
@@ -77,14 +77,57 @@ class StudentRegistrationForm(UserCreationForm):
         for field_name in self.fields:
             self.fields[field_name].help_text = ''
 
+class FacultyRegistrationForm(UserCreationForm):
+    email = forms.EmailField(max_length=100)
+
+    class Meta:
+        model = User
+        fields = ( 'email', 'password1', 'password2')
+
+    def clean_faculty_email(self):
+        email = self.cleaned_data['email']
+
+        # Check if the student number exists in the database
+        existing_student = Faculty.objects.filter(email=email).first()
+
+        if not existing_student:
+            raise ValidationError("Faculy with this email does not exist. Please contact the admin to create an account.")
+
+        return email
+
+    def save(self, commit=True):
+        # Save the user first
+        user = super().save(commit=False)
+
+        user.username = self.cleaned_data['email']
+
+        # Associate the user with the faculty record
+        user.student = Faculty.objects.get(email=self.cleaned_data['email'])
+
+        if commit:
+            user.save()
+
+        return user
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # Set help_text to an empty string for each field
+        for field_name in self.fields:
+            self.fields[field_name].help_text = ''
+
 class StudentLoginForm(forms.Form):
     student_number = forms.CharField(max_length=9)
     password = forms.CharField(widget=forms.PasswordInput)
 
+class FacultyLoginForm(forms.Form):
+    email = forms.EmailField(max_length=100)
+    password = forms.CharField(widget=forms.PasswordInput)
+
 class LikertEvaluationForm(forms.Form):
-    rating = forms.ChoiceField(choices=[(1, '1 - Poor'), (2, '2 - Below Average'), (3, '3 - Average'),
-                                        (4, '4 - Good'), (5, '5 - Outstanding')],
+    rating = forms.ChoiceField(choices=[(1, '1 - Very Dissatisfied'), (2, '2 - Dissatisfied'), (3, '3 - Neutral'),
+                                        (4, '4 - Satisfied'), (5, '5 - Very Satisfied')],
                                widget=forms.RadioSelect)
-    comments = forms.CharField(widget=forms.Textarea(attrs={'rows': 2}))
+    comments = forms.CharField(widget=forms.Textarea(attrs={'rows': 2, 'columns': 2}))
 
 LikertEvaluationFormSet = formset_factory(LikertEvaluationForm, extra=1)
