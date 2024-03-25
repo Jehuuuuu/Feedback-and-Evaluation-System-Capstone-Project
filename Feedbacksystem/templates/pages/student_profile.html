@@ -12,30 +12,32 @@
        
         <div id="profile" class = "container">
            
-            <img src="{{ student.profile_picture.url }}" alt="Student Profile"  width="150">
+            {% if student.profile_picture %}
+            <img src="{{ student.profile_picture.url }}" alt="Profile Picture" width="150" style="margin-bottom: 2em;">
+            {% else %}
+            <img src="{% static 'images/Default_avatar.webp' %}" alt="Default Profile Picture" width="150" style="margin-bottom: 2em;" >
+            {% endif %}
             <h4>Student Number: {{ student.student_number }} </h4> 
             <h4>Name: {{ student.name }} </h4>
             <h4>Age: {{ student.age}} </h4>
-            <h4>Sex: {{student.sex}} </h4>
-            <h4>Course: {{student.Course}}</h4>
+            <h4>Gender: {{student.sex}} </h4>
+            <h4>Program & Section: {{student.Section}}</h4>
             
             
             
            </div>
         <div class="tablecontainer" style="display: inline-block; margin-left: 20px; width: 500px;">
-            <h4>Section: {{student.Section}}</h4>
-           <table class="table table-hover table-striped table-bordered table-responsive  ">
+           <table class="table table-bordered table-responsive ">
             <tr>
             <th>Subject</th>
             <th>Teacher</th>
-            <th>Options</th>
+            <th>Status</th>
         </tr>
         <tr>
             {% for i in section_subjects_faculty %}
                 <td>{{ i.subjects.subject_code }}</td>
                 <td>{{ i.faculty.last_name }}</td>
-                <td> <a class="nav-link" href="{% url 'evaluate_subject_faculty' i.pk %}"> Evaluate</td>
-     
+                <td style="color: #2a9134;">Evaluated <i class="bi bi-check-circle-fill"></i></td>
         </tr>
     </div>
     </div>
