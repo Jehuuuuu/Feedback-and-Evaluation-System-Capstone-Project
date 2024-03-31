@@ -10,6 +10,9 @@ urlpatterns = [
     path('home', views.home, name="home"),
     path('student_profile', views.student_profile, name="student_profile"),
     path('faculty', views.faculty, name="faculty"),
+    path('department', views.department, name='department'),
+    path('add_department', views.add_department, name='add_department'),
+    path('view_department/<int:pk>/', views.view_department, name='view_department'),
     path('administrator', views.admin, name="admin"),
     path('facultyeval', views.facultyeval, name="facultyeval"),
     path('eventhub', views.eventhub, name="eventhub"),
@@ -49,7 +52,8 @@ urlpatterns = [
     path('facultylogin', views.facultylogin, name='facultylogin'),
     path('facultyprofile', views.facultyprofile, name='facultyprofile'),
     path('facultyfeedbackandevaluations', views.facultyfeedbackandevaluations, name='facultyfeedbackandevaluations'),
-
+    path('admin_evaluation_status', views.admin_evaluation_status, name='admin_evaluation_status'),
+    path('view_evaluation_form/<int:pk>/', views.view_evaluation_form, name='view_evaluation_form'),
 ]
 
 if settings.DEBUG:
