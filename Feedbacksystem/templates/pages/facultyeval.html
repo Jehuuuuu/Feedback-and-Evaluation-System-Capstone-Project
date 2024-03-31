@@ -9,9 +9,17 @@
     <hr>
 {% endblock header %}
 {% block feature %}
-
+{% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+        <li>{{ message }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+{% if evaluation_status.evaluation_status %}  
+<div class="container">
 <select id="faculty-select" onchange="redirectToEvaluation(this)">
-    <option value="">Select Faculty</option> <!-- Placeholder option -->
+    <option value="{}">Select Faculty</option> <!-- Placeholder option -->
     {% for i in section_subjects_faculty %}
     <option value="{% url 'evaluate_subject_faculty' i.pk %}">{{ i.faculty.first_name }} {{ i.faculty.last_name }}</option>
     {% endfor %}
@@ -25,30 +33,26 @@
         }
     }
 </script>
-<form method="POST" action="">
-    
-    {% csrf_token %}
-    <table class="table table-striped table-bordered table-responsive  ">
+{% else %}
+<p>Student Evaluations for Teachers Have Ended. Stay Tuned for Announcements Regarding the Next Evaluation Period. </p>
+{% endif %}
+<h3 style= "margin-top: 0.5em;"> <b>General Evaluation of the Faculty </b> </h3>
+<h4 style="margin-top: 0.5em;"> <b>Instructions: </b> </h4>
+<p style="white-space: pre; margin-top: 1em; margin-bottom: -10px;">1. For each of the items listed check the rating which best describes YOUR OWN assessment of the faculty. Use the scale below:
+    <table class="table table-bordered">
         <tr>
-            
-            <th  scope="col" class="bg-success">QUESTION </th>
-            <th  scope="col" class="bg-success">ANSWER </th>
-            
-           
-           
+            <td>5 - Outstanding </td>
+            <td>4 - Very Satisfactory </td>
+            <td>3 - Satisfactory </td>
+            <td>2 - Unatisfactory </td>
+            <td>1 - Poor </td>
         </tr>
-      
-        <tr>
-            <td>How would you rate the overall performance of the faculty?</td>
-            <td>{{ form.rating }}</td>
-        </tr>
-        
+    </table> 
+</p>
     
-</table>
-    <label for="{{ form.comments.id_for_label }}">Provide additional comments or feedback:</label>
-  {{ form.comments }}
-  <br>
-    <input type="submit" value="Submit">
-</form>
-
+<p style="white-space: pre; margin-top: 1em;">2. Read the major items and sub-items carefully before you decide; and
+<p style="white-space: pre; margin-top: 1em;">3. Evaluate each indicator separately without considering other characteristics or your
+    general opinion of the teacher.
+    </p>
+    </div>
 {% endblock feature %}

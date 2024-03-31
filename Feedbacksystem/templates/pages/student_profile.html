@@ -29,15 +29,23 @@
         <div class="tablecontainer" style="display: inline-block; margin-left: 20px; width: 500px;">
            <table class="table table-bordered table-responsive ">
             <tr>
-            <th>Subject</th>
-            <th>Teacher</th>
-            <th>Status</th>
+            <th  scope="col" class="bg-success">Subject</th>
+            <th  scope="col" class="bg-success">Teacher</th>
+            <th  scope="col" class="bg-success">Status</th>
         </tr>
         <tr>
             {% for i in section_subjects_faculty %}
                 <td>{{ i.subjects.subject_code }}</td>
                 <td>{{ i.faculty.last_name }}</td>
-                <td style="color: #2a9134;">Evaluated <i class="bi bi-check-circle-fill"></i></td>
+                <td>
+                    {% for evaluation in student.evaluation_set.all %}
+  <div class="faculty-evaluation">
+    {{ evaluation.section_subject_faculty.faculty.name }} - {{ evaluation.section_subject_faculty.subject.name }}
+    <span class="badge bg-success {% if evaluation.section_subject_faculty.status != 'Evaluated' %}d-none{% endif %}">Evaluated</span>
+    <span class="badge bg-secondary {% if evaluation.section_subject_faculty.status == 'Evaluated' %}d-none{% endif %}">Not Evaluated</span>
+  </div>
+{% endfor %}
+                </td>
         </tr>
     </div>
     </div>

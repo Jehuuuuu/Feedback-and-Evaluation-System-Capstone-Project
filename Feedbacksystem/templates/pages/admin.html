@@ -11,7 +11,7 @@
   
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
   <link rel="icon" href="static/images/cvsulogo.png" type="image/png">
-  <link rel="stylesheet" href="{% static 'css/admin.css'%}">
+  <link rel="stylesheet" href="{% static 'css/adminpage.css'%}">
   <link href="https://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet">
 
 </head>
@@ -47,40 +47,37 @@
         </a>
       </li>
        
-        <li class="nav-item">
-            <a class="nav-link" href="{% url 'evaluations' %}">
-               <b>EVALUATIONS</b>
-            </a>
+      <li class="nav-item dropdown">
+        <button class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <i class="bi bi-chat-left-fill"></i> <b>EVALUATIONS</b>
+        </button>
+        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+            <a class="dropdown-item" href="{% url 'evaluations' %}">Faculty Evaluations</a>
+            <a class="dropdown-item" href="{}">Events</a>
+            <a class="dropdown-item" href="{}">Virtual Suggestion Box</a>
+          </div>
         </li>
-        <li class="nav-item">
-          <a class="nav-link" href="{% url 'courses' %}">
-            <b>COURSES</b>
-          </a>
+      <li class="nav-item dropdown">
+        <button class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <i class="bi bi-chat-left-fill"></i> <b>FACULTY</b>
+        </button>
+        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+            <a class="dropdown-item" href="{% url 'faculty' %}">Faculty</a>
+            <a class="dropdown-item" href="{% url 'department' %}">Departments</a>
+          </div>
       </li>
-        <li class="nav-item">
-            <a class="nav-link" href="{% url 'sections' %}">
-                 <b>SECTIONS</b>
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" href="{% url 'subjects' %}">
-              <b>SUBJECTS</b>
-            </a>
-        </li>
-        <!-- Add more navigation items here -->
-        <li class="nav-item">
-          <a class="nav-link" href="{% url 'faculty' %}">
-            <b>TEACHERS</b>
-          </a>
+      <li class="nav-item dropdown">
+        <button class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <i class="bi bi-chat-left-fill"></i> <b>STUDENTS</b>
+        </button>
+        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+            <a class="dropdown-item" href="{% url 'students' %}">Students</a>
+            <a class="dropdown-item" href="{% url 'courses' %}">Courses</a>
+            <a class="dropdown-item" href="{% url 'sections' %}">Sections</a>
+            <a class="dropdown-item" href="{% url 'subjects' %}">Subjects</a>          
+          </div>
       </li>
-
-      <li class="nav-item">
-        <a class="nav-link" href="{% url 'students' %}">
-          <b>STUDENTS</b>
-        </a>
-    </li>
-
-  
+ 
     <li class="nav-item">
       <a class="nav-link" href="{% url 'adminlogout' %}">
        <b>LOGOUT</b>
@@ -94,12 +91,19 @@
     
     <div class="container" style="padding:10px; margin-top:10px;">
       {% block header %}
-     <a style = "color: black; text-decoration: none;" href="{% url 'adminregister' %}"><b>+ Add New Admin</b></a>
-    <hr>
+   
     <div id="eval" class = "container">
-      <h3>Academic Year: 2024-2025 </h3>
-      <h4>Evaluation Status: Ongoing </h4>
-     </div>
+      
+ 
+      <h3>Academic Year: {{evaluation_status.academic_year}}</h3>
+      <h3>Semester: {{ evaluation_status.semester }}</h3>
+      <h4>Student Evaluation for Teachers Status: {% if evaluation_status.evaluation_status %} Ongoing {% else %} Concluded {% endif %}</h4>
+
+      <a style = "color: black; text-decoration: none;" href="{% url 'admin_evaluation_status' %}"><b>Edit</b></a>
+      <a style = "color: black; text-decoration: none; float: right;" href="{% url 'adminregister' %}"><b>+ Add New Admin</b></a>
+
+    </div>
+
     {% endblock header %}
 
     {% block feature %}

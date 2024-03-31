@@ -1,16 +1,16 @@
 {% extends "pages/admin.html" %}
 
-{% block title %}Teachers{% endblock %}
+{% block title %}Faculty{% endblock %}
 
 {% block header %}
 
-    <h2> Manage Teachers</h2>
+    <h2> Manage Faculty</h2>
     <hr>
    
 {% endblock header %}
 <hr>
 {% block feature %}
-<a style = "color: black;" href="{% url 'addteacher' %}"><b>+ Add Teacher</b></a>
+<a style = "color: black; text-decoration: none;" href="{% url 'addteacher' %}"><b>+ Add Faculty</b></a>
 <br>
 <br>
 <table class="table table-hover table-striped table-bordered table-responsive  ">
