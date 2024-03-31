@@ -1,0 +1,100 @@
+
+body{
+  background-color:  #faf5fF;
+}
+#headerbar{
+    padding: 10px;
+    background-color: #2a9134;
+ 
+}
+#headerlogo{
+    font-size: 24px;
+    cursor: pointer;
+    font-weight: bold;
+    text-transform: uppercase;
+  margin-left: 50px;
+}
+#cvsulogo{
+    margin-right: 20px;
+}
+.subtitle{
+    font-size: 14px;
+    margin-left: 90px;
+
+
+}
+#cvsulogin{
+    margin-right: 100px;
+    letter-spacing: 1px;
+    background-color: #025400;
+
+}
+main {
+  height: calc(80vh); /* Adjust to leave space for padding */
+  overflow-y: auto; /* Add a vertical scrollbar when content overflows */
+}
+#sidebar.lightsidebar {
+  background-color: #fafafa;
+  box-sizing: border-box;
+  box-shadow: 2px 2px 5px 0px rgba(0,0,0,0.2);
+  max-height: 200%;
+  min-height: 70vh;
+  overflow-y: hidden; /* Hide scrollbar for sidebar */
+}
+.nav-item {/* Add padding to the items */
+  margin: 15px; /* Add margin to create space between items */ 
+}
+.nav-link{
+  color: #333;
+}
+.nav-link:hover {
+  background-color: #fafafa !important;
+  color: darkgreen !important;
+}
+.flex-column li a{
+  background-color: #fafafa;
+  &:focus, &:active {
+    color:darkgreen;
+    background-color:  #fafafa;
+    -webkit-box-shadow: none;
+    -moz-box-shadow: none;
+    box-shadow: none;
+ }
+}
+.nav-pills > li > a.active {
+background-color: #fafafa !important;
+color: darkgreen !important;
+}
+
+
+.nav-link.dropdown-toggle:active,
+.nav-link.dropdown-toggle:focus {
+color: darkgreen !important;
+}
+
+  #eval{
+    padding: 10px;
+    box-sizing: border-box;
+    box-shadow: 2px 2px 5px 3px rgba(0,0,0,0.2);
+    height: 160px;
+  }
+  #grid{
+    padding: 10px;
+    box-sizing: border-box;
+    box-shadow: 2px 2px 5px 3px rgba(0,0,0,0.2);
+    height: 75px;
+    width: 45%;
+    display: inline-block;
+    margin-bottom: 10px;
+  }
+  #gridtwo{
+    padding: 10px;
+    box-sizing: border-box;
+    box-shadow: 2px 2px 5px 3px rgba(0,0,0,0.2);
+    height: 75px;
+    width: 45%;
+    display: inline-block;
+    margin-left: 10px;
+    margin-top: 10px;
+  }
+  

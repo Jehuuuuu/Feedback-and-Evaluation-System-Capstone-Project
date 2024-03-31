@@ -100,3 +100,29 @@ main {
   float: left;
   text-align: center;
 }
+.likert-horizontal {
+  display: flex;  /* Arrange radio buttons horizontally */
+  justify-content: space-around;
+
+}
+
+.likert-horizontal input[type="radio"] {
+  margin-left: 50px; /* Adjust spacing as needed */
+  margin-top: 1em;
+}
+
+.custom-radio input[type="radio"] {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  width: 20px; /* Set the width of the custom radio button */
+  height: 20px; /* Set the height of the custom radio button */
+  border-radius: 50%; /* Make the radio button circular */
+  border: 2px solid #2a9134; /* Add a border */
+  outline: none;
+  cursor: pointer;
+}
+
+.custom-radio input[type="radio"]:checked {
+  background-color: #2a9134;/* Change background color when radio button is checked */
+}
