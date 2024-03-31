@@ -1,0 +1,29 @@
+{% extends "pages/admin.html" %}
+
+{% block title %}{{ section.name }} Details{% endblock %}
+
+{% block header %}
+
+    <h1>Faculties in {{ department.name }}</h1>
+    <hr>
+   
+{% endblock header %}
+<hr>
+{% block feature %}
+<a style = "color: black;" href="{}"><b>+ Add Faculty</b></a>
+<br>
+<br>
+    <table class="table table-responsive " style="width: 50%;margin: auto; text-align: center;">
+        <tr>
+        <th  scope="col" class="bg-success">Faculty</th>
+    </tr>
+    </thead>
+    <tr>
+        {% for i in faculties %}
+            <td>{{ i.first_name }} {{ i.last_name }}</td>  
+    </tr>
+
+    {% endfor %}
+    
+    </table>
+{% endblock feature %}
