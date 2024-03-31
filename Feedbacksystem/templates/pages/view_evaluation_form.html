@@ -1,0 +1,227 @@
+{% extends "pages/admin.html" %}
+
+{% block title %}{{ section.name }}Form Details{% endblock %}
+
+{% block header %}
+
+    <h1>Evaluation Form Details</h1>
+    <hr>
+   
+{% endblock header %}
+<hr>
+{% block feature %}
+
+<table class="table table-responsive " >
+        <tr>
+         <th  scope="col" class="bg-success">I. SUBJECT MATTER CONTENT </th>
+         <th  scope="col" class="bg-success">RATING</th>
+    </tr>
+    </thead>
+    <tr>
+        <td>Shows good command and knowledge of the subject 
+            matter</td> 
+        <td> {{ faculty_evaluation_form.command_and_knowledge_of_the_subject }}</td> 
+    </tr>
+    <tr>
+        <td>Demonstrates breadth and depth of mastery</td> 
+        <td> {{ faculty_evaluation_form.depth_of_mastery }}</td> 
+    </tr>
+    <tr>
+        <td>Draws and share information in the state-of-the-art
+            theory and practice in his/her respective discipline</td> 
+        <td> {{ faculty_evaluation_form.practice_in_respective_discipline }}</td> 
+    </tr>
+    <tr>
+        <td>Demonstrates up-to-date knowledge and/or awareness 
+            on current trends and issues of the subject matter</td> 
+        <td> {{ faculty_evaluation_form.up_to_date_knowledge }}</td> 
+    </tr>
+    <tr>
+        <td>Integrates subject to practical circumstances</td> 
+        <td> {{ faculty_evaluation_form.integrates_subject_to_practical_circumstances }}</td> 
+    </tr>
+    
+    <tr>
+        <th  scope="col" class="bg-success">II. ORGANIZATION  </th>
+        <th  scope="col" class="bg-success">RATING</th>
+    </tr>
+    <tr>
+        <td>Organizes the subject matter</td>
+        <td>{{ faculty_evaluation_form.organizes_the_subject_matter }}</td>
+    </tr>
+    <tr>
+        <td>Provides an orientation on course content and course
+            policies at the start of the semester</td>
+        <td>{{ faculty_evaluation_form.provides_orientation_on_course_content }}</td>
+    </tr>
+    <tr>
+        <td>Shows substantial efforts of class preparation</td>
+        <td>{{ faculty_evaluation_form.efforts_of_class_preparation }}</td>
+    </tr>
+    <tr>
+        <td>Emphasizes and summarizes main points </td>
+        <td>{{ faculty_evaluation_form.summarizes_main_points }}</td>
+    </tr>
+    <tr>
+        <td>Monitors online class when possible </td>
+        <td>{{ faculty_evaluation_form.monitors_online_class }}</td>
+    </tr>
+    
+    <tr>      
+        <th  scope="col" class="bg-success">III. TEACHER-STUDENT RAPPORT </th>
+        <th  scope="col" class="bg-success">RATING</th> 
+    </tr>
+  
+    <tr>
+        <td>Holds interest of students </td>
+        <td>{{ faculty_evaluation_form.holds_interest_of_students }}</td>
+    </tr>
+    <tr>
+        <td>Provides relevant feedback</td>
+        <td>{{ faculty_evaluation_form.provides_relevant_feedback }}</td>
+    </tr>
+    <tr>
+        <td>Encourages participation and greater students’
+            interaction</td>
+        <td>{{ faculty_evaluation_form.encourages_participation }}</td>
+    </tr>
+    <tr>
+        <td>Shows enthusiasm in every lesson and activity </td>
+        <td>{{ faculty_evaluation_form.shows_enthusiasm }}</td>
+    </tr>
+    <tr>
+        <td>Shows sense of humor and openness to others point of
+            view</td>
+        <td>{{ faculty_evaluation_form.shows_sense_of_humor }}</td>
+    </tr>
+
+    <tr>
+        <th  scope="col" class="bg-success">IV. TEACHING METHODS</th>
+        <th  scope="col" class="bg-success">RATING</th>
+      
+        
+       
+       
+    </tr>
+  
+    <tr>
+        <td>Uses various and relevant teaching methods,
+            instructional materials, and technology </td>
+        <td>{{ faculty_evaluation_form.teaching_methods }}</td>
+    </tr>
+    <tr>
+        <td>Employs flexible learning strategies effectively</td>
+        <td>{{ faculty_evaluation_form.flexible_learning_strategies }}</td>
+    </tr>
+    <tr>
+        <td>Includes varied, creative, and balanced student
+            engagement </td>
+        <td>{{ faculty_evaluation_form.student_engagement }}</td>
+    </tr>
+    <tr>
+        <td>Uses examples that are simple, clear, precise, and
+            appropriate both in offline and online modes  </td>
+        <td>{{ faculty_evaluation_form.clear_examples }}</td>
+    </tr>
+    <tr>
+        <td>Stays focused on and meets stated objectives</td>
+        <td>{{ faculty_evaluation_form.focused_on_objectives }}</td>
+    </tr>
+    
+    <tr>
+        <th  scope="col" class="bg-success">VI. CLASSROOM MANAGEMENT</th>
+        <th  scope="col" class="bg-success">RATING</th>
+      
+        
+       
+       
+    </tr>
+  
+    <tr>
+        <td>Uses time wisely both in offline and online learning
+            modes and attends to interaction using varied learning
+            platforms</td>
+        <td>{{ faculty_evaluation_form.uses_time_wisely }}</td>
+    </tr>
+    <tr>
+        <td> Gives ample time for the students to prepare for
+            scheduled synchronous sessions.</td>
+        <td>{{ faculty_evaluation_form.gives_ample_time_for_students_to_prepare }}</td>
+    </tr>
+    <tr>
+        <td>Updates the students of their progress using objective
+            and consistent grading system </td>
+        <td>{{ faculty_evaluation_form.updates_the_students_of_their_progress }}</td>
+    </tr>
+    <tr>
+        <td>Demonstrates leadership ability and professionalism</td>
+        <td>{{ faculty_evaluation_form.demonstrates_leadership_and_professionalism }}</td>
+    </tr>
+    <tr>
+        <td>Understands possible distractions on content delivery
+            caused by connectivity and other situations beyond
+            control
+            </td>
+        <td>{{ faculty_evaluation_form.understands_possible_distractions }}</td>
+    </tr>
+    
+    <tr>
+        <th  scope="col" class="bg-success">VII. SENSITIVITY and SUPPORT to STUDENTS</th>
+        <th  scope="col" class="bg-success">RATING</th>
+    
+    </tr>
+  
+    <tr>
+        <td>Exhibits sensitivity to students' personal culture, gender
+            differences and disabilities</td>
+        <td>{{ faculty_evaluation_form.sensitivity_to_student_culture }}</td>
+    </tr>
+    <tr>
+        <td>  Responds appropriately in a non-threatening, proactive learning environment </td>
+        <td>{{ faculty_evaluation_form.responds_appropriately }}</td>
+    </tr>
+    <tr>
+        <td>Assists students on their concerns in the subject </td>
+        <td>{{ faculty_evaluation_form.assists_students_on_concerns }}</td>
+    </tr>
+    <tr>
+        <td>Guides the students in accomplishing the learning
+            tasks both in offline and online learning modes </td>
+        <td>{{ faculty_evaluation_form.guides_the_students_in_accomplishing_tasks }}</td>
+    </tr>
+    <tr>
+        <td>Extends consideration and adjusts to the situations of
+            the students accordingly 
+            </td>
+        <td>{{ faculty_evaluation_form.extends_consideration_to_students }}</td>
+    </tr>
+    <tr>
+        <th  scope="col" class="bg-success">Other Suggestions for Improvement:</th>
+        <th  scope="col" class="bg-success">Comments</th> 
+    </tr>
+    <tr>
+        <td>The course should:
+            </td>
+        <td>{% if faculty_evaluation_form.requires_less_task_for_credit %}
+            Require less task for the credit
+          {% else %}
+            Require more task for the credit
+          {% endif %}</td>
+    </tr>
+    <tr>
+        <td>Strengths of the Faculty: 
+            </td>
+        <td>{{ faculty_evaluation_form.strengths_of_the_faculty }}</td>
+    </tr>
+    <tr>
+        <td>Other Suggestions for Improvement:
+            </td>
+        <td>{{ faculty_evaluation_form.other_suggestions_for_improvement }}</td>
+    </tr>
+    <tr>
+        <td>Overall Impression of the Faculty:
+            </td>
+        <td>{{ faculty_evaluation_form.comments }}</td>
+    </tr>
+    </table>
+{% endblock feature %}
