@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from Feedbacksystem.models import Course, Section, SectionSubjectFaculty, Faculty, Student, Subject, LikertEvaluation
-from .forms import TeacherForm, StudentForm, CourseForm, SectionForm, SectionSubjectFacultyForm, SubjectForm, StudentRegistrationForm, StudentLoginForm, LikertEvaluationForm, FacultyRegistrationForm, FacultyLoginForm
+from Feedbacksystem.models import Course, Section, SectionSubjectFaculty, Faculty, Department, Student, Subject, LikertEvaluation, EvaluationStatus
+from .forms import TeacherForm, StudentForm, CourseForm, SectionForm, SectionSubjectFacultyForm, SubjectForm, StudentRegistrationForm, StudentLoginForm, LikertEvaluationForm, FacultyRegistrationForm, FacultyLoginForm, EvaluationStatusForm, DepartmentForm
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import UserCreationForm
@@ -59,18 +59,36 @@ def studentlogout(request):
     return redirect('signin')
 
 def home(request):
-    student = Student.objects.filter(student_number=request.user.username).first()
-    context = {'student': student}
+    evaluation_status = EvaluationStatus.objects.first()
+    student = Student.objects.filter(student_number=request.user.username).first()  
+    context = {'evaluation_status': evaluation_status, 'student': student, }
     return render(request, 'pages/home.html', context)
     
 
 
 
 def faculty(request):
-    faculty = Faculty.objects.all()
+    faculty = Faculty.objects.all()  
     context = {'faculty': faculty}
 
     return render(request, 'pages/faculty.html', context)
+
+def department(request):
+    department = Department.objects.all()
+    context = {'department': department}
+
+    return render(request, 'pages/departments.html', context)
+
+def view_department(request, pk):
+    department = Department.objects.get(pk=pk)
+    faculties = department.faculty_set.all()  # Retrieve all faculties in the department
+
+    context = {
+        'department': department,
+        'faculties': faculties
+    }
+
+    return render(request, 'pages/view_department.html', context)
 
 def admin(request):
     student = Student.objects.all()
@@ -86,13 +104,16 @@ def admin(request):
     total_faculty = faculty.count()
     total_subject = subject.count()
     total_user = user.count()
+
+    evaluation_status = EvaluationStatus.objects.first()  # Assuming there's only one status entry
+
     context = {'student': student, 
                'course': course,
                'section': section,
                'faculty': faculty,
                'subject': subject,
                 'user': user,
-
+                'evaluation_status': evaluation_status,
                'total_students': total_students,
                 'total_courses': total_courses,
                 'total_sections': total_sections,
@@ -102,11 +123,24 @@ def admin(request):
                 }
     return render(request, 'pages/admin.html', context)
 
+
+def admin_evaluation_status(request):
+    evaluation_status = EvaluationStatus.objects.first()  # Assuming there's only one status entry
+    if request.method == 'POST':
+        form = EvaluationStatusForm(request.POST, instance=evaluation_status)
+        if form.is_valid():
+            form.save()
+            return redirect('admin')
+    else:
+        form = EvaluationStatusForm(instance=evaluation_status)
+    return render(request, 'pages/admin_evaluation_status.html', {'form': form})
+
 def facultyeval(request):
+    evaluation_status = EvaluationStatus.objects.first()
     student = Student.objects.filter(student_number=request.user.username).first()
     section_subjects_faculty = SectionSubjectFaculty.objects.filter(section=student.Section)
     
-    return render(request, 'pages/facultyeval.html', {'student': student, 'section_subjects_faculty': section_subjects_faculty})
+    return render(request, 'pages/facultyeval.html', {'student': student, 'section_subjects_faculty': section_subjects_faculty, 'evaluation_status': evaluation_status})
 
 def eventhub(request):
     student = Student.objects.filter(student_number=request.user.username).first()
@@ -183,6 +217,16 @@ def deleteTeacher(request, pk):
     return render(request, 'pages/delete.html', {'obj':faculty})
 
 
+def add_department(request):
+    form = DepartmentForm()
+    if request.method == 'POST':
+        form = DepartmentForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('department')
+
+    context = {'form': form}
+    return render(request, 'pages/add_department.html', context)
 
 def students(request):
     students = Student.objects.all()
@@ -304,6 +348,12 @@ def section_details(request, pk):
     subjects_faculty = SectionSubjectFaculty.objects.filter(section=section)
     return render(request, 'pages/section_details.html', {'section': section, 'subjects_faculty': subjects_faculty})
 
+def view_evaluation_form(request, pk):
+    faculty_evaluation_form = LikertEvaluation.objects.get(pk=pk)
+
+    return render(request, 'pages/view_evaluation_form.html', {'faculty_evaluation_form': faculty_evaluation_form})
+
+
 def subjects(request):
     subject = Subject.objects.all()
     context = {'subject': subject}
@@ -397,23 +447,120 @@ def evaluate_subject_faculty(request,pk):
     section_subject_faculty = get_object_or_404(SectionSubjectFaculty, pk=pk)
     student = Student.objects.filter(student_number=request.user.username).first()
     section_subjects_faculty = SectionSubjectFaculty.objects.filter(section=student.Section)
+    
+   
     if request.method == 'POST':
         form = LikertEvaluationForm(request.POST)
         if form.is_valid():
             # Process the evaluation form
-            rating = form.cleaned_data['rating']
+            command_and_knowledge_of_the_subject = form.cleaned_data['command_and_knowledge_of_the_subject']
+            depth_of_mastery = form.cleaned_data['depth_of_mastery']
+            practice_in_respective_discipline = form.cleaned_data['practice_in_respective_discipline']
+            up_to_date_knowledge = form.cleaned_data['up_to_date_knowledge']
+            integrates_subject_to_practical_circumstances = form.cleaned_data['integrates_subject_to_practical_circumstances']
+
+            organizes_the_subject_matter = form.cleaned_data['organizes_the_subject_matter']
+            provides_orientation_on_course_content = form.cleaned_data['provides_orientation_on_course_content']
+            efforts_of_class_preparation = form.cleaned_data['efforts_of_class_preparation']
+            summarizes_main_points = form.cleaned_data['summarizes_main_points']
+            monitors_online_class = form.cleaned_data['monitors_online_class']
+
+            holds_interest_of_students = form.cleaned_data['holds_interest_of_students']
+            provides_relevant_feedback = form.cleaned_data['provides_relevant_feedback']
+            encourages_participation = form.cleaned_data['encourages_participation']
+            shows_enthusiasm = form.cleaned_data['shows_enthusiasm']
+            shows_sense_of_humor = form.cleaned_data['shows_sense_of_humor']
+
+            teaching_methods = form.cleaned_data['teaching_methods']
+            flexible_learning_strategies = form.cleaned_data['flexible_learning_strategies']
+            student_engagement = form.cleaned_data['student_engagement']
+            clear_examples = form.cleaned_data['clear_examples']
+            focused_on_objectives = form.cleaned_data['focused_on_objectives']
+
+            starts_with_motivating_activities = form.cleaned_data['starts_with_motivating_activities']
+            speaks_in_clear_and_audible_manner = form.cleaned_data['speaks_in_clear_and_audible_manner']
+            uses_appropriate_medium_of_instruction = form.cleaned_data['uses_appropriate_medium_of_instruction']
+            establishes_online_classroom_environment = form.cleaned_data['establishes_online_classroom_environment']
+            observes_proper_classroom_etiquette = form.cleaned_data['observes_proper_classroom_etiquette']
+
+            uses_time_wisely = form.cleaned_data['uses_time_wisely']
+            gives_ample_time_for_students_to_prepare = form.cleaned_data['gives_ample_time_for_students_to_prepare']
+            updates_the_students_of_their_progress = form.cleaned_data['updates_the_students_of_their_progress']
+            demonstrates_leadership_and_professionalism = form.cleaned_data['demonstrates_leadership_and_professionalism']
+            understands_possible_distractions = form.cleaned_data['understands_possible_distractions']
+
+            sensitivity_to_student_culture = form.cleaned_data['sensitivity_to_student_culture']
+            responds_appropriately = form.cleaned_data['responds_appropriately']
+            assists_students_on_concerns = form.cleaned_data['assists_students_on_concerns']
+            guides_the_students_in_accomplishing_tasks = form.cleaned_data['guides_the_students_in_accomplishing_tasks']
+            extends_consideration_to_students = form.cleaned_data['extends_consideration_to_students']
+
+
+           # Extract the cleaned data from the form
+            credit_task_preference = form.cleaned_data['credit_task_preference']
+            
+            # Convert the choice to a boolean value
+            requires_less_task_for_credit = credit_task_preference == 'True'
+
+            strengths_of_the_faculty = form.cleaned_data['strengths_of_the_faculty']
+            other_suggestions_for_improvement =  form.cleaned_data['other_suggestions_for_improvement']
             comments = form.cleaned_data['comments']
             predicted_sentiment = single_prediction(comments)
             # Save the data to the database
             form = LikertEvaluation(
                 section_subject_faculty=section_subject_faculty,
-                rating=rating,
+                command_and_knowledge_of_the_subject=command_and_knowledge_of_the_subject,
+                depth_of_mastery=depth_of_mastery,
+                practice_in_respective_discipline=practice_in_respective_discipline,
+                up_to_date_knowledge=up_to_date_knowledge,
+                integrates_subject_to_practical_circumstances=integrates_subject_to_practical_circumstances,
+                
+                organizes_the_subject_matter=organizes_the_subject_matter,
+                provides_orientation_on_course_content = provides_orientation_on_course_content,
+                efforts_of_class_preparation = efforts_of_class_preparation,
+                summarizes_main_points = summarizes_main_points,
+                monitors_online_class = monitors_online_class,
+                
+                holds_interest_of_students= holds_interest_of_students,
+                provides_relevant_feedback = provides_relevant_feedback,
+                encourages_participation = encourages_participation,
+                shows_enthusiasm = shows_enthusiasm,
+                shows_sense_of_humor = shows_sense_of_humor,
+
+                teaching_methods = teaching_methods,
+                flexible_learning_strategies = flexible_learning_strategies,
+                student_engagement = student_engagement,
+                clear_examples = clear_examples,
+                focused_on_objectives = focused_on_objectives,
+
+                starts_with_motivating_activities = starts_with_motivating_activities,
+                speaks_in_clear_and_audible_manner = speaks_in_clear_and_audible_manner,
+                uses_appropriate_medium_of_instruction = uses_appropriate_medium_of_instruction,
+                establishes_online_classroom_environment = establishes_online_classroom_environment,
+                observes_proper_classroom_etiquette = observes_proper_classroom_etiquette,
+
+                uses_time_wisely = uses_time_wisely,
+                gives_ample_time_for_students_to_prepare = gives_ample_time_for_students_to_prepare,
+                updates_the_students_of_their_progress = updates_the_students_of_their_progress,
+                demonstrates_leadership_and_professionalism = demonstrates_leadership_and_professionalism,
+                understands_possible_distractions = understands_possible_distractions,
+                                
+                sensitivity_to_student_culture = sensitivity_to_student_culture,
+                responds_appropriately = responds_appropriately,
+                assists_students_on_concerns = assists_students_on_concerns,
+                guides_the_students_in_accomplishing_tasks = guides_the_students_in_accomplishing_tasks,
+                extends_consideration_to_students = extends_consideration_to_students,
+
+                requires_less_task_for_credit = requires_less_task_for_credit,
+                strengths_of_the_faculty = strengths_of_the_faculty,
+                other_suggestions_for_improvement = other_suggestions_for_improvement,
                 comments=comments,
                 predicted_sentiment=predicted_sentiment
             )
             form.save()
-
-            return redirect('facultyeval')  # Redirect to a success page or wherever you want
+            
+            return redirect('facultyeval')  # Redirect to a success page
+        messages.success(request, 'Evaluation submitted successfully.')
     else:
         form = LikertEvaluationForm()
         context = { 'form': form, 'section_subject_faculty': section_subject_faculty, 'section_subjects_faculty': section_subjects_faculty
@@ -422,7 +569,8 @@ def evaluate_subject_faculty(request,pk):
 
 def evaluations(request):
     evaluation = LikertEvaluation.objects.all()
-    context = {'evaluation': evaluation}
+    total_evaluations = evaluation.count()
+    context = {'evaluation': evaluation,'total_evaluations': total_evaluations}
 
     return render(request, 'pages/evaluations.html', context)
 
@@ -430,7 +578,7 @@ def facultyevaluations(request, pk):
     teacher = get_object_or_404(Faculty, pk=pk)
     teacher_evaluations = LikertEvaluation.objects.filter(section_subject_faculty__faculty=teacher)
 
-    avg_rating = teacher_evaluations.aggregate(Avg('rating'))['rating__avg']
+    avg_rating = teacher_evaluations.aggregate(Avg('average_rating'))['average_rating__avg'] #get the average of the aggregated field based on the specified queryset
 
     context = {'teacher': teacher, 'teacher_evaluations':  teacher_evaluations, 'avg_rating': avg_rating}
 
