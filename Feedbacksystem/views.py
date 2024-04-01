@@ -8,6 +8,7 @@ from django.contrib.auth.forms import UserCreationForm
 from django.db.models import Avg
 from django.http import Http404
 from .utils import load_prediction_models, single_prediction
+from .filters import EvaluationFilter
 
 # Create your views here.
 
@@ -331,13 +332,14 @@ def deleteSection(request, pk):
 
     return render(request, 'pages/delete.html', {'obj':section})
 
-def addsub_section(request):
-    form = SectionSubjectFacultyForm()
+def addsub_section(request, pk):
+    section = get_object_or_404(Section, pk=pk) #get the primary key of the selected section
+    form = SectionSubjectFacultyForm(initial={'section': section}) # pass the instance of the section attribute to the section that is selected to add subjects
     if request.method == 'POST':
         form = SectionSubjectFacultyForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('sections')
+            return redirect('section_details', pk=pk)
 
     context = {'form': form}
     return render(request, 'pages/addsub_section.html', context)
@@ -570,8 +572,11 @@ def evaluate_subject_faculty(request,pk):
 def evaluations(request):
     evaluation = LikertEvaluation.objects.all()
     total_evaluations = evaluation.count()
-    context = {'evaluation': evaluation,'total_evaluations': total_evaluations}
 
+    faculty_evaluation_filter = EvaluationFilter(request.GET, queryset=evaluation)
+    evaluation = faculty_evaluation_filter.qs
+
+    context = {'evaluation': evaluation,'total_evaluations': total_evaluations, 'faculty_evaluation_filter': faculty_evaluation_filter}
     return render(request, 'pages/evaluations.html', context)
 
 def facultyevaluations(request, pk):
@@ -596,7 +601,7 @@ def deleteSub_Section(request, pk):
     subject = SectionSubjectFaculty.objects.get(pk=pk)
     if request.method == 'POST':
             subject.delete()
-            return redirect('sections')
+            return redirect('section_details', pk=pk)
 
     return render(request, 'pages/delete.html', {'obj':subject})
 
