@@ -16,7 +16,9 @@
 <table class="table table-bordered table-responsive  ">
     <tr>
         <th  scope="col" class="bg-success">STUDENT NUMBER </th>
-        <th  scope="col" class="bg-success">NAME </th>
+        <th  scope="col" class="bg-success">FIRST NAME </th>
+        <th  scope="col" class="bg-success">MIDDLE NAME </th>
+        <th  scope="col" class="bg-success">LAST NAME </th>
         <th  scope="col" class="bg-success">PROFILE PICTURE </th>
         <th  scope="col" class="bg-success">AGE </th>
         <th  scope="col" class="bg-success">GENDER </th>
@@ -29,13 +31,15 @@
     {% for i in students %}
     <tr>
         <td>{{ i.pk }}</td>
-        <td>{{ i.name }}</td>
+        <td>{{ i.first_name }}</td>
+        <td>{{ i.middle_name }}</td>
+        <td>{{ i.last_name }}</td>
         <td>{% if i.profile_picture %} <img src="{{ i.profile_picture.url }}" width="150"> {% endif %}</td>
         <td>{{ i.age }}</td> 
         <td>{{ i.sex }}</td> 
         <td>{{ i.Course }}</td>
         <td>{{ i.Section }}</td>    
-        <td style="display: flex; flex-direction: row;"> <a style="margin-right: 10px;"class="nav-link" href="{}"><b>VIEW</b></a><a style="margin-right: 10px;" class="nav-link" href="{% url 'editstudent'  i.pk  %}"><b>EDIT</b></a>
+        <td> </a><a style="margin-right: 10px;" class="nav-link" href="{% url 'editstudent'  i.pk  %}"><b>EDIT</b></a>
             <a style="margin-right: 10px;" class="nav-link" href="{% url 'deleteStudent'  i.pk  %}"><b>DELETE</b></a>
           </td>
     </tr>

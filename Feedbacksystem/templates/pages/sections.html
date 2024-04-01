@@ -15,7 +15,6 @@
 <br>
 <table class="table table-hover table-striped table-bordered table-responsive  ">
     <tr>
-        <th scope="col" class="bg-success">ID </th>
         <th  scope="col" class="bg-success">SECTION </th>
         <th  scope="col" class="bg-success">OPTIONS </th>
        
@@ -23,7 +22,6 @@
     </tr>
     {% for i in section %}
     <tr>
-        <td>{{ i.id }}</td>
         <td>{{ i.name }}</td>   
         <td style="display: flex; flex-direction: row;"> 
         <a style="margin-right: 10px;"class="nav-link" href="{% url 'section_details' i.pk %}"><b>VIEW</b></a>

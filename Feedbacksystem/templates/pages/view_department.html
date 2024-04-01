@@ -13,17 +13,32 @@
 <a style = "color: black;" href="{}"><b>+ Add Faculty</b></a>
 <br>
 <br>
-    <table class="table table-responsive " style="width: 50%;margin: auto; text-align: center;">
-        <tr>
-        <th  scope="col" class="bg-success">Faculty</th>
-    </tr>
+    <table class="table table-striped table-responsive table-bordered">
+
+            <tr>
+                <th scope="col" class="bg-success">FACULTY</th>
+                <th  scope="col" class="bg-success">GENDER </th>
+                <th  scope="col" class="bg-success">EMAIL </th>
+                <th  scope="col" class="bg-success">CONTACT NUMBER </th>
+                <th  scope="col" class="bg-success">OPTIONS </th>
+            </tr>
+
     </thead>
     <tr>
         {% for i in faculties %}
-            <td>{{ i.first_name }} {{ i.last_name }}</td>  
+            <td>{{ i.first_name }} {{ i.last_name }}</td> 
+            <td>{{ i.gender }}</td>
+            <td>{{ i.email }}</td>
+            <td>{{ i.contact_number }}</td> 
+            <td style="display: flex; flex-direction: row; justify-content: space-around;">
+                <a class="nav-link" href="{% url 'facultyevaluations' i.pk %} " ><b>VIEW</b></a>
+                <a class="nav-link" href="{% url 'editteacher'  i.pk  %}"><b>EDIT</b></a>
+                <a class="nav-link" href="{% url 'deleteTeacher'  i.pk  %}" style="margin-right: 1em;"><b>DELETE</b></a>
+            </td>
     </tr>
 
     {% endfor %}
     
     </table>
+
 {% endblock feature %}

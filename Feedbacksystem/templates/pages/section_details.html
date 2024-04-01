@@ -6,24 +6,28 @@
 
     <h2>{{section.name}} Details</h2>
     <hr>
-   
+
 {% endblock header %}
 <hr>
 {% block feature %}
-<a style = "color: black;" href="{% url 'addsub_section' %}"><b>+ Add Subject and Teacher</b></a>
+
+<a style = "color: black;" href="{% url 'addsub_section'  section.pk  %}"><b>+ Add Subject and Teacher</b></a>
+
 <br>
 <br>
     <table class="table table-hover table-striped table-bordered table-responsive  ">
         <tr>
         <th  scope="col" class="bg-success">Subject</th>
+        <th  scope="col" class="bg-success">Subject Name</th>
         <th  scope="col" class="bg-success">Teacher</th>
         <th  scope="col" class="bg-success">Options</th>
     </tr>
     <tr>
         {% for i in subjects_faculty %}
             <td>{{ i.subjects.subject_code }}</td>
-            <td>{{ i.faculty.last_name }}</td>
-            <td><a class="nav-link" href="{% url 'deleteSub_Section'  i.pk  %}"><b>DELETE</b></a></td>
+            <td>{{ i.subjects.subject_name }}</td>
+            <td>{{ i.faculty.first_name }} {{ i.faculty.last_name }}</td>
+            <td> <a class="nav-link" href="{% url 'deleteSub_Section'  i.pk  %}"><b>DELETE</b></a></td>
     </tr>
 
     {% endfor %}

@@ -10,12 +10,12 @@
 {% endblock header %}
 {% block feature %}
 {% if messages %}
-    <ul class="messages">
-        {% for message in messages %}
-        <li>{{ message }}</li>
-        {% endfor %}
-    </ul>
-    {% endif %}
+<ul class="messages">
+    {% for message in messages %}
+    <li>{{ message }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
 {% if evaluation_status.evaluation_status %}  
 <div class="container">
 <select id="faculty-select" onchange="redirectToEvaluation(this)">
