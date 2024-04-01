@@ -41,7 +41,6 @@ class Faculty(models.Model):
     contact_number = models.IntegerField(null=True, blank = True)
     profile_picture = models.ImageField(upload_to='profile_picture/', blank=True)
     department = models.ForeignKey(Department, on_delete=models.CASCADE, null=True, blank = True) 
-    evaluated = models.BooleanField(default = False)
 
     updated = models.DateTimeField(auto_now = True, null=True, blank = True)
     created = models.DateTimeField(auto_now_add = True, null=True, blank = True)
@@ -65,7 +64,7 @@ class Subject(models.Model):
         ordering = ['-updated', '-created']
 
     def __str__(self):
-        return self.subject_code
+        return f"{self.subject_code} {self. subject_name}"
 
 
 
@@ -99,10 +98,10 @@ class SectionSubjectFaculty(models.Model):
 
 
 class Student(models.Model):
-
-    
     student_number = models.CharField(max_length=9, primary_key=True)
-    name = models.CharField(max_length=100)
+    first_name = models.CharField(max_length=100, null=True, blank = True)
+    middle_name = models.CharField(max_length=100, null=True, blank = True)
+    last_name = models.CharField(max_length=100, null=True, blank = True)
     profile_picture = models.ImageField(upload_to='profile_picture/', null=True, blank = True)
     age = models.IntegerField(null=True, blank = True)
     sex = models.CharField(max_length=6, null=True, blank = True)
@@ -116,7 +115,7 @@ class Student(models.Model):
         ordering = ['-updated', '-created']
 
     def __str__(self):
-        return self.name
+        return f"{self.first_name} - {self. last_name}"
 
 class EvaluationStatus(models.Model):
     academic_year = models.CharField(max_length=50)
