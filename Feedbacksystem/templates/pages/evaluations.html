@@ -11,6 +11,10 @@
 <hr>
 {% block feature %}
 <h4> Total Responses: {{ total_evaluations }}</h4>
+<form method="get" action="">
+    {{faculty_evaluation_filter.form}}
+    <button class="btn btn-warning" type="submit">Search</button>
+</form>
 <table class="table table-striped table-bordered table-responsive  ">
     <tr>
         <th  scope="col" class="bg-success">SUBJECT</th>
