@@ -14,7 +14,7 @@ class TeacherForm(ModelForm):
 class StudentForm(ModelForm):
     class Meta:
         model = Student
-        fields = ['student_number', 'name',  'profile_picture', 'age', 'sex', 'Course', 'Section']
+        fields = '__all__' 
 
 class DepartmentForm(ModelForm):
     class Meta:
