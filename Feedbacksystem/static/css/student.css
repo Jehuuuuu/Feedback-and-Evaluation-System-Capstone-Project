@@ -95,8 +95,8 @@ main {
   padding: 10px;
   box-sizing: border-box;
   box-shadow: 2px 2px 5px 3px rgba(0,0,0,0.2);
-  height: 500px;
-  width: 300px;
+  height: auto;
+  width: 350px;
   float: left;
   text-align: center;
 }
