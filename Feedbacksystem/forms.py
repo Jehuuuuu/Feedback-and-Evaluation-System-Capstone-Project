@@ -1,7 +1,7 @@
 from django.forms import ModelForm
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
-from .models import Faculty, Student, Course, Section, SectionSubjectFaculty, Subject, EvaluationStatus, Department
+from .models import Faculty, Student, Course, Section, SectionSubjectFaculty, Subject, EvaluationStatus, Department, Event
 from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
@@ -45,6 +45,7 @@ class EvaluationStatusForm(ModelForm):
     class Meta:
         model = EvaluationStatus
         fields = '__all__'
+
 
 class StudentRegistrationForm(UserCreationForm):
     student_number = forms.CharField(max_length=9)
@@ -266,3 +267,13 @@ class LikertEvaluationForm(forms.Form):
     comments = forms.CharField(required=True, widget=forms.TextInput(attrs={'size': 60}))  # Adjust size as needed
 
 LikertEvaluationFormSet = formset_factory(LikertEvaluationForm, extra=1)
+
+class EventCreationForm(ModelForm):
+      # Define a ModelMultipleChoiceField for the course and department fields
+    course = forms.ModelMultipleChoiceField(queryset=Course.objects.all(), required=False)
+    department = forms.ModelMultipleChoiceField(queryset=Department.objects.all(), required=False)
+
+    class Meta:
+        model = Event
+        fields = '__all__'
+ 
