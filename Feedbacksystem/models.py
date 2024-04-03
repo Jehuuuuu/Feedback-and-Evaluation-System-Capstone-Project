@@ -92,7 +92,7 @@ class SectionSubjectFaculty(models.Model):
         ordering = ['-updated', '-created']
         
     def __str__(self):
-        return f"{self.section} - {self. subjects} - {self. faculty}"
+        return f"{self. subjects} - {self. faculty}"
  
 
 
@@ -102,9 +102,12 @@ class Student(models.Model):
     first_name = models.CharField(max_length=100, null=True, blank = True)
     middle_name = models.CharField(max_length=100, null=True, blank = True)
     last_name = models.CharField(max_length=100, null=True, blank = True)
-    profile_picture = models.ImageField(upload_to='profile_picture/', null=True, blank = True)
+    email = models.EmailField(max_length = 64)  
     age = models.IntegerField(null=True, blank = True)
     sex = models.CharField(max_length=6, null=True, blank = True)
+    contact_no = models.CharField(max_length  = 15)
+    status = models.CharField(max_length  = 15)
+    profile_picture = models.ImageField(upload_to='profile_picture/', null=True, blank = True)
     Course = models.ForeignKey(Course, on_delete=models.CASCADE, null=True, blank = True) 
     Section = models.ForeignKey(Section, on_delete=models.CASCADE, null=True, blank = True) 
 
@@ -300,6 +303,14 @@ class LikertEvaluation(models.Model):
     def __str__(self):
        return f"{self.section_subject_faculty.subjects} - {self.section_subject_faculty.faculty} - {self.comments}"
 
-
+class Event(models.Model):
+    title = models.CharField(max_length = 200)
+    date = models.CharField(max_length = 100)
+    time = models.CharField(max_length = 50)
+    location = models.CharField(max_length = 200)
+    event_picture = models.ImageField(upload_to='event_picture/', null=True, blank = True) 
+    course = models.ManyToManyField(Course)
+    department = models.ManyToManyField(Department)
+    description = models.TextField()
 
   

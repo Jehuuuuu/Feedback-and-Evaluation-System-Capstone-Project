@@ -54,6 +54,8 @@ urlpatterns = [
     path('facultyfeedbackandevaluations', views.facultyfeedbackandevaluations, name='facultyfeedbackandevaluations'),
     path('admin_evaluation_status', views.admin_evaluation_status, name='admin_evaluation_status'),
     path('view_evaluation_form/<int:pk>/', views.view_evaluation_form, name='view_evaluation_form'),
+    path('faculty_events', views.faculty_events, name='faculty_events'),
+    path('event_creation_form', views.event_creation_form, name='event_creation_form'),
 ]
 
 if settings.DEBUG:
