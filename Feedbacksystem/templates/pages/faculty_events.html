@@ -1,0 +1,13 @@
+{% extends "pages/facultydashboard.html" %}
+{% load static %}
+{% block title %}Events{% endblock %}
+
+{% block header %}
+
+    <h2> Events </h2>
+    <hr>
+    {% endblock header %}
+    {% block feature %}
+    <a class = "btn btn-warning" href = "{% url 'event_creation_form' %}"> <i class="bi bi-plus-square-fill"> </i>Create an Event </a>
+    {% endblock feature %}
+

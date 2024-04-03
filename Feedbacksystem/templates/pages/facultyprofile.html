@@ -17,16 +17,35 @@
             {% else %}
             <img src="{% static 'images/Default_avatar.webp' %}" alt="Default Profile Picture" width="150" style="margin-bottom: 2em;" >
             {% endif %}
-            <h4>Name: {{ faculty.first_name }} {{ faculty.last_name }} </h4>
-            <h4>Email: {{ faculty.email }} </h4> 
-            <h4>Gender: {{faculty.gender}} </h4>
-            <h4>Contact Number: {{faculty.contact_number}}</h4>
-            <h4>Department: {{faculty.department}}</h4>
+            <table class="table table-bordered table-responsive">
 
-            
-            
-            
-           </div>
+                <tr>
+                <th>Name: </th>
+                <td>{{ faculty.first_name }} {{ faculty.last_name }}</td>
+                 </tr>
+    
+                <tr>
+    
+                <th>Email: </th>
+                <td>{{ faculty.email }} </td>  
+                </tr>
+    
+                <tr>
+          
+                <th>Contact Number: </th>
+                <td>{{ faculty.contact_number }} </td>
+                </tr>
+    
+                <tr>
+           
+                <tr>
+                <th>Department: </th>
+                <td>{{ faculty.department }}</td>
+                 </tr>
+                
+            </table>
+
+        </div>
 
     
     

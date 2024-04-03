@@ -1,0 +1,17 @@
+{% extends "pages/facultydashboard.html" %}
+{% load static %}
+{% block title %}Event Creation Form{% endblock %}
+
+{% block header %}
+
+    <h2> Event Creation Form </h2>
+    <hr>
+    {% endblock header %}
+    {% block feature %}
+    <form method="post" action="">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Create Event</button>
+    </form>
+    {% endblock feature %}
+

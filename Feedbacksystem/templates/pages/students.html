@@ -10,18 +10,31 @@
 {% endblock header %}
 <hr>
 {% block feature %}
-<a style = "color: black; text-decoration: none;" href="{% url 'addstudent' %}"><b>+ Add Student</b></a>
+{% if messages %}
+<ul class="messages">
+    {% for message in messages %}
+    <li>{{ message }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+<a class="btn btn-warning" style = "color: black; text-decoration: none;" href="{% url 'addstudent' %}"><i class="bi bi-person-plus-fill"></i><b>Add Student</b></a>
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+<input type="file" name="studentfile" accept=".xlsx">
+<button type="submit">Upload</button>
+</form>
 <br>
 <br>
 <table class="table table-bordered table-responsive  ">
     <tr>
         <th  scope="col" class="bg-success">STUDENT NUMBER </th>
         <th  scope="col" class="bg-success">FIRST NAME </th>
-        <th  scope="col" class="bg-success">MIDDLE NAME </th>
         <th  scope="col" class="bg-success">LAST NAME </th>
-        <th  scope="col" class="bg-success">PROFILE PICTURE </th>
+        <th  scope="col" class="bg-success">EMAIL </th>
         <th  scope="col" class="bg-success">AGE </th>
-        <th  scope="col" class="bg-success">GENDER </th>
+        <th  scope="col" class="bg-success">SEX </th>
+        <th  scope="col" class="bg-success">CONTACT NUMBER </th>
+        <th  scope="col" class="bg-success">STATUS</th>
         <th  scope="col" class="bg-success">COURSE </th>
         <th  scope="col" class="bg-success">SECTION </th>
         <th  scope="col" class="bg-success">OPTIONS </th>
@@ -32,11 +45,12 @@
     <tr>
         <td>{{ i.pk }}</td>
         <td>{{ i.first_name }}</td>
-        <td>{{ i.middle_name }}</td>
         <td>{{ i.last_name }}</td>
-        <td>{% if i.profile_picture %} <img src="{{ i.profile_picture.url }}" width="150"> {% endif %}</td>
+        <td>{{ i.email}}</td>
         <td>{{ i.age }}</td> 
         <td>{{ i.sex }}</td> 
+        <td>{{ i.contact_no }}</td>
+        <td>{{ i.status }}</td>
         <td>{{ i.Course }}</td>
         <td>{{ i.Section }}</td>    
         <td> </a><a style="margin-right: 10px;" class="nav-link" href="{% url 'editstudent'  i.pk  %}"><b>EDIT</b></a>

@@ -17,16 +17,44 @@
             {% else %}
             <img src="{% static 'images/Default_avatar.webp' %}" alt="Default Profile Picture" width="150" style="margin-bottom: 2em;" >
             {% endif %}
-            <h4>Student Number: {{ student.student_number }} </h4> 
-            <h4>Name: {{ student.name }} </h4>
-            <h4>Age: {{ student.age}} </h4>
-            <h4>Gender: {{student.sex}} </h4>
-            <h4>Program & Section: {{student.Section}}</h4>
+            <table class="table table-bordered table-responsive " style=>
+            <tr>
+            <th>Student Number: </th>
+            <td>{{ student.student_number }}</td>
+             </tr>
+
+            <tr>
+            <th>Name: </th>
+            <td>{{ student.first_name }} {{ student.last_name }}</td>
+             </tr>
+
+            <tr>
+
+            <th>Email: </th>
+            <td >{{ student.email }} </td>  
+            </tr>
+
+            <tr>
+      
+            <th>Contact Number: </th>
+            <td>{{ student.contact_no }} </td>
+            </tr>
+
+            <tr>
+            <th>Status: </th>
+            <td>{{ student.status }} </td>
+             </tr>
+             
+            <tr>
+            <th>Section: </th>
+            <td>{{ student.Section }}</td>
+             </tr>
             
+            </table>
             
             
            </div>
-        <div class="tablecontainer" style="display: inline-block; margin-left: 20px; width: 500px;">
+        <div class="tablecontainer" style="display: inline-block; margin-left: 20px; width: 450px;">
            <table class="table table-bordered table-responsive ">
             <tr>
             <th  scope="col" class="bg-success">Subject</th>
@@ -36,7 +64,7 @@
         <tr>
             {% for i in section_subjects_faculty %}
                 <td>{{ i.subjects.subject_code }}</td>
-                <td>{{ i.faculty.last_name }}</td>
+                <td>{{ i.faculty.first_name }} {{ i.faculty.last_name }}</td>
                 <td>
                     {% for evaluation in student.evaluation_set.all %}
   <div class="faculty-evaluation">
