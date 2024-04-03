@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from Feedbacksystem.models import Course, Section, SectionSubjectFaculty, Faculty, Department, Student, Subject, LikertEvaluation, EvaluationStatus
-from .forms import TeacherForm, StudentForm, CourseForm, SectionForm, SectionSubjectFacultyForm, SubjectForm, StudentRegistrationForm, StudentLoginForm, LikertEvaluationForm, FacultyRegistrationForm, FacultyLoginForm, EvaluationStatusForm, DepartmentForm
+from .forms import TeacherForm, StudentForm, CourseForm, SectionForm, SectionSubjectFacultyForm, SubjectForm, StudentRegistrationForm, StudentLoginForm, LikertEvaluationForm, FacultyRegistrationForm, FacultyLoginForm, EvaluationStatusForm, DepartmentForm, EventCreationForm
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import UserCreationForm
@@ -9,6 +9,10 @@ from django.db.models import Avg
 from django.http import Http404
 from .utils import load_prediction_models, single_prediction
 from .filters import EvaluationFilter
+from .resources import StudentResource
+from tablib import Dataset
+from django.contrib.auth.decorators import login_required
+
 
 # Create your views here.
 
@@ -59,6 +63,7 @@ def studentlogout(request):
     logout(request)
     return redirect('signin')
 
+@login_required
 def home(request):
     evaluation_status = EvaluationStatus.objects.first()
     student = Student.objects.filter(student_number=request.user.username).first()  
@@ -91,6 +96,7 @@ def view_department(request, pk):
 
     return render(request, 'pages/view_department.html', context)
 
+@login_required
 def admin(request):
     student = Student.objects.all()
     course = Course.objects.all()
@@ -230,10 +236,52 @@ def add_department(request):
     return render(request, 'pages/add_department.html', context)
 
 def students(request):
-    students = Student.objects.all()
-    context = {'students': students}
-   
-    return render(request, 'pages/students.html',  context)
+        students = Student.objects.all()
+        context = {'students': students}
+
+        if request.method == 'POST':
+            student_resource = StudentResource()
+            dataset = Dataset()
+            new_student = request.FILES['studentfile']
+
+            if not new_student.name.endswith('xlsx'):
+                messages.info(request, 'Please upload a valid Excel file.')
+                return render(request, 'pages/students.html',  context)
+            
+            imported_data = dataset.load(new_student.read(), format = 'xlsx')
+            for data in imported_data:
+                course_name = data[8]  # Replace with actual index
+                section_name = data[9]  # Replace with actual index
+
+                course = Course.objects.filter(name=course_name).first()
+                section = Section.objects.filter(name=section_name).first()
+
+                if not course:
+                    messages.error(request, f"Course with name '{course_name}' not found.")
+                    continue  # Skip this row if course doesn't exist
+
+                if not section:
+                    messages.error(request, f"Section with name '{section_name}' not found.")
+                    continue  # Skip this row if section doesn't exist
+
+                student = Student.objects.create(
+                    student_number=data[0],
+                    first_name=data[1],
+                    last_name=data[2],
+                    email=data[3],
+                    age=data[4],
+                    sex=data[5],
+                    contact_no=data[6],
+                    status=data[7],
+                    Course=course,
+                    Section=section
+                )
+                student.save()
+        return render(request, 'pages/students.html',  context)
+        
+
+        
+
 
 def addstudent(request):
     form = StudentForm()
@@ -561,12 +609,12 @@ def evaluate_subject_faculty(request,pk):
             )
             form.save()
             
-            return redirect('facultyeval')  # Redirect to a success page
+            
         messages.success(request, 'Evaluation submitted successfully.')
+        return redirect('facultyeval')  # Redirect to a success page
     else:
         form = LikertEvaluationForm()
-        context = { 'form': form, 'section_subject_faculty': section_subject_faculty, 'section_subjects_faculty': section_subjects_faculty
-    }
+        context = { 'form': form, 'section_subject_faculty': section_subject_faculty, 'section_subjects_faculty': section_subjects_faculty, 'student': student}
     return render(request, 'pages/evaluate_subject_faculty.html', context)
 
 def evaluations(request):
@@ -601,10 +649,11 @@ def deleteSub_Section(request, pk):
     subject = SectionSubjectFaculty.objects.get(pk=pk)
     if request.method == 'POST':
             subject.delete()
-            return redirect('section_details', pk=pk)
+            return redirect('sections')
 
     return render(request, 'pages/delete.html', {'obj':subject})
 
+@login_required
 def facultydashboard(request):
     faculty = Faculty.objects.filter(email=request.user.username).first()    
     context = {'faculty': faculty}
@@ -676,9 +725,20 @@ def facultyfeedbackandevaluations(request):
     # Assuming you have the necessary logic to fetch evaluations
     teacher_evaluations = LikertEvaluation.objects.filter(section_subject_faculty__faculty=teacher)
 
-    # Calculate average rating or any other necessary processing
-    avg_rating = teacher_evaluations.aggregate(Avg('rating'))['rating__avg']
-
+    avg_rating = teacher_evaluations.aggregate(Avg('average_rating'))['average_rating__avg'] #get the average of the aggregated field based on the specified queryset
     context = {'faculty': faculty, 'teacher': teacher, 'teacher_evaluations': teacher_evaluations, 'avg_rating': avg_rating}
 
     return render(request, 'pages/facultyfeedbackandevaluations.html', context)
+
+def faculty_events(request):
+     return render(request, 'pages/faculty_events.html')
+
+def event_creation_form(request):
+     form = EventCreationForm()
+     if request.method == 'POST':
+        form = EventCreationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('faculty_events')
+
+     return render(request, 'pages/event_creation_form.html', {'form': form})
