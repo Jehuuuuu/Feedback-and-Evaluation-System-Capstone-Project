@@ -1,0 +1,43 @@
+{% extends "pages/home.html" %}
+{% load static %}
+{% block title %}Event Evaluation Form{% endblock %}
+
+{% block header %}
+
+    <h2> Evaluate Event </h2>
+    <hr>
+    {% endblock header %}
+    {% block feature %}
+    <div class="container">
+    <form method="POST" action="">
+        {% csrf_token %}
+        <table class="table table-bordered table-responsive  " style="margin-top: 1em;">
+            <tr>  
+                <th  scope="col" class="bg-success">I. OVERALL EVALUATION </th>
+                <th  scope="col" class="bg-success"><div style="display: flex; white-space: pre; width: 50%;"><div style="width: 5em;margin-left: 3em;">Outstanding </div>          <div style="width: 100%; margin-left: 4em;">Very Satisfactory</div>      <div style="width: 100%; margin-right: 3.5em; margin-left:3em;">Satisfactory</div> <div style="width: 100%; margin-right: 5em;">Unsatisfactory</div>        <div style="width: 100%; margin-right: 2em;">Poor</div> </th>      
+            </tr>
+          
+            <tr>
+                <td>Relevance of the activity</td>
+                <td>{{ form.relevance_of_the_activity }}</td>
+            </tr>
+            <tr>
+                <td>Quality of the activity</td>
+                <td>{{ form.quality_of_the_activity }}</td>
+            </tr>
+            <tr>
+                <td>Timeliness</td>
+                <td>{{ form.timeliness }}</td>
+            </tr>
+        
+    </table>
+    <div style="margin-top: 2em;">
+        <label for="comments">Suggestions and Comments:</label>
+        {{ form.suggestions_and_comments }}
+    </div>    
+    <br>
+    <button type="submit" class="btn btn-warning">Submit</button>
+    </form>
+   </div>
+    {% endblock feature %}
+
