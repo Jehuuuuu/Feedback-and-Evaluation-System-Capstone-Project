@@ -1,8 +1,8 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from Feedbacksystem.models import Course, Section, SectionSubjectFaculty, Faculty, Department, Student, Subject, LikertEvaluation, EvaluationStatus
-from .forms import TeacherForm, StudentForm, CourseForm, SectionForm, SectionSubjectFacultyForm, SubjectForm, StudentRegistrationForm, StudentLoginForm, LikertEvaluationForm, FacultyRegistrationForm, FacultyLoginForm, EvaluationStatusForm, DepartmentForm, EventCreationForm
-from django.contrib.auth.models import User
+from Feedbacksystem.models import Course, Section, SectionSubjectFaculty, Faculty, Department, Student, Subject, LikertEvaluation, EvaluationStatus, Event, SchoolEventModel
+from .forms import TeacherForm, StudentForm, CourseForm, SectionForm, SectionSubjectFacultyForm, SubjectForm, StudentRegistrationForm, StudentLoginForm, LikertEvaluationForm, FacultyRegistrationForm, FacultyLoginForm, EvaluationStatusForm, DepartmentForm, EventCreationForm, SchoolEventForm, WebinarSeminarForm, StudentProfileForm
+from django.contrib.auth.models import User, Group
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import UserCreationForm
 from django.db.models import Avg
@@ -12,7 +12,7 @@ from .filters import EvaluationFilter
 from .resources import StudentResource
 from tablib import Dataset
 from django.contrib.auth.decorators import login_required
-
+from .decorators import allowed_users
 
 # Create your views here.
 
@@ -51,9 +51,14 @@ def signin(request):
             # Handle registration form submission
             registration_form = StudentRegistrationForm(request.POST)
             if registration_form.is_valid():
-                registration_form.save()
+                user = registration_form.save()
+                group = Group.objects.get(name = 'student')
+                user.groups.add(group)
                 messages.success(request, 'Registration successful!')
                 return redirect('signin')  # Redirect to the home page or any desired URL after successful registration
+            else:
+                messages.success(request, 'Student with this student number does not exist. Please contact the admin to create an account.')
+                return redirect('signin')                                      
 
     context = {'registration_form': registration_form, 'login_form': login_form,}
     
@@ -63,7 +68,8 @@ def studentlogout(request):
     logout(request)
     return redirect('signin')
 
-@login_required
+@login_required(login_url='signin')
+@allowed_users(allowed_roles=['student'])
 def home(request):
     evaluation_status = EvaluationStatus.objects.first()
     student = Student.objects.filter(student_number=request.user.username).first()  
@@ -96,7 +102,8 @@ def view_department(request, pk):
 
     return render(request, 'pages/view_department.html', context)
 
-@login_required
+@login_required(login_url='signin')
+@allowed_users(allowed_roles=['admin'])
 def admin(request):
     student = Student.objects.all()
     course = Course.objects.all()
@@ -142,6 +149,9 @@ def admin_evaluation_status(request):
         form = EvaluationStatusForm(instance=evaluation_status)
     return render(request, 'pages/admin_evaluation_status.html', {'form': form})
 
+
+@login_required(login_url='signin')
+@allowed_users(allowed_roles=['student'])
 def facultyeval(request):
     evaluation_status = EvaluationStatus.objects.first()
     student = Student.objects.filter(student_number=request.user.username).first()
@@ -149,18 +159,27 @@ def facultyeval(request):
     
     return render(request, 'pages/facultyeval.html', {'student': student, 'section_subjects_faculty': section_subjects_faculty, 'evaluation_status': evaluation_status})
 
+@login_required(login_url='signin')
+@allowed_users(allowed_roles=['student'])
 def eventhub(request):
     student = Student.objects.filter(student_number=request.user.username).first()
-    return render(request, 'pages/eventhub.html', {'student': student})
+    event = Event.objects.all()
+    return render(request, 'pages/eventhub.html', {'student': student, 'event': event})
 
+@login_required(login_url='signin')
+@allowed_users(allowed_roles=['student'])
 def suggestionbox(request):
     student = Student.objects.filter(student_number=request.user.username).first()
     return render(request, 'pages/suggestionbox.html', {'student': student})
 
+@login_required(login_url='signin')
+@allowed_users(allowed_roles=['student'])
 def contactUs(request):
     student = Student.objects.filter(student_number=request.user.username).first()
     return render(request, 'pages/contactUs.html', {'student': student})
 
+@login_required(login_url='signin')
+@allowed_users(allowed_roles=['student'])
 def about(request):
     student = Student.objects.filter(student_number=request.user.username).first()
     return render(request, 'pages/about.html', {'student': student})
@@ -177,6 +196,9 @@ def courses(request):
 
    
     return render(request, 'pages/courses.html',  context)
+
+@login_required(login_url='signin')
+@allowed_users(allowed_roles=['student'])
 def student_profile(request):
     student = Student.objects.filter(student_number=request.user.username).first()
 
@@ -653,7 +675,8 @@ def deleteSub_Section(request, pk):
 
     return render(request, 'pages/delete.html', {'obj':subject})
 
-@login_required
+@login_required(login_url='signin')
+@allowed_users(allowed_roles=['faculty'])
 def facultydashboard(request):
     faculty = Faculty.objects.filter(email=request.user.username).first()    
     context = {'faculty': faculty}
@@ -731,14 +754,84 @@ def facultyfeedbackandevaluations(request):
     return render(request, 'pages/facultyfeedbackandevaluations.html', context)
 
 def faculty_events(request):
-     return render(request, 'pages/faculty_events.html')
+     faculty = Faculty.objects.filter(email=request.user.username).first()    
+     event = Event.objects.all()
+     context = {'event': event, 'faculty': faculty}
+     return render(request, 'pages/faculty_events.html', context)
 
 def event_creation_form(request):
+     faculty = Faculty.objects.filter(email=request.user.username).first()
      form = EventCreationForm()
      if request.method == 'POST':
         form = EventCreationForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('faculty_events')
+            #event = form.save(commit=False)
+            #event.published_by = faculty 
+            #event.save()
 
-     return render(request, 'pages/event_creation_form.html', {'form': form})
+            return redirect('faculty_events')
+        else:
+            # Print form errors for debugging
+            print(form.errors)
+           
+     return render(request, 'pages/event_creation_form.html', {'form': form, 'faculty': faculty})
+
+def event_detail(request, pk):
+    student = Student.objects.filter(student_number=request.user.username).first()
+    event = Event.objects.get(pk=pk)
+    if event.event_type.name == 'School Event':
+        form = SchoolEventForm()
+        if request.method == 'POST':
+            form = SchoolEventForm(request.POST)
+            if form.is_valid():
+                 # Process the evaluation form
+                relevance_of_the_activity = form.cleaned_data['relevance_of_the_activity']
+                quality_of_the_activity = form.cleaned_data['quality_of_the_activity']
+                timeliness = form.cleaned_data['timeliness']
+                suggestions_and_comments = form.cleaned_data['suggestions_and_comments']
+                # Save the data to database
+                form = SchoolEventModel(
+                    event=event,
+                    relevance_of_the_activity=relevance_of_the_activity,
+                    quality_of_the_activity=quality_of_the_activity,
+                    timeliness=timeliness,
+                    suggestions_and_comments=suggestions_and_comments,
+                )
+                form.save()
+            messages.success(request, 'Evaluation submitted successfully.')
+            return redirect('eventhub')
+        return render(request, 'pages/school_event_form.html', context = {'event': event, 'form': form, 'student': student})
+    
+    elif event.event_type.name == 'Webinar/Seminar':
+        form = WebinarSeminarForm()
+    else:
+        # Handle other event types
+        pass
+
+@login_required(login_url='signin')
+@allowed_users(allowed_roles=['student'])
+def edit_student_profile(request):
+    student = Student.objects.filter(student_number=request.user.username).first()
+    user = request.user.student
+    form = StudentProfileForm(instance = user)
+    if request.method == 'POST':
+        form = StudentProfileForm(request.POST, request.FILES, instance = user)
+        if form.is_valid():
+            form.save(commit=True)  # Ensure commit is set to True to save to the database
+            messages.success(request, 'Profile Updated Successfully')
+            return redirect('student_profile')
+
+    return render(request, 'pages/edit_student_profile.html', {'student': student, 'form': form})
+
+
+def faculty_event_evaluations(request):
+     faculty = Faculty.objects.filter(email=request.user.username).first()
+     events = SchoolEventModel.objects.all()  
+     return render(request,'pages/faculty_event_evaluations.html',{'events': events, 'faculty': faculty})
+
+def view_schoolevent_evaluations(request, pk):
+    faculty = Faculty.objects.filter(email=request.user.username).first()
+    school_event_form_details = SchoolEventModel.objects.get(pk=pk)
+
+    return render(request, 'pages/view_schoolevent_evaluations.html', {'school_event_form_details': school_event_form_details, 'faculty': faculty})
