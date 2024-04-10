@@ -8,16 +8,24 @@
     <hr>
     {% endblock header %}
     {% block feature %}
+    {% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+        <li>{{ message }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
     <div class="container" id="profilecontainer">
        
         <div id="profile" class = "container">
-           
+            
             {% if student.profile_picture %}
             <img src="{{ student.profile_picture.url }}" alt="Profile Picture" width="150" style="margin-bottom: 2em;">
             {% else %}
             <img src="{% static 'images/Default_avatar.webp' %}" alt="Default Profile Picture" width="150" style="margin-bottom: 2em;" >
             {% endif %}
-            <table class="table table-bordered table-responsive " style=>
+            <a class="btn btn-warning" href="{% url 'edit_student_profile' %}" style="display: block; width: 30%; margin-left: 7.4em;"> <i class="bi bi-pencil-square"></i> Edit</a>
+            <table class="table table-responsive " style=>
             <tr>
             <th>Student Number: </th>
             <td>{{ student.student_number }}</td>
