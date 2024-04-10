@@ -30,10 +30,13 @@ class Department(models.Model):
     
     class Meta:
         ordering = ['-updated', '-created']
-   
+
+    def __str__(self):
+        return self.name
 
 
 class Faculty(models.Model):
+    user = models.OneToOneField(User, null = True, blank=True, on_delete=models.CASCADE)
     first_name = models.CharField(max_length=100, null=True, blank = True)
     last_name = models.CharField(max_length=100, null=True, blank = True)
     gender = models.CharField(max_length=9)
@@ -98,6 +101,7 @@ class SectionSubjectFaculty(models.Model):
 
 
 class Student(models.Model):
+    user = models.OneToOneField(User, null = True, blank=True, on_delete=models.CASCADE)
     student_number = models.CharField(max_length=9, primary_key=True)
     first_name = models.CharField(max_length=100, null=True, blank = True)
     middle_name = models.CharField(max_length=100, null=True, blank = True)
@@ -116,6 +120,12 @@ class Student(models.Model):
   
     class Meta:
         ordering = ['-updated', '-created']
+    
+    def delete(self, *args, **kwargs):
+        # Delete the associated user before deleting the student
+        if self.user:
+            self.user.delete()
+        super().delete(*args, **kwargs)
 
     def __str__(self):
         return f"{self.first_name} - {self. last_name}"
@@ -303,14 +313,131 @@ class LikertEvaluation(models.Model):
     def __str__(self):
        return f"{self.section_subject_faculty.subjects} - {self.section_subject_faculty.faculty} - {self.comments}"
 
+
+
+class TypeOfEvent(models.Model):
+    name = models.CharField(max_length=50)
+    
+    def __str__(self):
+        return self.name
+    
 class Event(models.Model):
     title = models.CharField(max_length = 200)
     date = models.CharField(max_length = 100)
     time = models.CharField(max_length = 50)
     location = models.CharField(max_length = 200)
     event_picture = models.ImageField(upload_to='event_picture/', null=True, blank = True) 
-    course = models.ManyToManyField(Course)
-    department = models.ManyToManyField(Department)
-    description = models.TextField()
+    event_type = models.ForeignKey(TypeOfEvent, on_delete=models.CASCADE) 
+    course_attendees = models.ManyToManyField(Course)
+    department_attendees = models.ManyToManyField(Department)
+    description = models.TextField(null=True, blank = True)
+    #published_by = models.ForeignKey(Faculty, on_delete=models.CASCADE)
 
-  
+    updated = models.DateTimeField(auto_now = True, null=True, blank = True)
+    created = models.DateTimeField(auto_now_add = True, null=True, blank = True)
+
+    class Meta:
+        ordering = ['-updated', '-created']
+
+    def __str__(self):
+        return self.title
+
+class SchoolEventModel(models.Model):
+    event = models.ForeignKey(Event, on_delete=models.CASCADE) 
+    # Overall Evaluation
+    relevance_of_the_activity = models.IntegerField(choices=[(5, 'Greatly exceeded expectations'), (4, 'Exceeded expectations'), (3, 'Matched expectations'),
+                                        (2, 'Less than expected'), (1, 'Much less than expected')])
+    quality_of_the_activity = models.IntegerField(choices=[(5, 'Greatly exceeded expectations'), (4, 'Exceeded expectations'), (3, 'Matched expectations'),
+                                        (2, 'Less than expected'), (1, 'Much less than expected')])
+    timeliness = models.IntegerField(choices=[(5, 'Greatly exceeded expectations'), (4, 'Exceeded expectations'), (3, 'Matched expectations'),
+                                        (2, 'Less than expected'), (1, 'Much less than expected')])
+    
+    suggestions_and_comments = models.TextField()
+
+    academic_year = models.CharField(max_length=50, null=True, blank=True)
+    semester = models.CharField(max_length=50, null=True, blank=True)
+    average_rating = models.FloatField(null=True, blank=True)
+
+    updated = models.DateTimeField(auto_now = True, null=True, blank = True)
+    created = models.DateTimeField(auto_now_add = True, null=True, blank = True)
+
+    def calculate_average_rating(self):
+        fields_to_average = [
+            'relevance_of_the_activity',
+            'quality_of_the_activity',
+            'timeliness'
+        ]
+         # Filter out None values and calculate average
+        ratings = [getattr(self, field) for field in fields_to_average if getattr(self, field) is not None]
+        
+         # Convert ratings to integers
+        ratings = [int(rating) for rating in ratings]
+
+        average_rating = sum(ratings) / len(ratings) if ratings else None
+        return round(average_rating, 2) 
+
+
+    def save(self, *args, **kwargs):
+        # Get the current evaluation status
+        evaluation_status = EvaluationStatus.objects.first()
+        if evaluation_status:
+            self.academic_year = evaluation_status.academic_year
+            self.semester = evaluation_status.semester
+            self.average_rating = self.calculate_average_rating()
+        super().save(*args, **kwargs)
+
+    class Meta:
+        ordering = ['-updated', '-created']
+    def __str__(self):
+        return self.event.title
+
+class WebinarSeminarModel(models.Model):  
+    event = models.ForeignKey(Event, on_delete=models.CASCADE) 
+    # Overall Evaluation
+    relevance_of_the_activity = models.IntegerField(choices=[(5, 'Greatly exceeded expectations'), (4, 'Exceeded expectations'), (3, 'Matched expectations'),
+                                        (2, 'Less than expected'), (1, 'Much less than expected')])
+    quality_of_the_activity = models.IntegerField(choices=[(5, 'Greatly exceeded expectations'), (4, 'Exceeded expectations'), (3, 'Matched expectations'),
+                                        (2, 'Less than expected'), (1, 'Much less than expected')])
+    timeliness = models.IntegerField(choices=[(5, 'Greatly exceeded expectations'), (4, 'Exceeded expectations'), (3, 'Matched expectations'),
+                                        (2, 'Less than expected'), (1, 'Much less than expected')])
+    
+    suggestions_and_comments = models.TextField()
+
+    # Procedure and Content
+    attainment_of_the_objective = models.IntegerField(choices=[(5, 'Greatly exceeded expectations'), (4, 'Exceeded expectations'), (3, 'Matched expectations'),
+                                        (2, 'Less than expected'), (1, 'Much less than expected')])
+    appropriateness_of_the_topic_to_attain_the_objective = models.IntegerField(choices=[(5, 'Greatly exceeded expectations'), (4, 'Exceeded expectations'), (3, 'Matched expectations'),
+                                        (2, 'Less than expected'), (1, 'Much less than expected')])
+    appropriateness_of_the_searching_methods_used = models.IntegerField(choices=[(5, 'Greatly exceeded expectations'), (4, 'Exceeded expectations'), (3, 'Matched expectations'),
+                                        (2, 'Less than expected'), (1, 'Much less than expected')])
+
+    topics_to_be_included = models.TextField()
+
+    # Suitability of the present time
+    appropriateness_of_the_topic_in_the_present_time = models.IntegerField(choices=[(5, 'Greatly exceeded expectations'), (4, 'Exceeded expectations'), (3, 'Matched expectations'),
+                                        (2, 'Less than expected'), (1, 'Much less than expected')])
+    usefulness_of_the_topic_discusssed_in_the_activity = models.IntegerField(choices=[(5, 'Greatly exceeded expectations'), (4, 'Exceeded expectations'), (3, 'Matched expectations'),
+                                        (2, 'Less than expected'), (1, 'Much less than expected')])
+    appropriateness_of_the_searching_methods_used = models.IntegerField(choices=[(5, 'Greatly exceeded expectations'), (4, 'Exceeded expectations'), (3, 'Matched expectations'),
+                                        (2, 'Less than expected'), (1, 'Much less than expected')])
+    #Speaker Evaluation 
+    displayed_a_thorough_knowledge_of_the_topic = models.IntegerField(choices=[(5, 'Greatly exceeded expectations'), (4, 'Exceeded expectations'), (3, 'Matched expectations'),
+                                        (2, 'Less than expected'), (1, 'Much less than expected')])
+    thoroughly_explained_and_processed_the_learning_activities_throughout_the_training = models.IntegerField(choices=[(5, 'Greatly exceeded expectations'), (4, 'Exceeded expectations'), (3, 'Matched expectations'),
+                                        (2, 'Less than expected'), (1, 'Much less than expected')])
+    able_to_create_a_good_learning_environment = models.IntegerField(choices=[(5, 'Greatly exceeded expectations'), (4, 'Exceeded expectations'), (3, 'Matched expectations'),
+                                        (2, 'Less than expected'), (1, 'Much less than expected')])
+    able_to_manage_her_time_well = models.IntegerField(choices=[(5, 'Greatly exceeded expectations'), (4, 'Exceeded expectations'), (3, 'Matched expectations'),
+                                        (2, 'Less than expected'), (1, 'Much less than expected')])
+    demonstrated_keenness_to_the_participant_needs = models.IntegerField(choices=[(5, 'Greatly exceeded expectations'), (4, 'Exceeded expectations'), (3, 'Matched expectations'),
+                                        (2, 'Less than expected'), (1, 'Much less than expected')])
+    demonstrated_keenness_to_the_participant_needs = models.IntegerField(choices=[(5, 'Greatly exceeded expectations'), (4, 'Exceeded expectations'), (3, 'Matched expectations'),
+                                        (2, 'Less than expected'), (1, 'Much less than expected')])
+    timeliness = models.IntegerField(choices=[(5, 'Greatly exceeded expectations'), (4, 'Exceeded expectations'), (3, 'Matched expectations'),
+                                        (2, 'Less than expected'), (1, 'Much less than expected')])
+    overall_satisfaction = models.IntegerField(choices=[(5, 'Greatly exceeded expectations'), (4, 'Exceeded expectations'), (3, 'Matched expectations'),
+                                        (2, 'Less than expected'), (1, 'Much less than expected')])
+    
+    
+    def __str__(self):
+        return self.event
