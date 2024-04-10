@@ -1,0 +1,18 @@
+{% extends "pages/home.html" %}
+{% load static %}
+{% block title %}Edit Profile{% endblock %}
+
+{% block header %}
+
+    <h2> Edit Profile</h2>
+    <hr>
+    {% endblock header %}
+    {% block feature %}
+    <form method="post" action="" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form }}
+    <br>
+    <button type="submit" class="btn btn-warning">Save</button>
+    </form>
+    {% endblock feature %}
+
