@@ -56,7 +56,11 @@ urlpatterns = [
     path('view_evaluation_form/<int:pk>/', views.view_evaluation_form, name='view_evaluation_form'),
     path('faculty_events', views.faculty_events, name='faculty_events'),
     path('event_creation_form', views.event_creation_form, name='event_creation_form'),
-]
+    path('event/<int:pk>/', views.event_detail, name='event_detail'),
+    path('edit_student_profile', views.edit_student_profile, name='edit_student_profile'),
+    path('faculty_event_evaluations', views.faculty_event_evaluations, name='faculty_event_evaluations'),
+    path('view_schoolevent_evaluations/<int:pk>/', views.view_schoolevent_evaluations, name='view_schoolevent_evaluations'),
+]   
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
