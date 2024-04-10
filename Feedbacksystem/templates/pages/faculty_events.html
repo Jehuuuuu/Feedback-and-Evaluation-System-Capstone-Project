@@ -9,5 +9,42 @@
     {% endblock header %}
     {% block feature %}
     <a class = "btn btn-warning" href = "{% url 'event_creation_form' %}"> <i class="bi bi-plus-square-fill"> </i>Create an Event </a>
+    
+    <table class="table table-striped table-bordered table-responsive  " style="margin-top: 1em;">
+        <tr>
+            <th  scope="col" class="bg-success">TITLE</th>
+            <th  scope="col" class="bg-success">DATE</th>
+            <th  scope="col" class="bg-success">TIME</th>
+            <th  scope="col" class="bg-success">LOCATION</th>
+            <th  scope="col" class="bg-success">EVENT TYPE </th>
+            <th  scope="col" class="bg-success">COURSE/DEPARTMENT ATTENDEES</th>
+            <th  scope="col" class="bg-success">DESCRIPTION</th>
+            <th  scope="col" class="bg-success">OPTIONS </th>
+        </tr>
+        {% for i in event %}
+        <tr>
+            <td>{{ i.title }}</td>
+            <td>{{ i.date }}</td>
+            <td>{{ i.time }}</td>
+            <td>{{ i.location }}</td>
+            <td>{{ i.event_type }}</td>
+            <td>
+                {% for course in i.course_attendees.all %}
+                    {{ course.name }}{% if not forloop.last %}, {% endif %}
+                {% endfor %}
+                <br>
+                {% for department in i.department_attendees.all %}
+                    {{ department.name }}{% if not forloop.last %}, {% endif %}
+                {% endfor %}
+            </td>
+            <td>{{ i.description }}</td>
+            <td><a class="nav-link" href="{% url 'faculty_event_evaluations' %}"><b>VIEW</b> <a class="nav-link" href="{}"><b>EDIT</b><a class="nav-link" href="{}"><b>DELETE</b></a></td>
+    
+        </tr>
+    
+        {% endfor %}
+    
+
+
     {% endblock feature %}
 
