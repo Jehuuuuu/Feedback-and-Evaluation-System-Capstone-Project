@@ -1,7 +1,7 @@
 from django.forms import ModelForm
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
-from .models import Faculty, Student, Course, Section, SectionSubjectFaculty, Subject, EvaluationStatus, Department, Event
+from .models import Faculty, Student, Course, Section, SectionSubjectFaculty, Subject, EvaluationStatus, Department, Event, SchoolEventModel, WebinarSeminarModel
 from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
@@ -15,6 +15,7 @@ class StudentForm(ModelForm):
     class Meta:
         model = Student
         fields = '__all__' 
+        exclude = ['user']
 
 class DepartmentForm(ModelForm):
     class Meta:
@@ -59,6 +60,9 @@ class StudentRegistrationForm(UserCreationForm):
 
         # Check if the student number exists in the database
         existing_student = Student.objects.filter(student_number=student_number).first()
+        if existing_student:
+                # Associate the user with the existing student record
+                self.instance.student = existing_student
 
         if not existing_student:
             raise ValidationError("Student with this student number does not exist. Please contact the admin to create an account.")
@@ -76,6 +80,9 @@ class StudentRegistrationForm(UserCreationForm):
 
         if commit:
             user.save()
+             # Save the related student object after saving the user
+            if hasattr(user, 'student') and user.student:
+                user.student.save()
 
         return user
 
@@ -268,12 +275,50 @@ class LikertEvaluationForm(forms.Form):
 
 LikertEvaluationFormSet = formset_factory(LikertEvaluationForm, extra=1)
 
-class EventCreationForm(ModelForm):
-      # Define a ModelMultipleChoiceField for the course and department fields
-    course = forms.ModelMultipleChoiceField(queryset=Course.objects.all(), required=False)
-    department = forms.ModelMultipleChoiceField(queryset=Department.objects.all(), required=False)
+class DateInput(forms.DateInput):
+    input_type = 'date'
 
+class EventCreationForm(ModelForm):
     class Meta:
         model = Event
+        fields = ['title', 'date', 'time', 'location', 'event_type','event_picture', 'description', 'course_attendees', 'department_attendees']
+        labels = {
+            'course_attendees': 'Course Attendees',
+            'department_attendees': 'Department Attendees',
+        }
+
+        widgets = {
+            'title': forms.TextInput(attrs={'class': 'form-control'}),
+            'date': DateInput(attrs={'class': 'form-control'}),
+            'time': forms.TimeInput(attrs={'class': 'form-control'}),
+            'location': forms.TextInput(attrs={'class': 'form-control'}),
+            'event_type': forms.Select(attrs={'class': 'form-control'}),
+            'description': forms.Textarea(attrs={'class': 'form-control'}),
+            'event_picture': forms.ClearableFileInput(attrs={'class': 'form-control '}),
+            'course_attendees': forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'}),
+            'department_attendees': forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'}),
+        }
+
+class SchoolEventForm(forms.Form):
+    relevance_of_the_activity = forms.ChoiceField(choices=[(5, ''), (4, ''), (3, ''),
+                                        (2, ''), (1, '')],  widget=forms.RadioSelect(attrs={'class': 'likert-horizontal custom-radio'}))
+    quality_of_the_activity = forms.ChoiceField(choices=[(5, ''), (4, ''), (3, ''),
+                                        (2, ''), (1, '')],  widget=forms.RadioSelect(attrs={'class': 'likert-horizontal custom-radio'}))
+    timeliness = forms.ChoiceField(choices=[(5, ''), (4, ''), (3, ''),
+                                        (2, ''), (1, '')],  widget=forms.RadioSelect(attrs={'class': 'likert-horizontal custom-radio'}))
+    
+    suggestions_and_comments = forms.CharField(required=True, widget=forms.TextInput(attrs={'size': 60, 'class': 'form-control'}))  # Adjust size as needed
+
+class WebinarSeminarForm(ModelForm):
+    class Meta:
+        model = WebinarSeminarModel
         fields = '__all__'
+
+class StudentProfileForm(ModelForm):
+    class Meta:
+        model = Student
+        fields = ['email', 'contact_no', 'profile_picture'] 
+        
+       
+    
  
