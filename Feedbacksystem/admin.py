@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Student, Subject, Faculty, Course, Department, Section, SectionSubjectFaculty, LikertEvaluation, EvaluationStatus, Event
+from .models import Student, Subject, Faculty, Course, Department, Section, SectionSubjectFaculty, LikertEvaluation, EvaluationStatus, Event, TypeOfEvent, SchoolEventModel, WebinarSeminarModel
 from import_export.admin import ImportExportModelAdmin
 # Register your models here.
 class SectionSubjectFacultyInline(admin.TabularInline):
@@ -23,3 +23,6 @@ admin.site.register(SectionSubjectFaculty)
 admin.site.register(LikertEvaluation)
 admin.site.register(EvaluationStatus)
 admin.site.register(Event)
+admin.site.register(TypeOfEvent)
+admin.site.register(WebinarSeminarModel)
+admin.site.register(SchoolEventModel)
