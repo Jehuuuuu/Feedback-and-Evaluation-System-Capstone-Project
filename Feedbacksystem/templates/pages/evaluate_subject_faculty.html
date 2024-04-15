@@ -37,31 +37,39 @@
            
            
         </tr>
-      
+        {% for question in questions %}
         <tr>
-            <td>Shows good command and knowledge of the subject 
-                matter</td>
+            {% if question.order == 0 %}  
+            <td>{{ question.text }}</td>      
             <td>{{ form.command_and_knowledge_of_the_subject }}</td>
+            {% endif %}
         </tr>
         <tr>
-            <td>Demonstrates breadth and depth of mastery</td>
+            {% if question.order == 1 %}  
+            <td>{{ question.text }}</td>
+            
             <td>{{ form.depth_of_mastery }}</td>
+            {% endif %}
         </tr>
         <tr>
-            <td>Draws and share information in the state-of-the-art
-                theory and practice in his/her respective discipline</td>
+            {% if question.order == 2 %}  
+            <td>{{ question.text }}</td>  
             <td>{{ form.practice_in_respective_discipline }}</td>
+            {% endif %}
         </tr>
         <tr>
-            <td>Demonstrates up-to-date knowledge and/or awareness 
-                on current trends and issues of the subject matter</td>
+            {% if question.order == 3 %}  
+            <td>{{ question.text }}</td>
             <td>{{ form.up_to_date_knowledge }}</td>
+            {% endif %}
         </tr>
         <tr>
-            <td>Integrates subject to practical circumstances</td>
+            {% if question.order == 4 %}  
+            <td>{{ question.text }}</td>
             <td>{{ form.integrates_subject_to_practical_circumstances }}</td>
+            {% endif %}
         </tr>
-        
+        {% endfor %}
     
 </table>
 
@@ -75,29 +83,38 @@
        
        
     </tr>
-  
+    {% for question in questions %}
     <tr>
-        <td>Organizes the subject matter</td>
+        {% if question.order == 5 %}  
+        <td>{{ question.text }}</td>
         <td>{{ form.organizes_the_subject_matter }}</td>
+        {% endif %}
     </tr>
     <tr>
-        <td>Provides an orientation on course content and course
-            policies at the start of the semester</td>
+        {% if question.order == 6 %}  
+        <td>{{ question.text }}</td>
         <td>{{ form.provides_orientation_on_course_content }}</td>
+        {% endif %}
     </tr>
     <tr>
-        <td>Shows substantial efforts of class preparation</td>
+        {% if question.order == 7 %}  
+        <td>{{ question.text }}</td>
         <td>{{ form.efforts_of_class_preparation }}</td>
+        {% endif %}
     </tr>
     <tr>
-        <td>Emphasizes and summarizes main points </td>
+        {% if question.order == 8 %}  
+        <td>{{ question.text }}</td>
         <td>{{ form.summarizes_main_points }}</td>
+        {% endif %}
     </tr>
     <tr>
-        <td>Monitors online class when possible </td>
+        {% if question.order == 9 %} 
+        <td>{{ question.text }}</td>
         <td>{{ form.monitors_online_class }}</td>
+        {% endif %}
     </tr>
-    
+    {% endfor %}
 
 </table>
 <table class="table table-bordered table-responsive  " style="margin-top: 1em;">
@@ -105,29 +122,39 @@
         <th  scope="col" class="bg-success">III. TEACHER-STUDENT RAPPORT </th>
         <th  scope="col" class="bg-success"><div style="display: flex; white-space: pre; width: 50%;"><div style="width: 5em;margin-left: 3em;">Outstanding </div>          <div style="width: 100%; margin-left: 4em;">Very Satisfactory</div>      <div style="width: 100%; margin-right: 3.5em; margin-left:3em;">Satisfactory</div> <div style="width: 100%; margin-right: 5em;">Unsatisfactory</div>        <div style="width: 100%; margin-right: 2em;">Poor</div> </th> 
     </tr>
-  
+    {% for question in questions %}
     <tr>
-        <td>Holds interest of students </td>
+        {% if question.order == 10 %}
+        <td>{{ question.text }}</td>       
         <td>{{ form.holds_interest_of_students }}</td>
+        {% endif %}
     </tr>
     <tr>
-        <td>Provides relevant feedback</td>
+        {% if question.order == 11 %} 
+        <td>{{ question.text }}</td>
         <td>{{ form.provides_relevant_feedback }}</td>
+        {% endif %}
     </tr>
     <tr>
-        <td>Encourages participation and greater students’
-            interaction</td>
+        {% if question.order == 12 %} 
+        <td>{{ question.text }}</td>
         <td>{{ form.encourages_participation }}</td>
+        {% endif %}
     </tr>
     <tr>
-        <td>Shows enthusiasm in every lesson and activity </td>
+        {% if question.order == 13 %}  
+        <td>{{ question.text }}</td>
+        
         <td>{{ form.shows_enthusiasm }}</td>
+        {% endif %}
     </tr>
     <tr>
-        <td>Shows sense of humor and openness to others point of
-            view</td>
+        {% if question.order == 14 %}
+        <td>{{ question.text }}</td>
         <td>{{ form.shows_sense_of_humor }}</td>
+        {% endif %}
     </tr>
+    {% endfor %}
 <table class="table table-bordered table-responsive  " style="margin-top: 1em;">   
     <tr>
         <th  scope="col" class="bg-success">IV. TEACHING METHODS</th>
@@ -137,32 +164,44 @@
        
        
     </tr>
-  
+    {% for question in questions %}
     <tr>
-        <td>Uses various and relevant teaching methods,
-            instructional materials, and technology </td>
+        {% if question.order == 15 %}  <tr>
+            <td>{{ question.text }}</td>
+        
         <td>{{ form.teaching_methods }}</td>
+        {% endif %}
     </tr>
     <tr>
-        <td>Employs flexible learning strategies effectively</td>
+        {% if question.order == 16 %}  <tr>
+            <td>{{ question.text }}</td>
+        
         <td>{{ form.flexible_learning_strategies }}</td>
+        {% endif %}
     </tr>
     <tr>
-        <td>Includes varied, creative, and balanced student
-            engagement </td>
+        {% if question.order == 17 %}  <tr>
+            <td>{{ question.text }}</td>
+        
         <td>{{ form.student_engagement }}</td>
+        {% endif %}
     </tr>
     <tr>
-        <td>Uses examples that are simple, clear, precise, and
-            appropriate both in offline and online modes  </td>
+        {% if question.order == 18 %}  <tr>
+            <td>{{ question.text }}</td>
+        
         <td>{{ form.clear_examples }}</td>
+        {% endif %}
     </tr>
     <tr>
-        <td>Stays focused on and meets stated objectives</td>
+        {% if question.order == 19 %}  <tr>
+        <td>{{ question.text }}</td>
+        
         <td>{{ form.focused_on_objectives }}</td>
+        {% endif %}
     </tr>
     
-
+    {% endfor %}
 </table>
 <table class="table table-bordered table-responsive  " style="margin-top: 1em;">
     <tr>
@@ -174,28 +213,38 @@
        
        
     </tr>
-  
+    {% for question in questions %}
     <tr>
-        <td>Starts with a highly motivating activities </td>
+        {% if question.order == 20 %}  <tr>
+        <td>{{ question.text }}</td>
         <td>{{ form.starts_with_motivating_activities }}</td>
+        {% endif %}
     </tr>
     <tr>
-        <td>Speaks in clear and audible manner </td>
+        {% if question.order == 21 %}  <tr>
+        <td>{{ question.text }}</td>
         <td>{{ form.speaks_in_clear_and_audible_manner }}</td>
+        {% endif %}
     </tr>
     <tr>
-        <td>Uses appropriate medium of instruction</td>
+        {% if question.order == 22 %} 
+        <td>{{ question.text }}</td> 
         <td>{{ form.uses_appropriate_medium_of_instruction }}</td>
+        {% endif %}
     </tr>
     <tr>
-        <td> Establishes online classroom environment conducive
-            to learning when possible</td>
+        {% if question.order == 23 %} 
+        <td>{{ question.text }}</td>       
         <td>{{ form.establishes_online_classroom_environment }}</td>
+        {% endif %}
     </tr>
     <tr>
-        <td>Observes proper netiquette and/or classroom etiquette</td>
+        {% if question.order == 24 %} 
+        <td>{{ question.text }}</td>    
         <td>{{ form.observes_proper_classroom_etiquette }}</td>
+        {% endif %}
     </tr>
+    {% endfor %}
 <table class="table table-bordered table-responsive  " style="margin-top: 1em;">   
     <tr>
         <th  scope="col" class="bg-success">VI. CLASSROOM MANAGEMENT</th>
@@ -205,35 +254,38 @@
        
        
     </tr>
-  
+    {% for question in questions %}
     <tr>
-        <td>Uses time wisely both in offline and online learning
-            modes and attends to interaction using varied learning
-            platforms</td>
+        {% if question.order == 25 %} 
+        <td>{{ question.text }}</td>    
         <td>{{ form.uses_time_wisely }}</td>
+        {% endif %}
     </tr>
     <tr>
-        <td> Gives ample time for the students to prepare for
-            scheduled synchronous sessions.</td>
+        {% if question.order == 26 %} 
+        <td>{{ question.text }}</td>    
         <td>{{ form.gives_ample_time_for_students_to_prepare }}</td>
+        {% endif %}
     </tr>
     <tr>
-        <td>Updates the students of their progress using objective
-            and consistent grading system </td>
+        {% if question.order == 27 %} 
+        <td>{{ question.text }}</td>    
         <td>{{ form.updates_the_students_of_their_progress }}</td>
+        {% endif %}
     </tr>
     <tr>
-        <td>Demonstrates leadership ability and professionalism</td>
+        {% if question.order == 28 %} 
+        <td>{{ question.text }}</td>    
         <td>{{ form.demonstrates_leadership_and_professionalism }}</td>
+        {% endif %}
     </tr>
     <tr>
-        <td>Understands possible distractions on content delivery
-            caused by connectivity and other situations beyond
-            control
-            </td>
+        {% if question.order == 29 %} 
+        <td>{{ question.text }}</td>    
         <td>{{ form.understands_possible_distractions }}</td>
+        {% endif %}
     </tr>
-    
+    {% endfor %}
 <table class="table table-bordered table-responsive  " style="margin-top: 1em;">   
     <tr>
         <th  scope="col" class="bg-success">VII. SENSITIVITY and SUPPORT to STUDENTS</th>
@@ -243,33 +295,39 @@
        
        
     </tr>
-  
+    {% for question in questions %}
     <tr>
-        <td>Exhibits sensitivity to students' personal culture, gender
-            differences and disabilities</td>
+        {% if question.order == 30 %} 
+        <td>{{ question.text }}</td>    
         <td>{{ form.sensitivity_to_student_culture }}</td>
+        {% endif %}
     </tr>
     <tr>
-        <td>  Responds appropriately in a non-threatening, proactive learning environment </td>
+        {% if question.order == 31 %} 
+        <td>{{ question.text }}</td>    
         <td>{{ form.responds_appropriately }}</td>
+        {% endif %}
     </tr>
     <tr>
-        <td>Assists students on their concerns in the subject </td>
+        {% if question.order == 32 %} 
+        <td>{{ question.text }}</td>    
         <td>{{ form.assists_students_on_concerns }}</td>
+        {% endif %}
     </tr>
     <tr>
-        <td>Guides the students in accomplishing the learning
-            tasks both in offline and online learning modes </td>
+        {% if question.order == 33 %} 
+        <td>{{ question.text }}</td>    
         <td>{{ form.guides_the_students_in_accomplishing_tasks }}</td>
+        {% endif %}
     </tr>
     <tr>
-        <td>Extends consideration and adjusts to the situations of
-            the students accordingly 
-            </td>
+        {% if question.order == 34 %} 
+        <td>{{ question.text }}</td>    
         <td>{{ form.extends_consideration_to_students }}</td>
+        {% endif %}
     </tr>
     
-
+    {% endfor %}
 </table>
 
 
@@ -282,25 +340,33 @@
     
 </div>
 
-
+{% for question in questions %}
    <!-- Strengths of the Faculty -->
    <div class="container" style="margin-top: 2em;">
-    <label for="strengths_of_the_faculty">Strengths of the Faculty:</label>
+    {% if question.order == 35 %} 
+    <label for="strengths_of_the_faculty">{{ question.text }}</label>
     {{ form.strengths_of_the_faculty }}
+    {% endif %}
 </div>
-
+{% endfor %}
+{% for question in questions %}
 <!-- Other Suggestions for Improvement -->
 <div class="container" style="margin-top: 2em;">
-    <label for="other_suggestions_for_improvement">Other Suggestions for Improvement:</label>
+    {% if question.order == 36 %} 
+    <label for="other_suggestions_for_improvement">{{ question.text }}</label>
     {{ form.other_suggestions_for_improvement }}
+    {% endif %}
 </div>
-
+{% endfor %}
+{% for question in questions %}
 <!-- Comments -->
 <div class="container" style="margin-top: 2em;">
-    <label for="comments">Overall Impression of the Faculty:</label>
+    {% if question.order == 37 %} 
+    <label for="comments">{{ question.text }}</label>
     {{ form.comments }}
+    {% endif %}
 </div>
-
+{% endfor %}
   <br>
   <input type="submit"  class="btn btn-warning" value="Submit" style="font-weight: bold;">
 </form>

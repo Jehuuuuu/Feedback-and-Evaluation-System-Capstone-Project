@@ -10,11 +10,13 @@
 {% endblock header %}
 <hr>
 {% block feature %}
+<div class="container" style="width: 60%;">
 <form method="POST" action="">
     {% csrf_token %}
     {{ form.as_p }}
 
 
-<input type = "submit" value="Save changes">
+<input type = "submit" value="Save changes" class="btn btn-warning">
 </form>
+</div>
 {% endblock feature %}

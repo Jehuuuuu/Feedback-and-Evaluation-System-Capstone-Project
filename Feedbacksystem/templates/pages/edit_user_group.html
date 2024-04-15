@@ -1,0 +1,24 @@
+{% extends "pages/admin.html" %}
+
+{% block title %}Users{% endblock %}
+
+{% block header %}
+ 
+    <h2> Manage Users</h2>
+  
+<hr>
+{% endblock header %}
+
+{% block feature %}
+
+<form method="post">
+    {% csrf_token %}
+    <label for="group_name">Select Role:</label>
+    <select name="group_name" id="group_name">
+        {% for group in all_groups %}
+        <option value="{{ group.name }}" {% if group in user_groups %} selected {% endif %}>{{ group.name }}</option>
+        {% endfor %}
+    </select>
+    <button type="submit" class="btn btn-primary">Update</button>
+</form>
+{% endblock feature %}

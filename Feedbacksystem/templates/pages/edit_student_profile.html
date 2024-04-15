@@ -8,11 +8,13 @@
     <hr>
     {% endblock header %}
     {% block feature %}
+    <div class="container" style="width: 60%;">
     <form method="post" action="" enctype="multipart/form-data">
             {% csrf_token %}
             {{ form }}
     <br>
     <button type="submit" class="btn btn-warning">Save</button>
     </form>
+    </div>
     {% endblock feature %}
 

@@ -1,10 +1,10 @@
 {% extends "pages/admin.html" %}
 
-{% block title %}Add New Teacher{% endblock %}
+{% block title %}Edit Question{% endblock %}
 
 {% block header %}
 
-    <h2> Add Teacher</h2>
+    <h2> Edit Question</h2>
     <hr>
    
 {% endblock header %}
@@ -15,8 +15,7 @@
     {% csrf_token %}
     {{ form.as_p }}
 
-
-<input type = "submit" class="btn btn-warning" value="Add">
+<input type = "submit" value="Save changes" class="btn btn-warning">
 </form>
 </div>
 {% endblock feature %}

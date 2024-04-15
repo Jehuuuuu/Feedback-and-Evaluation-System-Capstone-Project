@@ -14,14 +14,15 @@
   <link rel="stylesheet" href="{% static 'css/admin.css'%}">
   <link href="https://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
 
 </head>
 
 <body>
   <div class="container-fluid" style="padding: 0;">
     <div style="display: flex; align-items: center; background-color: #2a9134; margin: 0; width: 100%; height: 20vh;">
-        <a class="navbar-brand" style="color: #fafafa;" href="{% url 'home' %}" id="headerlogo">
-            <img src="{% static 'images/cvsulogo.png'%}" alt="Cavite State Univeristy Logo" width="64px" height="64px" id="cvsulogo"> Feedback and Evaluation System 
+        <a class="navbar-brand" style="color: #fafafa;" href="{% url 'admin' %}" id="headerlogo">
+            <img src="{% static 'images/cvsulogo.png'%}" alt="Cavite State Univeristy Logo" width="78px" height="78px" id="cvsulogo"> Feedback and Evaluation System 
             <div class="subtitle">Cavite State University - Bacoor Campus</div>
         </a>
         <div style="margin-left: 30rem;">
@@ -58,6 +59,11 @@
             <a class="dropdown-item" href="{}">Virtual Suggestion Box</a>
           </div>
         </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'forms' %}">
+            <i class="bi bi-ui-radios"></i> <b>FORMS</b>
+          </a>
+        </li>
       <li class="nav-item dropdown">
         <button class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
           <i class="bi bi-duffle-fill"></i> <b>FACULTY</b>
@@ -79,6 +85,12 @@
           </div>
       </li>
  
+   
+    <li class="nav-item">
+      <a class="nav-link" href="{% url 'users' %}">
+        <i class="bi bi-people-fill"></i> <b>USERS</b>
+      </a>
+    </li>
     <li class="nav-item">
       <a class="nav-link" href="{% url 'adminlogout' %}">
         <i class="bi bi-box-arrow-in-left"></i> <b>LOGOUT</b>
@@ -88,33 +100,179 @@
     </ul>
   </nav>
   <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
-    <!-- Main content area -->
-    
-    <div class="container" style="padding:10px; margin-top:10px;">
-      {% block header %}
-   
-    <div id="eval" class = "container">
-      
  
-      <h3>Academic Year: {{evaluation_status.academic_year}}</h3>
-      <h3>Semester: {{ evaluation_status.semester }}</h3>
-      <h4>Student Evaluation for Teachers Status: {% if evaluation_status.evaluation_status %} Ongoing {% else %} Concluded {% endif %}</h4>
+  <div class="container" style="padding:10px; margin-top:10px;">
+      {% block header %}
+        <!-- Main content area -->
 
-      <a class="btn btn-warning" style = "color: black; text-decoration: none;" href="{% url 'admin_evaluation_status' %}"><i class="bi bi-pencil-square"></i> <b>Edit</b></a>
-      <a class="btn btn-warning"  style = "color: black; text-decoration: none; margin-left: 0.5em;" href="{% url 'adminregister' %}"><i class="bi bi-person-plus-fill"></i> <b>Add New Admin</b></a>
+      
+          <div id="wrapper">
+          <div id="header">
+            <h4 style="margin-left: 0.5em;font-weight: bold">Academic Year: {{evaluation_status.academic_year}} {{ evaluation_status.semester }} Semester</h4>
+            <h5 style="margin-left: 0.5em;">Student Evaluation for Teachers Status: {% if evaluation_status.evaluation_status %} In Progress {% else %} Concluded {% endif %}</h5>
+      
+            <button type="button" class="btn btn-warning"  style = "color: black; text-decoration: none; margin-left: 0.5em;"data-bs-toggle="modal" data-bs-target="#exampleModal"><i class="bi bi-pencil-square"></i>
+              <b>Edit</b>
+              
+            </button>
+            <a class="btn btn-warning"  style = "color: black; text-decoration: none; margin-left: 0.5em;" href="{% url 'adminregister' %}"><i class="bi bi-person-plus-fill"></i> <b>Add New Admin</b></a>
+          </div>  
+          <div id = "grid"  style="margin-left: 1em;"  ><p> <div style="margin-left: 1em; font-weight: bold; font-size: 30px;">{{ total_user }}</div>  <div style="margin-left: 1em;">  Total Users </div>  </p></div> 
+          <div id = "gridtwo" ><p> <div style="margin-left: 1em; font-weight: bold; font-size: 30px;">{{ total_faculty }}</div> <div style="margin-left: 1em;">  Total Faculty </div> </p></div> 
+          <div id = "gridtwo" ><p> <div style="margin-left: 1em; font-weight: bold; font-size: 30px;">{{ total_students }}</div> <div style="margin-left: 1em;">  Total Students </div> </p></div> 
+          <div id = "gridtwo" ><p> <div style="margin-left: 1em; font-weight: bold; font-size: 30px;">{{ total_sections }}</div> <div style="margin-left: 1em;">  Total Sections </div> </p></div> 
+         
+        </div>
+       
 
-    </div>
-
+          <!-- Modal -->
+            <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+            <div class="modal-content">
+            <div class="modal-header">
+              <h1 class="modal-title fs-5" id="exampleModalLabel">Edit Evaluation Status</h1>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+            <form method="POST" action="">
+              {% csrf_token %}
+            {{ form.as_p }}
+            </div>
+        <div class="modal-footer">
+        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+        <input type = "submit" value="Save Changes" class="btn btn-success">
+      </form>
+      </div>
+      </div>
+      </div>
+      </div>
+            
     {% endblock header %}
-
+    
     {% block feature %}
-    <hr>
-    <div style="align-items: center;  justify-content: space-around; margin-left: 20px;" class="container">
-    <div id = "grid" class="container"><p> Total Users: {{ total_user }} </p></div>     <div id = "gridtwo" class="container"><p> Total Courses: {{ total_courses }} </p></div>
-    <div id = "grid" class="container"><p> Total Sections: {{ total_sections }} </p></div>   <div id = "gridtwo" class="container"><p> Total Subjects: {{ total_subject }}  </p></div>
-    <div id = "grid" class="container"><p> Total Students: {{ total_students }} </p></div>    <div id = "gridtwo" class="container"><p> Total Teachers: {{ total_faculty }} </p></div>
+    <br>
+    <br>
+    <div class="d-flex" style="gap: 5em;  width: 100%; height: 50vh;">
+      <div id="chart-container">
+      <h4>Sentiment Analysis of Faculty Members</h4>
+      <canvas id="myChart"></canvas>
+      </div>
+  
+      <div id="chart-container">
+      <h4>Total Responses per Year/Semester</h4>
+     <canvas id="evaluationChart"></canvas>
+     </div>
+    
+    </div>
+    <div class="container" style="margin-top: 5em;">
+    <h4>Faculty Evaluations</h4>
+    <canvas id="facultyChart"></canvas>
+    </div>
+    
+   
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <script>
+       // Get chart data from Django view
+      var chartData = {{ chart_data|safe }};
+         // Render Chart.js chart
+      const ctx = document.getElementById('myChart');
+    
+      new Chart(ctx, {
+        type: 'pie',
+        data: {
+          labels: chartData.labels,
+          datasets: [{
+            label: 'Sentiment Analysis',
+            data: chartData.data,
+            backgroundColor: [
+            'rgba(80, 180, 120, 1)', // Positive
+            'rgba(255, 0, 0, 1)'  // Negative
+          ],
+          borderColor: [
+          'rgba(80, 180, 120, 1)',
+          'rgba(255, 0, 0, 1)'
+          ],
+          borderWidth: 1
+          }]
+        },
+        options: {
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          }
+        }
+      });
+    </script>
+
+
+    <script>
+      // Retrieve data from the server
+      fetch('{% url "evaluation_response_chart_data" %}')
+          .then(response => response.json())
+          .then(data => {
+              // Render chart
+              var ctx = document.getElementById('evaluationChart').getContext('2d');
+              var chart = new Chart(ctx, {
+                  type: 'line',
+                  data: {
+                      labels: data.labels,
+                      datasets: [{
+                          label: 'Total Responses',
+                          data: data.data,
+                          fill: false,
+                          borderColor: 'rgb(75, 192, 192)',
+                          tension: 0.1
+                      }]
+                  },
+                  options: {
+                      scales: {
+                          y: {
+                              beginAtZero: true
+                          }
+                      }
+                  }
+              });
+          });
+  </script>
+  <script>
+    // Retrieve data from the server
+    fetch('{% url "faculty_evaluations_chart_data" %}')
+        .then(response => response.json())
+        .then(data => {
+            // Render chart
+            const chart = new Chart(facultyChart, {
+      type: 'bar',
+      data: {
+        labels: data.labels,
+        datasets: [{
+          label: 'Positive Evaluations',
+          backgroundColor: 'rgba(80, 180, 120, 1)',
+          borderColor: 'rgba(80, 180, 120, 1)',
+          data: data.data.map(row => row[0]),
+        }, {
+          label: 'Negative Evaluations',
+          backgroundColor: 'rgba(255, 0, 0, 1)',
+          borderColor: 'rgba(255, 0, 0, 1)',
+          data: data.data.map(row => row[1]),
+        }]
+      },
+      options: {
+        scales: {
+          yAxes: [{
+            ticks: {
+              beginAtZero: true
+            }
+          }]
+        }
+      }
+    });
+  });
+</script>
+ {% endblock feature %}
   </div>
-    {% endblock feature %}
   </div>
   </div>
  
@@ -127,6 +285,7 @@
     <!-- place footer here -->
   </footer>
   <!-- Bootstrap JavaScript Libraries -->
+ 
   <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"
     integrity="sha384-oBqDVmMz9ATKxIep9tiCxS/Z9fNfEXiDAYTujMAeBAsjFuCZSmKbSSUnQlmh/jp3" crossorigin="anonymous">
   </script>

@@ -92,10 +92,10 @@ class SectionSubjectFaculty(models.Model):
     created = models.DateTimeField(auto_now_add = True, null=True, blank = True)
 
     class Meta:
-        ordering = ['-updated', '-created']
+        ordering = ['faculty__last_name']
         
     def __str__(self):
-        return f"{self. subjects} - {self. faculty}"
+        return f"{self.faculty.first_name} {self.faculty.last_name}"
  
 
 
@@ -309,6 +309,7 @@ class LikertEvaluation(models.Model):
 
     class Meta:
         ordering = ['-updated', '-created']
+    
 
     def __str__(self):
        return f"{self.section_subject_faculty.subjects} - {self.section_subject_faculty.faculty} - {self.comments}"
@@ -441,3 +442,16 @@ class WebinarSeminarModel(models.Model):
     
     def __str__(self):
         return self.event
+
+class FacultyEvaluationQuestions(models.Model):
+    text = models.CharField(max_length=255)
+    order = models.IntegerField(default=0)  # Optional field to control question order
+
+    def __str__(self):
+        return self.text
+    def save(self, *args, **kwargs):
+        if not self.pk:  # Check if it's a new question
+            # Calculate the next order number
+            last_question = FacultyEvaluationQuestions.objects.last()
+            self.order = 1 if not last_question else last_question.order + 1
+        super().save(*args, **kwargs)

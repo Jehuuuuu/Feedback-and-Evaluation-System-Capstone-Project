@@ -60,6 +60,13 @@ urlpatterns = [
     path('edit_student_profile', views.edit_student_profile, name='edit_student_profile'),
     path('faculty_event_evaluations', views.faculty_event_evaluations, name='faculty_event_evaluations'),
     path('view_schoolevent_evaluations/<int:pk>/', views.view_schoolevent_evaluations, name='view_schoolevent_evaluations'),
+    path('evaluation_response_chart_data', views.evaluation_response_chart_data, name='evaluation_response_chart_data'),
+    path('faculty_evaluations_chart_data', views.faculty_evaluations_chart_data, name='faculty_evaluations_chart_data'),
+    path('forms', views.forms, name='forms'),
+    path('edit_form', views.edit_form, name='edit_form'),
+    path('edit_question/<int:pk>/', views.edit_question, name='edit_question'),
+    path('users', views.users, name='users'),
+    path('edit_user_group/<str:user_id>/', views.edit_user_group, name='edit_user_group'),
 ]   
 
 if settings.DEBUG:

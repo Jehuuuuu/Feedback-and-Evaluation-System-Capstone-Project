@@ -17,12 +17,16 @@
     {% endfor %}
 </ul>
 {% endif %}
+<div style="gap: 1em;" class="d-flex">
 <a class="btn btn-warning" style = "color: black; text-decoration: none;" href="{% url 'addstudent' %}"><i class="bi bi-person-plus-fill"></i><b>Add Student</b></a>
+
 <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
+    
 <input type="file" name="studentfile" accept=".xlsx">
-<button type="submit">Upload</button>
+<button type="submit" class="btn btn-primary">Import Excel File</button>
 </form>
+</div>
 <br>
 <br>
 <table class="table table-bordered table-responsive  ">

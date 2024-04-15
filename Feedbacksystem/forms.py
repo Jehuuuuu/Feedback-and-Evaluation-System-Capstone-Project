@@ -1,7 +1,7 @@
 from django.forms import ModelForm
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
-from .models import Faculty, Student, Course, Section, SectionSubjectFaculty, Subject, EvaluationStatus, Department, Event, SchoolEventModel, WebinarSeminarModel
+from .models import Faculty, Student, Course, Section, SectionSubjectFaculty, Subject, EvaluationStatus, Department, Event, SchoolEventModel, WebinarSeminarModel, FacultyEvaluationQuestions
 from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
@@ -10,43 +10,93 @@ class TeacherForm(ModelForm):
     class Meta:
         model = Faculty
         fields = '__all__' 
+        exclude = ['user']
+        widgets = {
+            'first_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'gender': forms.TextInput(attrs={'class': 'form-control'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control'}),
+            'contact_number': forms.TextInput(attrs={'class': 'form-control'}),
+            'department': forms.TextInput(attrs={'class': 'form-control'}),
+        }
 
 class StudentForm(ModelForm):
     class Meta:
         model = Student
         fields = '__all__' 
-        exclude = ['user']
-
+        exclude = ['user', 'middle_name']
+        widgets = {
+            'student_number': forms.TextInput(attrs={'class': 'form-control'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'first_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control'}),
+            'age': forms.TextInput(attrs={'class': 'form-control'}),
+            'sex': forms.TextInput(attrs={'class': 'form-control'}),
+            'contact_no': forms.TextInput(attrs={'class': 'form-control'}),
+            'status': forms.TextInput(attrs={'class': 'form-control'}),
+            'Course': forms.TextInput(attrs={'class': 'form-control'}),
+            'Section': forms.TextInput(attrs={'class': 'form-control'}),
+        }
 class DepartmentForm(ModelForm):
     class Meta:
         model = Department
         fields = '__all__'     
+
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+        }
 
 class CourseForm(ModelForm):
     class Meta:
         model = Course
         fields = '__all__' 
 
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+        }
+
 class SectionForm(ModelForm):
     class Meta:
         model = Section
-        fields = ['name']
+        fields = ['name', 'subjects']
+
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'subjects': forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'}),
+
+        }
 
 class SectionSubjectFacultyForm(ModelForm):
     class Meta:
         model = SectionSubjectFaculty
         fields = '__all__'  
+        widgets = {
+            'section': forms.Select(attrs={'class': 'form-control'}),
+            'subjects': forms.Select(attrs={'class': 'form-control'}),
+            'faculty': forms.Select(attrs={'class': 'form-control'}),
 
+        }
 class SubjectForm(ModelForm):
     class Meta:
         model = Subject
         fields = '__all__'    
+        widgets = {
+            'subject_code': forms.TextInput(attrs={'class': 'form-control'}),
+            'subject_name': forms.TextInput(attrs={'class': 'form-control'}),
 
+        }
 class EvaluationStatusForm(ModelForm):
     class Meta:
         model = EvaluationStatus
         fields = '__all__'
 
+        widgets = {
+            'academic_year': forms.TextInput(attrs={'class': 'form-control'}),
+            'semester': forms.Select(attrs={'class': 'form-control'}),
+            'evaluation_status': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+
+        }
 
 class StudentRegistrationForm(UserCreationForm):
     student_number = forms.CharField(max_length=9)
@@ -104,9 +154,9 @@ class FacultyRegistrationForm(UserCreationForm):
         email = self.cleaned_data['email']
 
         # Check if the student number exists in the database
-        existing_student = Faculty.objects.filter(email=email).first()
+        existing_faculty = Faculty.objects.filter(email=email).first()
 
-        if not existing_student:
+        if not existing_faculty:
             raise ValidationError("Faculy with this email does not exist. Please contact the admin to create an account.")
 
         return email
@@ -118,7 +168,7 @@ class FacultyRegistrationForm(UserCreationForm):
         user.username = self.cleaned_data['email']
 
         # Associate the user with the faculty record
-        user.student = Faculty.objects.get(email=self.cleaned_data['email'])
+        user.faculty = Faculty.objects.get(email=self.cleaned_data['email'])
 
         if commit:
             user.save()
@@ -317,8 +367,22 @@ class WebinarSeminarForm(ModelForm):
 class StudentProfileForm(ModelForm):
     class Meta:
         model = Student
-        fields = ['email', 'contact_no', 'profile_picture'] 
+        fields = ['email', 'contact_no', 'profile_picture']
+
+        widgets = {
+            'email': forms.EmailInput(attrs={'class': 'form-control'}),
+            'contact_no': forms.NumberInput(attrs={'class': 'form-control'}),
+            'profile_picture': forms.ClearableFileInput(attrs={'class': 'form-control'}),
+
+        } 
         
+class EditQuestionForm(ModelForm):
+    class Meta:
+        model = FacultyEvaluationQuestions
+        fields = ['text'] 
+        widgets = {
+            'text': forms.Textarea(attrs={'class': 'form-control'}),
+        }
        
     
  

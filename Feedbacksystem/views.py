@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from Feedbacksystem.models import Course, Section, SectionSubjectFaculty, Faculty, Department, Student, Subject, LikertEvaluation, EvaluationStatus, Event, SchoolEventModel
-from .forms import TeacherForm, StudentForm, CourseForm, SectionForm, SectionSubjectFacultyForm, SubjectForm, StudentRegistrationForm, StudentLoginForm, LikertEvaluationForm, FacultyRegistrationForm, FacultyLoginForm, EvaluationStatusForm, DepartmentForm, EventCreationForm, SchoolEventForm, WebinarSeminarForm, StudentProfileForm
+from Feedbacksystem.models import Course, Section, SectionSubjectFaculty, Faculty, Department, Student, Subject, LikertEvaluation, EvaluationStatus, Event, SchoolEventModel, FacultyEvaluationQuestions
+from .forms import TeacherForm, StudentForm, CourseForm, SectionForm, SectionSubjectFacultyForm, SubjectForm, StudentRegistrationForm, StudentLoginForm, LikertEvaluationForm, FacultyRegistrationForm, FacultyLoginForm, EvaluationStatusForm, DepartmentForm, EventCreationForm, SchoolEventForm, WebinarSeminarForm, StudentProfileForm, EditQuestionForm
 from django.contrib.auth.models import User, Group
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import UserCreationForm
@@ -13,7 +13,13 @@ from .resources import StudentResource
 from tablib import Dataset
 from django.contrib.auth.decorators import login_required
 from .decorators import allowed_users
+from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
+from django.http import JsonResponse
+from django.db.models import Count
+import json
+from django.core.exceptions import ObjectDoesNotExist
 
+ITEMS_PER_PAGE = 5
 # Create your views here.
 
 def signin(request):
@@ -120,6 +126,30 @@ def admin(request):
     total_user = user.count()
 
     evaluation_status = EvaluationStatus.objects.first()  # Assuming there's only one status entry
+    
+    
+    if request.method == 'POST':
+        form = EvaluationStatusForm(request.POST, instance=evaluation_status)
+        if form.is_valid():
+            form.save()
+    else:
+        form = EvaluationStatusForm(instance=evaluation_status)
+        
+    
+    data = LikertEvaluation.objects.all() 
+     # Analyze the data
+    positive_count = 0
+    negative_count = 0
+    for item in data:
+        if item.predicted_sentiment == 'Positive':
+            positive_count += 1
+        elif item.predicted_sentiment == 'Negative':
+            negative_count += 1
+    # Prepare data for Chart.js
+    chart_data = {
+        'labels': ['Positive', 'Negative'],
+        'data': [positive_count, negative_count],
+    }
 
     context = {'student': student, 
                'course': course,
@@ -127,16 +157,66 @@ def admin(request):
                'faculty': faculty,
                'subject': subject,
                 'user': user,
+                'form': form,
                 'evaluation_status': evaluation_status,
                'total_students': total_students,
                 'total_courses': total_courses,
                 'total_sections': total_sections,
                 'total_faculty': total_faculty,
                 'total_subject': total_subject,
-                'total_user': total_user
+                'total_user': total_user,
+                'data': data,
+                'chart_data': chart_data,
                 }
     return render(request, 'pages/admin.html', context)
 
+def evaluation_response_chart_data(request):
+    # Retrieve data from the model
+    evaluations = LikertEvaluation.objects.all()
+
+    # Process data to get total responses per academic year and semester
+    data = {}
+    for evaluation in evaluations:
+        key = f"{evaluation.academic_year} - {evaluation.semester}"
+        if key in data:
+            data[key] += 1
+        else:
+            data[key] = 1
+
+    # Convert data to a format suitable for JSON serialization
+    chart_data = {
+        'labels': list(data.keys()),
+        'data': list(data.values()),
+    }
+
+    return JsonResponse(chart_data)
+
+def faculty_evaluations_chart_data(request):
+  # Get all faculty
+  faculty_list = Faculty.objects.all().order_by('last_name', 'first_name')
+
+  # Prepare data for chart
+  faculty_labels = []
+  faculty_data = []
+  for faculty in faculty_list:
+    # Get total evaluations for this faculty
+    total_evaluations = LikertEvaluation.objects.filter(section_subject_faculty__faculty=faculty).count()
+
+    # Get positive and negative evaluations
+    positive_evaluations = LikertEvaluation.objects.filter(section_subject_faculty__faculty=faculty, predicted_sentiment="Positive").count()
+    negative_evaluations = LikertEvaluation.objects.filter(section_subject_faculty__faculty=faculty, predicted_sentiment="Negative").count()
+
+    # Add data to lists
+    faculty_labels.append(f"{faculty.last_name}, {faculty.first_name}")
+    faculty_data.append([positive_evaluations, negative_evaluations])
+
+  # Prepare JSON response
+  chart_data = {
+    'labels': faculty_labels,
+    'data': faculty_data,
+  }
+
+  return JsonResponse(chart_data)
 
 def admin_evaluation_status(request):
     evaluation_status = EvaluationStatus.objects.first()  # Assuming there's only one status entry
@@ -519,7 +599,7 @@ def evaluate_subject_faculty(request,pk):
     section_subject_faculty = get_object_or_404(SectionSubjectFaculty, pk=pk)
     student = Student.objects.filter(student_number=request.user.username).first()
     section_subjects_faculty = SectionSubjectFaculty.objects.filter(section=student.Section)
-    
+    questions = FacultyEvaluationQuestions.objects.all().order_by('order')
    
     if request.method == 'POST':
         form = LikertEvaluationForm(request.POST)
@@ -636,17 +716,41 @@ def evaluate_subject_faculty(request,pk):
         return redirect('facultyeval')  # Redirect to a success page
     else:
         form = LikertEvaluationForm()
-        context = { 'form': form, 'section_subject_faculty': section_subject_faculty, 'section_subjects_faculty': section_subjects_faculty, 'student': student}
+        context = { 'form': form, 'section_subject_faculty': section_subject_faculty, 'section_subjects_faculty': section_subjects_faculty, 'student': student, 'questions': questions}
     return render(request, 'pages/evaluate_subject_faculty.html', context)
 
 def evaluations(request):
     evaluation = LikertEvaluation.objects.all()
+    
     total_evaluations = evaluation.count()
 
+    #filter
     faculty_evaluation_filter = EvaluationFilter(request.GET, queryset=evaluation)
     evaluation = faculty_evaluation_filter.qs
+    
 
-    context = {'evaluation': evaluation,'total_evaluations': total_evaluations, 'faculty_evaluation_filter': faculty_evaluation_filter}
+       # ordering functionality
+   
+    ordering = request.GET.get('ordering', "")
+
+     
+    if ordering:
+        evaluation = evaluation.order_by(ordering) 
+
+    #pagination
+    page_number = request.GET.get('page', 1)
+    evaluation_paginator = Paginator(evaluation, ITEMS_PER_PAGE)
+   
+
+    try:
+        page = evaluation_paginator.page(page_number)
+    except EmptyPage:
+        page = evaluation_paginator.page(evaluation_paginator.num_pages)
+ 
+
+
+
+    context = {'evaluation': page.object_list,'total_evaluations': total_evaluations, 'faculty_evaluation_filter': faculty_evaluation_filter, 'page_obj':page, 'is_paginated': True, 'paginator':evaluation_paginator,'ordering': ordering}
     return render(request, 'pages/evaluations.html', context)
 
 def facultyevaluations(request, pk):
@@ -717,9 +821,14 @@ def facultylogin(request):
             # Handle registration form submission
             registration_form = FacultyRegistrationForm(request.POST)
             if registration_form.is_valid():
-                registration_form.save()
+                user = registration_form.save()
+                group = Group.objects.get(name = 'faculty')
+                user.groups.add(group)
                 messages.success(request, 'Registration successful!')
-                return redirect('facultylogin')  # Redirect to the home page or any desired URL after successful registration
+                return redirect('signin')  # Redirect to the home page or any desired URL after successful registration
+            else:
+                messages.success(request, 'Faculty with this student number does not exist. Please contact the admin to create an account.')
+                return redirect('signin') 
 
     context = {'registration_form': registration_form, 'login_form': login_form,}
     
@@ -835,3 +944,61 @@ def view_schoolevent_evaluations(request, pk):
     school_event_form_details = SchoolEventModel.objects.get(pk=pk)
 
     return render(request, 'pages/view_schoolevent_evaluations.html', {'school_event_form_details': school_event_form_details, 'faculty': faculty})
+
+def forms(request):
+
+    return render(request, 'pages/forms.html')
+
+def edit_form(request):
+    questions = FacultyEvaluationQuestions.objects.all()
+    return render(request, 'pages/edit_form.html', {'questions': questions} )
+
+def edit_question(request, pk):
+    question = FacultyEvaluationQuestions.objects.get(pk=pk)
+    if request.method == 'POST':
+        form = EditQuestionForm(request.POST, instance=question)  # Use EditQuestionForm
+        if form.is_valid():
+            form.save()
+            return redirect('edit_form')  # Redirect to success view
+    else:
+        form = EditQuestionForm(instance=question)  # Pre-populate form with existing data
+    context = {'form': form}
+    return render(request, 'pages/edit_question.html', context)
+
+def users(request):
+# Get all users
+    users = User.objects.all()
+
+    # Create a dictionary to store user groups
+    user_groups = {}
+
+    # Iterate over each user
+    for user in users:
+        # Get the groups the user belongs to
+        groups = user.groups.all()
+        
+        # Store user groups in the dictionary with user id as key
+        user_groups[user.username] = groups
+
+    context = {'user_groups': user_groups}
+    return render(request, 'pages/users.html', context)
+
+def edit_user_group(request, user_id):
+    if request.method == 'POST':
+        user = User.objects.get(username=user_id)
+        group_name = request.POST.get('group_name')
+        group = Group.objects.get(name=group_name)
+        user.groups.clear()
+        user.groups.add(group)
+        messages.success(request, 'User group updated successfully.')
+        return redirect('users')  # Redirect to users page after updating group
+    else:
+        user = User.objects.get(username=user_id)
+        user_groups = user.groups.all()
+        all_groups = Group.objects.all()
+        context = {
+            'user_id': user_id,
+            'user_groups': user_groups,
+            'all_groups': all_groups
+        }
+        return render(request, 'pages/edit_user_group.html', context)

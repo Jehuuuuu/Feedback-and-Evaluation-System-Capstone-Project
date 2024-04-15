@@ -1,0 +1,26 @@
+{% extends "pages/admin.html" %}
+
+{% block title %}Edit Form{% endblock %}
+
+{% block header %}
+
+    <h1>Edit Form</h1>
+    <hr>
+   
+{% endblock header %}
+<hr>
+{% block feature %}
+
+<table class="table table-responsive " >
+    <tr>
+        <th scope="col" class="bg-success">QUESTION </th>
+        <th  scope="col" class="bg-success">OPTIONS </th>
+ {% for i in questions %}
+    <tr>
+    <td>{{i.text}}</td>
+    <td><a class="btn btn-warning" href="{% url 'edit_question'  i.pk  %}"><i class="bi bi-pencil-square"></i> <b>Edit</b></a></td>
+</tr>
+{% endfor %}
+    </table>
+
+{% endblock feature %}

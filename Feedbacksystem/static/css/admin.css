@@ -1,6 +1,8 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700;800&display=swap");
 
 body{
   background-color:  #faf5fF;
+  color: #333;
 }
 #headerbar{
     padding: 10px;
@@ -12,14 +14,14 @@ body{
     cursor: pointer;
     font-weight: bold;
     text-transform: uppercase;
-  margin-left: 50px;
+   margin-left: 50px;
 }
 #cvsulogo{
     margin-right: 20px;
 }
 .subtitle{
     font-size: 14px;
-    margin-left: 90px;
+    margin-left: 7.5em;
 
 
 }
@@ -42,7 +44,7 @@ main {
   overflow-y: hidden; /* Hide scrollbar for sidebar */
 }
 .nav-item {/* Add padding to the items */
-  margin: 15px; /* Add margin to create space between items */ 
+  margin: 10px; /* Add margin to create space between items */ 
 }
 .nav-link{
   color: #333;
@@ -72,29 +74,36 @@ color: darkgreen !important;
 color: darkgreen !important;
 }
 
-  #eval{
+
+  #header{
     padding: 10px;
+    width: 45%;
     box-sizing: border-box;
     box-shadow: 2px 2px 5px 3px rgba(0,0,0,0.2);
-    height: auto;
+    height: 12em;
+    border-radius: 20px;
+    float: left;
   }
   #grid{
     padding: 10px;
     box-sizing: border-box;
     box-shadow: 2px 2px 5px 3px rgba(0,0,0,0.2);
-    height: 75px;
-    width: 45%;
-    display: inline-block;
-    margin-bottom: 10px;
+    border-radius: 20px;
+    height: 8em;
+    width: 12%;
+  
+ 
   }
   #gridtwo{
     padding: 10px;
     box-sizing: border-box;
     box-shadow: 2px 2px 5px 3px rgba(0,0,0,0.2);
-    height: 75px;
-    width: 45%;
-    display: inline-block;
-    margin-left: 10px;
-    margin-top: 10px;
+    height: 8em;
+    width: 12%;
+    border-radius: 20px;
+    margin-left: 1em;
   }
-  
+  #wrapper{
+    display: flex;
+
+  }

@@ -1,0 +1,20 @@
+{% extends "pages/admin.html" %}
+
+{% block title %}Forms{% endblock %}
+
+{% block header %}
+
+    <h1>Feedback and Evaluation Forms</h1>
+    <hr>
+   
+{% endblock header %}
+
+{% block feature %}
+
+<div class="card w-50 mb-3">
+    <div class="card-body">
+      <h2 class="card-title">Faculty Evaluation Form</h2><a href="{% url 'edit_form' %}" class="btn btn-warning">Edit</a>
+      
+    </div>
+  </div>
+{% endblock feature %}

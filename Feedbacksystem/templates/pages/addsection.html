@@ -10,11 +10,27 @@
 {% endblock header %}
 <hr>
 {% block feature %}
+<div class="container" style="width: 60%;">
+<div class="form-group">
 <form method="POST" action="">
     {% csrf_token %}
-    {{ form.as_p }}
+    <div class="form-group">
+        {{ form.name.label_tag }}
+        {{ form.name }}
+        </div>
 
-
-<input type = "submit" value="Add">
+    <div class="form-group">
+        {{ form.subjects.label_tag }}
+        <div class="checkbox-list">
+            {% for subject in form.subjects %}
+                <div class="form-check">
+                {{ subject }}
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+<input type = "submit" value="Add" class="btn btn-warning" style="margin-top: 1em;">
 </form>
+</div>
+</div>
 {% endblock feature %}

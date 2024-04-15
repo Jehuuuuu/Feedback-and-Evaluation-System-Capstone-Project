@@ -1,0 +1,34 @@
+{% extends "pages/admin.html" %}
+
+{% block title %}Users{% endblock %}
+
+{% block header %}
+ 
+    <h2> Manage Users</h2>
+  
+<hr>
+{% endblock header %}
+
+{% block feature %}
+
+<table class="table table-striped table-bordered table-responsive  " style="margin-top: 1em;">
+    <tr>
+        <th  scope="col" style="color:#fafafa;  background: #2a9134">USER</th>
+        <th  scope="col" style="color:#fafafa; background: #2a9134">ROLE</th>
+        <th  scope="col" style="color:#fafafa; background: #2a9134">OPTIONS</th>
+    </tr>
+    {% for user_id, groups in user_groups.items %}
+    <tr>
+        <td>{{ user_id }} </td>
+        {% for group in groups %}
+        <td>{{ group.name }}</td>
+        {% endfor %}
+        <td>
+            <div class="d-flex" style="gap: 1em; align-items: center; margin: auto;">
+            <a class="nav-link" href="{% url 'edit_user_group' user_id %}"><button class="btn btn-primary" style=" padding:3px 5px 3px 5px"><i class="bi bi-eye-fill" style="font-size:20px"></i></button>
+            <a class="nav-link" href="{}"><button class="btn btn-danger" style=" padding:3px 5px 3px 5px;" ><i style="font-size:23px" class='bx bxs-trash' ></i></button></a></td>
+            </div>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock feature %}
