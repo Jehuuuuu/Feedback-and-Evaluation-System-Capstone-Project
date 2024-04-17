@@ -62,32 +62,26 @@
             
             
            </div>
-        <div class="tablecontainer" style="display: inline-block; margin-left: 20px; width: 450px;">
+        <div class="tablecontainer" style="display: inline-block; margin-left: 20px; width: 700px;">
            <table class="table table-bordered table-responsive ">
             <tr>
-            <th  scope="col" class="bg-success">Subject</th>
-            <th  scope="col" class="bg-success">Teacher</th>
-            <th  scope="col" class="bg-success">Status</th>
+            <th  scope="col" style="color:#fafafa; background: #2a9134">Subject</th>
+            <th  scope="col" style="color:#fafafa; background: #2a9134">Teacher</th>
+            <th  scope="col" style="color:#fafafa; background: #2a9134">Status</th>
         </tr>
-        <tr>
-            {% for i in section_subjects_faculty %}
-                <td>{{ i.subjects.subject_code }}</td>
-                <td>{{ i.faculty.first_name }} {{ i.faculty.last_name }}</td>
+        {% for subject, faculty, status in evaluation_status_list %}
+            <tr>
+                <td>{{ subject }}</td>
+                <td>{{ faculty.first_name }} {{ faculty.last_name }}</td>
                 <td>
-                    {% for evaluation in student.evaluation_set.all %}
-  <div class="faculty-evaluation">
-    {{ evaluation.section_subject_faculty.faculty.name }} - {{ evaluation.section_subject_faculty.subject.name }}
-    <span class="badge bg-success {% if evaluation.section_subject_faculty.status != 'Evaluated' %}d-none{% endif %}">Evaluated</span>
-    <span class="badge bg-secondary {% if evaluation.section_subject_faculty.status == 'Evaluated' %}d-none{% endif %}">Not Evaluated</span>
-  </div>
-{% endfor %}
+                    {% if status == 'evaluated' %}
+                        <span class="text-success">Evaluated</span>
+                    {% else %}
+                        <span class="text-danger">Pending</span>
+                    {% endif %}
                 </td>
-        </tr>
-    </div>
-    </div>
-
-    
-    {% endfor %}
+            </tr>
+        {% endfor %}
     
     </table>
     {% endblock feature %}

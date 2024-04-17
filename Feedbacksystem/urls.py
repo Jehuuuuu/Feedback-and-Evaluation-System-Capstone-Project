@@ -67,6 +67,9 @@ urlpatterns = [
     path('edit_question/<int:pk>/', views.edit_question, name='edit_question'),
     path('users', views.users, name='users'),
     path('edit_user_group/<str:user_id>/', views.edit_user_group, name='edit_user_group'),
+    path('evaluations_csv', views.evaluations_csv, name='evaluations_csv'),
+    path('admin_event_evaluations', views.admin_event_evaluations, name='admin_event_evaluations'),
+    path('view_admin_schoolevent_evaluations/<int:pk>/', views.view_admin_schoolevent_evaluations, name='view_admin_schoolevent_evaluations'),
 ]   
 
 if settings.DEBUG:

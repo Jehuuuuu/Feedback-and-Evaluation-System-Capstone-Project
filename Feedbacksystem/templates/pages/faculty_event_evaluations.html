@@ -16,13 +16,13 @@
 
 <table class="table table-striped table-bordered table-responsive  " style="margin-top: 1em;">
     <tr>
-        <th  scope="col" class="bg-success">EVENT</th>
-        <th  scope="col" class="bg-success">AVERAGE RATING </th>
-        <th  scope="col" class="bg-success">COMMENTS </th>
-        <th  scope="col" class="bg-success">POLARITY </th>
-        <th  scope="col" class="bg-success">ACADEMIC YEAR </th>
-        <th  scope="col" class="bg-success">SEMESTER </th>
-        <th  scope="col" class="bg-success">OPTIONS </th>
+        <th  scope="col" style="color:#fafafa;  background: #2a9134">EVENT</th>
+        <th  scope="col" style="color:#fafafa;  background: #2a9134">AVERAGE RATING </th>
+        <th  scope="col" style="color:#fafafa;  background: #2a9134">COMMENTS </th>
+        <th  scope="col" style="color:#fafafa;  background: #2a9134">POLARITY </th>
+        <th  scope="col" style="color:#fafafa;  background: #2a9134">ACADEMIC YEAR </th>
+        <th  scope="col" style="color:#fafafa;  background: #2a9134">SEMESTER </th>
+        <th  scope="col" style="color:#fafafa;  background: #2a9134">OPTIONS </th>
     </tr>
     {% for i in events %}
     <tr>
@@ -32,7 +32,7 @@
         <td></td>
         <td>{{ i.academic_year }}</td>
         <td>{{ i.semester }}</td>
-        <td><a class="nav-link" href="{% url 'view_schoolevent_evaluations' i.pk %}"><b>VIEW</b><a class="nav-link" href="{% url 'deleteEvaluation'  i.pk  %}"><b>DELETE</b></a></td>
+        <td><a class="nav-link" href="{% url 'view_schoolevent_evaluations' i.pk %}"><button class="btn btn-primary" style=" padding:3px 5px 3px 5px"><i class="bi bi-eye-fill" style="font-size:20px"></i></button></td>
 
     </tr>
 

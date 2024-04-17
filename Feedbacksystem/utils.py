@@ -10,7 +10,7 @@ import pickle
 import base64
 import re
 import os
-
+import nltk
 STOPWORDS = set(stopwords.words("english"))
 
 def load_prediction_models():
@@ -31,10 +31,29 @@ def single_prediction(comments):
     predictor, scaler, cv = load_prediction_models()
     corpus = []
     stemmer = PorterStemmer()
-    review = re.sub("[^a-zA-Z]", " ", comments)
+    nltk.download('punkt')  # Download sentence tokenizer (optional, but recommended for negation)
+    review = re.sub(r'[^\w\s]', '', comments)  # Remove non-alphanumeric characters
     review = review.lower().split()
-    review = [stemmer.stem(word) for word in review if not word in STOPWORDS]
-    review = " ".join(review)
+
+    negated = False
+    NEGATION_WORDS = {"not", "no", "never", "n't", "wouldn't", "couldn't", "shouldn't", "didn't", "isn't", "ain't"}
+    POSITIVE_WORDS = {"like", "grasp", "has", }  # Add "like" to positive words
+    NEGATIVE_WORDS = {"bad", "unsatisfactory"}  # Add "bad" to negative words
+    processed_words = []
+    for word in review:
+        if word in NEGATION_WORDS:
+            negated = True
+        elif negated:
+            processed_words.append(f"NOT_{stemmer.stem(word)}")  # Append negated word
+            negated = False  # Reset negation flag
+        elif word in POSITIVE_WORDS:  # Check if the word is positive
+            processed_words.append("best")  # Replace "like" with a designated positive token
+        elif word in NEGATIVE_WORDS:  # Check if the word is negative
+            processed_words.append("poor")  # Replace "bad" with a designated negative token
+        else:
+            processed_words.append(stemmer.stem(word))
+
+    review = ' '.join(processed_words)
     corpus.append(review)
     X_prediction = cv.transform(corpus).toarray()
     X_prediction_scl = scaler.transform(X_prediction)

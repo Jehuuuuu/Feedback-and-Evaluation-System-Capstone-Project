@@ -25,7 +25,7 @@
             <img src="{% static 'images/cvsulogo.png'%}" alt="Cavite State Univeristy Logo" width="64px" height="64px" id="cvsulogo"> Feedback and Evaluation System 
             <div class="subtitle">Cavite State University - Bacoor Campus</div>
         </a>
-        <div style="margin-left: 30rem;">
+        <div style="margin-left: 40rem;">
           {% if faculty.profile_picture %}
           <img src="{{ faculty.profile_picture.url }}" alt="Profile Picture" width="60" style=" border-radius: 50%;">
           {% else %}
@@ -43,7 +43,7 @@
       <ul class="nav flex-column nav-pills">
         <li class="nav-item">
           <a class="nav-link {% if request.path == '/facultydashboard' %} active {% endif %}" href="/facultydashboard">
-          <i class="bi bi-grid-1x2-fill"></i> <b>DASHBOARD</b>    
+          <i class="bi bi-house-fill"></i> <b>HOME</b>    
         
         
         </a>
@@ -81,8 +81,6 @@
     
     <div class="container" style="padding:10px; margin-top:10px;">
       {% block header %}
-    <h2> Faculty Dashboard</h2>
-    <hr>
     <div id="eval" class = "container">
       <h3>Academic Year: 2024-2025</h3>
       <h4>Semester: 1st</h4>

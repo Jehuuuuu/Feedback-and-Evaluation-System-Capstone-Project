@@ -31,17 +31,17 @@
 <br>
 <table class="table table-bordered table-responsive  ">
     <tr>
-        <th  scope="col" class="bg-success">STUDENT NUMBER </th>
-        <th  scope="col" class="bg-success">FIRST NAME </th>
-        <th  scope="col" class="bg-success">LAST NAME </th>
-        <th  scope="col" class="bg-success">EMAIL </th>
-        <th  scope="col" class="bg-success">AGE </th>
-        <th  scope="col" class="bg-success">SEX </th>
-        <th  scope="col" class="bg-success">CONTACT NUMBER </th>
-        <th  scope="col" class="bg-success">STATUS</th>
-        <th  scope="col" class="bg-success">COURSE </th>
-        <th  scope="col" class="bg-success">SECTION </th>
-        <th  scope="col" class="bg-success">OPTIONS </th>
+        <th  scope="col"  style="color:#fafafa;  background: #2a9134">STUDENT NUMBER </th>
+        <th  scope="col"  style="color:#fafafa;  background: #2a9134">FIRST NAME </th>
+        <th  scope="col"  style="color:#fafafa;  background: #2a9134">LAST NAME </th>
+        <th  scope="col"  style="color:#fafafa;  background: #2a9134">EMAIL </th>
+        <th  scope="col"  style="color:#fafafa;  background: #2a9134">AGE </th>
+        <th  scope="col"  style="color:#fafafa;  background: #2a9134">SEX </th>
+        <th  scope="col"  style="color:#fafafa;  background: #2a9134">CONTACT NUMBER </th>
+        <th  scope="col"  style="color:#fafafa;  background: #2a9134">STATUS</th>
+        <th  scope="col"  style="color:#fafafa;  background: #2a9134">COURSE </th>
+        <th  scope="col"  style="color:#fafafa;  background: #2a9134">SECTION </th>
+        <th  scope="col"  style="color:#fafafa;  background: #2a9134">OPTIONS </th>
        
        
     </tr>
@@ -57,8 +57,8 @@
         <td>{{ i.status }}</td>
         <td>{{ i.Course }}</td>
         <td>{{ i.Section }}</td>    
-        <td> </a><a style="margin-right: 10px;" class="nav-link" href="{% url 'editstudent'  i.pk  %}"><b>EDIT</b></a>
-            <a style="margin-right: 10px;" class="nav-link" href="{% url 'deleteStudent'  i.pk  %}"><b>DELETE</b></a>
+        <td style="display: flex; flex-direction: row;"> <a style="margin-right: 10px;" class="nav-link" href="{% url 'editstudent'  i.pk  %}"><button class="btn btn-warning" style=" padding:3px 5px 3px 5px"><i class="bi bi-pencil-square" style="font-size:20px"></i></button></a>
+            <a style="margin-right: 10px;" class="nav-link" href="{% url 'deleteStudent'  i.pk  %}"><button class="btn btn-danger" ><i style="font-size:20px" class='bx bxs-trash' ></i></button></a>
           </td>
     </tr>
 

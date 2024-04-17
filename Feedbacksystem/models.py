@@ -144,6 +144,12 @@ class EvaluationStatus(models.Model):
 
  
 class LikertEvaluation(models.Model):
+    EVALUATION_STATUS_CHOICES = [
+        ('pending', 'Pending'),  # Evaluation is pending
+        ('evaluated', 'Evaluated'),  # Evaluation has been completed
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE) 
     section_subject_faculty = models.ForeignKey(SectionSubjectFaculty, on_delete=models.CASCADE)
 
     command_and_knowledge_of_the_subject = models.IntegerField(choices=[(5, 'Outstanding'), (4, 'Very Satisfactory'), (3, 'Satisfactory'),
@@ -236,7 +242,7 @@ class LikertEvaluation(models.Model):
     academic_year = models.CharField(max_length=50, null=True, blank=True)
     semester = models.CharField(max_length=50, null=True, blank=True)
     average_rating = models.FloatField(null=True, blank=True)
-
+    status = models.CharField(max_length=20, choices=EVALUATION_STATUS_CHOICES, default='pending')
 
     updated = models.DateTimeField(auto_now = True, null=True, blank = True)
     created = models.DateTimeField(auto_now_add = True, null=True, blank = True)
@@ -301,6 +307,12 @@ class LikertEvaluation(models.Model):
     def save(self, *args, **kwargs):
         # Get the current evaluation status
         evaluation_status = EvaluationStatus.objects.first()
+        # Check for existing evaluation for the same faculty
+        if not LikertEvaluation.objects.filter(
+            user=self.user,
+            section_subject_faculty=self.section_subject_faculty  # Assuming 'faculty' field exists
+        ).exists():
+            self.status = "evaluated"  # Set status only if no prior evaluation exists
         if evaluation_status:
             self.academic_year = evaluation_status.academic_year
             self.semester = evaluation_status.semester

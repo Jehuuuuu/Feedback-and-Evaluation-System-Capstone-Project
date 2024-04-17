@@ -62,6 +62,7 @@
 <input type = "submit" value="Search" class="btn btn-warning"> 
 
 </form>
+<a href="{% url 'evaluations_csv' %}" class="btn btn-secondary" > Export </a>
 </div>
 </div>
 <script>
@@ -121,7 +122,7 @@
         <td>{{ i.semester }}</td>
         <td>
             
-            <a class="nav-link" href="{% url 'view_evaluation_form' i.pk %}"><button class="btn btn-primary" style=" padding:3px 5px 3px 5px"><i class="bi bi-eye-fill" style="font-size:20px"></i></button>
+            <a class="nav-link" href="{% url 'view_evaluation_form' i.pk %}"><button class="btn btn-primary" style=" padding:3px 5px 3px 5px"><i class="bi bi-eye-fill" style="font-size:20px"></i></button></a>
             <a class="nav-link" href="{% url 'deleteEvaluation'  i.pk  %}"><button class="btn btn-danger" style=" padding:3px 5px 3px 5px; margin-top: 1em;" ><i style="font-size:20px" class='bx bxs-trash' ></i></button></a></td>
 
     </tr>

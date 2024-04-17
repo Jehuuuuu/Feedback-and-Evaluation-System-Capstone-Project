@@ -33,9 +33,7 @@
         }
     }
 </script>
-{% else %}
-<p>Student Evaluations for Teachers have ended. Stay tuned for announcements regarding the next evaluation Period. </p>
-{% endif %}
+
 <h3 style= "margin-top: 0.5em;"> <b>General Evaluation of the Faculty </b> </h3>
 <h4 style="margin-top: 0.5em;"> <b>Instructions: </b> </h4>
 <p style="white-space: pre; margin-top: 1em; margin-bottom: -10px;">1. For each of the items listed check the rating which best describes YOUR OWN assessment of the faculty. Use the scale below:
@@ -55,4 +53,7 @@
     general opinion of the teacher.
     </p>
     </div>
+    {% else %}
+    <p>Student Evaluations for Teachers have ended. Stay tuned for announcements regarding the next evaluation Period. </p>
+    {% endif %}
 {% endblock feature %}

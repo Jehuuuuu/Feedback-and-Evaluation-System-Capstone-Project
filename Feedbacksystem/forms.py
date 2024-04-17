@@ -17,7 +17,7 @@ class TeacherForm(ModelForm):
             'gender': forms.TextInput(attrs={'class': 'form-control'}),
             'email': forms.EmailInput(attrs={'class': 'form-control'}),
             'contact_number': forms.TextInput(attrs={'class': 'form-control'}),
-            'department': forms.TextInput(attrs={'class': 'form-control'}),
+            'department': forms.Select(attrs={'class': 'form-control'}),
         }
 
 class StudentForm(ModelForm):
@@ -35,8 +35,8 @@ class StudentForm(ModelForm):
             'sex': forms.TextInput(attrs={'class': 'form-control'}),
             'contact_no': forms.TextInput(attrs={'class': 'form-control'}),
             'status': forms.TextInput(attrs={'class': 'form-control'}),
-            'Course': forms.TextInput(attrs={'class': 'form-control'}),
-            'Section': forms.TextInput(attrs={'class': 'form-control'}),
+            'Course': forms.Select(attrs={'class': 'form-control'}),
+            'Section': forms.Select(attrs={'class': 'form-control'}),
         }
 class DepartmentForm(ModelForm):
     class Meta:

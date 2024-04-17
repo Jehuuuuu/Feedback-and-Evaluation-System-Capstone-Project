@@ -25,13 +25,16 @@
         }
     }
 </script>
+{% if user_evaluations %}
+    <p>You have already evaluated this faculty.</p>
+{% else %}
 <form method="POST" action="">
     {% csrf_token %}
     <table class="table table-bordered table-responsive  " style="margin-top: 1em;">
         <tr>
             
-            <th  scope="col" class="bg-success">I. SUBJECT MATTER CONTENT </th>
-            <th  scope="col" class="bg-success"><div style="display: flex; white-space: pre; width: 50%;"><div style="width: 5em;margin-left: 3em;">Outstanding </div>          <div style="width: 100%; margin-left: 4em;">Very Satisfactory</div>      <div style="width: 100%; margin-right: 3.5em; margin-left:3em;">Satisfactory</div> <div style="width: 100%; margin-right: 5em;">Unsatisfactory</div>        <div style="width: 100%; margin-right: 2em;">Poor</div> </th>
+            <th  scope="col" style="color:#fafafa; background: #2a9134">I. SUBJECT MATTER CONTENT </th>
+            <th  scope="col" style="color:#fafafa; background: #2a9134"><div style="display: flex; white-space: pre; width: 50%;"><div style="width: 5em;margin-left: 3em;">Outstanding </div>          <div style="width: 100%; margin-left: 4em;">Very Satisfactory</div>      <div style="width: 100%; margin-right: 3.5em; margin-left:3em;">Satisfactory</div> <div style="width: 100%; margin-right: 5em;">Unsatisfactory</div>        <div style="width: 100%; margin-right: 2em;">Poor</div> </th>
           
             
            
@@ -76,8 +79,8 @@
 <table class="table table-bordered table-responsive  " style="margin-top: 1em;">
     <tr>
         
-        <th  scope="col" class="bg-success">II. ORGANIZATION </th>
-        <th  scope="col" class="bg-success"><div style="display: flex; white-space: pre; width: 50%;"><div style="width: 5em;margin-left: 3em;">Outstanding </div>          <div style="width: 100%; margin-left: 4em;">Very Satisfactory</div>      <div style="width: 100%; margin-right: 3.5em; margin-left:3em;">Satisfactory</div> <div style="width: 100%; margin-right: 5em;">Unsatisfactory</div>        <div style="width: 100%; margin-right: 2em;">Poor</div> </th>
+        <th  scope="col" style="color:#fafafa; background: #2a9134">II. ORGANIZATION </th>
+        <th  scope="col" style="color:#fafafa; background: #2a9134"><div style="display: flex; white-space: pre; width: 50%;"><div style="width: 5em;margin-left: 3em;">Outstanding </div>          <div style="width: 100%; margin-left: 4em;">Very Satisfactory</div>      <div style="width: 100%; margin-right: 3.5em; margin-left:3em;">Satisfactory</div> <div style="width: 100%; margin-right: 5em;">Unsatisfactory</div>        <div style="width: 100%; margin-right: 2em;">Poor</div> </th>
       
         
        
@@ -119,8 +122,8 @@
 </table>
 <table class="table table-bordered table-responsive  " style="margin-top: 1em;">
     <tr>      
-        <th  scope="col" class="bg-success">III. TEACHER-STUDENT RAPPORT </th>
-        <th  scope="col" class="bg-success"><div style="display: flex; white-space: pre; width: 50%;"><div style="width: 5em;margin-left: 3em;">Outstanding </div>          <div style="width: 100%; margin-left: 4em;">Very Satisfactory</div>      <div style="width: 100%; margin-right: 3.5em; margin-left:3em;">Satisfactory</div> <div style="width: 100%; margin-right: 5em;">Unsatisfactory</div>        <div style="width: 100%; margin-right: 2em;">Poor</div> </th> 
+        <th  scope="col" style="color:#fafafa; background: #2a9134">III. TEACHER-STUDENT RAPPORT </th>
+        <th  scope="col" style="color:#fafafa; background: #2a9134"><div style="display: flex; white-space: pre; width: 50%;"><div style="width: 5em;margin-left: 3em;">Outstanding </div>          <div style="width: 100%; margin-left: 4em;">Very Satisfactory</div>      <div style="width: 100%; margin-right: 3.5em; margin-left:3em;">Satisfactory</div> <div style="width: 100%; margin-right: 5em;">Unsatisfactory</div>        <div style="width: 100%; margin-right: 2em;">Poor</div> </th> 
     </tr>
     {% for question in questions %}
     <tr>
@@ -157,8 +160,8 @@
     {% endfor %}
 <table class="table table-bordered table-responsive  " style="margin-top: 1em;">   
     <tr>
-        <th  scope="col" class="bg-success">IV. TEACHING METHODS</th>
-        <th  scope="col" class="bg-success"><div style="display: flex; white-space: pre; width: 50%;"><div style="width: 5em;margin-left: 3em;">Outstanding </div>          <div style="width: 100%; margin-left: 4em;">Very Satisfactory</div>      <div style="width: 100%; margin-right: 3.5em; margin-left:3em;">Satisfactory</div> <div style="width: 100%; margin-right: 5em;">Unsatisfactory</div>        <div style="width: 100%; margin-right: 2em;">Poor</div> </th>
+        <th  scope="col" style="color:#fafafa; background: #2a9134">IV. TEACHING METHODS</th>
+        <th  scope="col" style="color:#fafafa; background: #2a9134"><div style="display: flex; white-space: pre; width: 50%;"><div style="width: 5em;margin-left: 3em;">Outstanding </div>          <div style="width: 100%; margin-left: 4em;">Very Satisfactory</div>      <div style="width: 100%; margin-right: 3.5em; margin-left:3em;">Satisfactory</div> <div style="width: 100%; margin-right: 5em;">Unsatisfactory</div>        <div style="width: 100%; margin-right: 2em;">Poor</div> </th>
       
         
        
@@ -206,8 +209,8 @@
 <table class="table table-bordered table-responsive  " style="margin-top: 1em;">
     <tr>
         
-        <th  scope="col" class="bg-success">V. PRESENTATION</th>
-        <th  scope="col" class="bg-success"><div style="display: flex; white-space: pre; width: 50%;"><div style="width: 5em;margin-left: 3em;">Outstanding </div>          <div style="width: 100%; margin-left: 4em;">Very Satisfactory</div>      <div style="width: 100%; margin-right: 3.5em; margin-left:3em;">Satisfactory</div> <div style="width: 100%; margin-right: 5em;">Unsatisfactory</div>        <div style="width: 100%; margin-right: 2em;">Poor</div> </th>
+        <th  scope="col" style="color:#fafafa; background: #2a9134">V. PRESENTATION</th>
+        <th  scope="col" style="color:#fafafa; background: #2a9134"><div style="display: flex; white-space: pre; width: 50%;"><div style="width: 5em;margin-left: 3em;">Outstanding </div>          <div style="width: 100%; margin-left: 4em;">Very Satisfactory</div>      <div style="width: 100%; margin-right: 3.5em; margin-left:3em;">Satisfactory</div> <div style="width: 100%; margin-right: 5em;">Unsatisfactory</div>        <div style="width: 100%; margin-right: 2em;">Poor</div> </th>
       
         
        
@@ -247,8 +250,8 @@
     {% endfor %}
 <table class="table table-bordered table-responsive  " style="margin-top: 1em;">   
     <tr>
-        <th  scope="col" class="bg-success">VI. CLASSROOM MANAGEMENT</th>
-        <th  scope="col" class="bg-success"><div style="display: flex; white-space: pre; width: 50%;"><div style="width: 5em;margin-left: 3em;">Outstanding </div>          <div style="width: 100%; margin-left: 4em;">Very Satisfactory</div>      <div style="width: 100%; margin-right: 3.5em; margin-left:3em;">Satisfactory</div> <div style="width: 100%; margin-right: 5em;">Unsatisfactory</div>        <div style="width: 100%; margin-right: 2em;">Poor</div> </th>
+        <th  scope="col" style="color:#fafafa; background: #2a9134">VI. CLASSROOM MANAGEMENT</th>
+        <th  scope="col" style="color:#fafafa; background: #2a9134"><div style="display: flex; white-space: pre; width: 50%;"><div style="width: 5em;margin-left: 3em;">Outstanding </div>          <div style="width: 100%; margin-left: 4em;">Very Satisfactory</div>      <div style="width: 100%; margin-right: 3.5em; margin-left:3em;">Satisfactory</div> <div style="width: 100%; margin-right: 5em;">Unsatisfactory</div>        <div style="width: 100%; margin-right: 2em;">Poor</div> </th>
       
         
        
@@ -288,8 +291,8 @@
     {% endfor %}
 <table class="table table-bordered table-responsive  " style="margin-top: 1em;">   
     <tr>
-        <th  scope="col" class="bg-success">VII. SENSITIVITY and SUPPORT to STUDENTS</th>
-        <th  scope="col" class="bg-success"><div style="display: flex; white-space: pre; width: 50%;"><div style="width: 5em;margin-left: 3em;">Outstanding </div>          <div style="width: 100%; margin-left: 4em;">Very Satisfactory</div>      <div style="width: 100%; margin-right: 3.5em; margin-left:3em;">Satisfactory</div> <div style="width: 100%; margin-right: 5em;">Unsatisfactory</div>        <div style="width: 100%; margin-right: 2em;">Poor</div> </th>
+        <th  scope="col" style="color:#fafafa; background: #2a9134">VII. SENSITIVITY and SUPPORT to STUDENTS</th>
+        <th  scope="col" style="color:#fafafa; background: #2a9134"><div style="display: flex; white-space: pre; width: 50%;"><div style="width: 5em;margin-left: 3em;">Outstanding </div>          <div style="width: 100%; margin-left: 4em;">Very Satisfactory</div>      <div style="width: 100%; margin-right: 3.5em; margin-left:3em;">Satisfactory</div> <div style="width: 100%; margin-right: 5em;">Unsatisfactory</div>        <div style="width: 100%; margin-right: 2em;">Poor</div> </th>
       
         
        
@@ -370,5 +373,5 @@
   <br>
   <input type="submit"  class="btn btn-warning" value="Submit" style="font-weight: bold;">
 </form>
-
+{% endif %}
 {% endblock feature %}

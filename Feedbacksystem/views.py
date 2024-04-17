@@ -14,11 +14,11 @@ from tablib import Dataset
 from django.contrib.auth.decorators import login_required
 from .decorators import allowed_users
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.db.models import Count
 import json
 from django.core.exceptions import ObjectDoesNotExist
-
+import csv
 ITEMS_PER_PAGE = 5
 # Create your views here.
 
@@ -284,7 +284,20 @@ def student_profile(request):
 
     section_subjects_faculty = SectionSubjectFaculty.objects.filter(section=student.Section)
 
-    context = {'student': student, 'section_subjects_faculty': section_subjects_faculty}
+        # Create an empty dictionary to store evaluation status for each faculty
+    evaluation_status_list = []
+
+    # Iterate over each section_subject_faculty
+    for section_subject_faculty in section_subjects_faculty:
+        try:
+            # Check if the user has submitted an evaluation for this faculty
+            evaluation = LikertEvaluation.objects.get(user=request.user, section_subject_faculty=section_subject_faculty)
+            evaluation_status_list.append((section_subject_faculty.subjects, section_subject_faculty.faculty, evaluation.status))
+        except LikertEvaluation.DoesNotExist:
+            # If evaluation doesn't exist, set status to 'Pending'
+            evaluation_status_list.append((section_subject_faculty.subjects, section_subject_faculty.faculty, 'Pending'))
+    print(evaluation_status_list)
+    context = {'student': student, 'section_subjects_faculty': section_subjects_faculty, 'evaluation_status_list': evaluation_status_list}
     return render(request, 'pages/student_profile.html', context)
 
 
@@ -501,9 +514,10 @@ def section_details(request, pk):
     return render(request, 'pages/section_details.html', {'section': section, 'subjects_faculty': subjects_faculty})
 
 def view_evaluation_form(request, pk):
+    faculty = Faculty.objects.filter(email=request.user.username).first()
     faculty_evaluation_form = LikertEvaluation.objects.get(pk=pk)
 
-    return render(request, 'pages/view_evaluation_form.html', {'faculty_evaluation_form': faculty_evaluation_form})
+    return render(request, 'pages/view_evaluation_form.html', {'faculty_evaluation_form': faculty_evaluation_form, 'faculty': faculty})
 
 
 def subjects(request):
@@ -600,6 +614,12 @@ def evaluate_subject_faculty(request,pk):
     student = Student.objects.filter(student_number=request.user.username).first()
     section_subjects_faculty = SectionSubjectFaculty.objects.filter(section=student.Section)
     questions = FacultyEvaluationQuestions.objects.all().order_by('order')
+    user = request.user
+
+    user_evaluations = LikertEvaluation.objects.filter(
+        user=request.user,
+        section_subject_faculty=section_subject_faculty
+    )
    
     if request.method == 'POST':
         form = LikertEvaluationForm(request.POST)
@@ -658,9 +678,12 @@ def evaluate_subject_faculty(request,pk):
             other_suggestions_for_improvement =  form.cleaned_data['other_suggestions_for_improvement']
             comments = form.cleaned_data['comments']
             predicted_sentiment = single_prediction(comments)
+
+          
             # Save the data to the database
             form = LikertEvaluation(
                 section_subject_faculty=section_subject_faculty,
+                user=user,
                 command_and_knowledge_of_the_subject=command_and_knowledge_of_the_subject,
                 depth_of_mastery=depth_of_mastery,
                 practice_in_respective_discipline=practice_in_respective_discipline,
@@ -716,14 +739,32 @@ def evaluate_subject_faculty(request,pk):
         return redirect('facultyeval')  # Redirect to a success page
     else:
         form = LikertEvaluationForm()
-        context = { 'form': form, 'section_subject_faculty': section_subject_faculty, 'section_subjects_faculty': section_subjects_faculty, 'student': student, 'questions': questions}
+        context = { 'form': form, 'section_subject_faculty': section_subject_faculty, 'section_subjects_faculty': section_subjects_faculty, 'student': student, 'questions': questions, 'user_evaluations':user_evaluations}
     return render(request, 'pages/evaluate_subject_faculty.html', context)
 
+def evaluations_csv(request):
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename=faculty_evaluations.csv'
+
+    # Create a csv writer
+    writer = csv.writer(response)
+
+    #Designate the model
+    faculty_evaluations = LikertEvaluation.objects.all()
+
+    # Add column headings to csv file
+
+    writer.writerow(['Subject', 'Faculty', 'Average Rating', 'Overall Impression', 'Polarity', 'Academic Year', 'Semester'])
+
+    # Loop thru and output
+    for i in faculty_evaluations:
+        writer.writerow([i.section_subject_faculty.subjects, i.section_subject_faculty.faculty, i.average_rating, i.comments, i.predicted_sentiment, i.academic_year, i.semester ])
+
+    return response
 def evaluations(request):
     evaluation = LikertEvaluation.objects.all()
     
     total_evaluations = evaluation.count()
-
     #filter
     faculty_evaluation_filter = EvaluationFilter(request.GET, queryset=evaluation)
     evaluation = faculty_evaluation_filter.qs
@@ -944,6 +985,17 @@ def view_schoolevent_evaluations(request, pk):
     school_event_form_details = SchoolEventModel.objects.get(pk=pk)
 
     return render(request, 'pages/view_schoolevent_evaluations.html', {'school_event_form_details': school_event_form_details, 'faculty': faculty})
+
+def admin_event_evaluations(request):
+     faculty = Faculty.objects.filter(email=request.user.username).first()
+     events = SchoolEventModel.objects.all()  
+     return render(request,'pages/admin_event_evaluations.html',{'events': events, 'faculty': faculty})
+
+def view_admin_schoolevent_evaluations(request, pk):
+    faculty = Faculty.objects.filter(email=request.user.username).first()
+    school_event_form_details = SchoolEventModel.objects.get(pk=pk)
+
+    return render(request, 'pages/view_admin_schoolevent_evaluations.html', {'school_event_form_details': school_event_form_details, 'faculty': faculty})
 
 def forms(request):
 
