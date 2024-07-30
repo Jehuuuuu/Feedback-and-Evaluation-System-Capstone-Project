@@ -19,6 +19,13 @@ body{
 body, h1, h5, a {
     font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif !important;
 }
+h1{
+    font-size: 2.125rem;
+}
+h5{
+    font-size:  1.25rem;
+}
+
 .dropdown-toggle {
     background-color: #2a9134;
     border: 0px;
@@ -37,10 +44,10 @@ body, h1, h5, a {
     color: #ffffff;
     margin-bottom: 0.5em;
     margin-top: 0.5em;
-    font-size: 17px;
+    font-size: 1em;
 }
 .admininput{
-    font-size: 14px;
+    font-size: 0.7em;
 }
 
 .container{
@@ -49,46 +56,42 @@ body, h1, h5, a {
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.35);
     position: relative;
     overflow: hidden;
-    width: 850px;
+    width: 53.125em;
     max-width: 100%;
-    min-height: 520px;
+    min-height: 32.5em;
     color: #ffffff;
 }
 
 .container p{
-    font-size: 14px;
-    line-height: 20px;
-    letter-spacing: 0.3px;
-    margin: 20px 0;
+    font-size: 1em;
+    line-height: 1.2em;
+    letter-spacing: 0.1em;
+    margin: 1.2em 0;
     font-weight: 600;
     color: #ffffff;
     margin-left: 2em;
 }
 
-.container span{
-    font-size: 12px;
-    font-weight: 500;
-}
-
 .container a{
     color: #ffffff;
-    font-size: 13px;
+    font-size: 0.8125em;
     text-decoration: none;
-    margin: 15px 0 10px;
+    margin: 0.9em 0 0.7px;
     font-weight: 500;
+  
 }
 
 .container button{
     background-color: #f7b205;
     color: #000000;
-    font-size: 12px;
-    padding: 10px 45px;
+    font-size: 0.75em;
+    padding: 0.625rem 2.81rem;
     border: 1px solid transparent;
-    border-radius: 8px;
+    border-radius: 0.5em;
     font-weight: 600;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
-    margin-top: 10px;
+    margin-top: 0.625rem;
     cursor: pointer;
 }
 
@@ -103,7 +106,7 @@ body, h1, h5, a {
     align-items: center;
     justify-content: center;
     flex-direction: column;
-    padding: 0 40px;
+    padding: 0 2em;
     height: 100%;
     
 }
@@ -111,11 +114,11 @@ body, h1, h5, a {
 .container input{
     background-color: #eeeeee;
     border: none;
-    margin: 8px 0;
-    padding: 10px 15px;
-    font-size: 13px;
-    border-radius: 8px;
-    width: 24em;
+    margin: 0.5em 0;
+    padding: 0.625em 0.9375em;
+    font-size: 1em;
+    border-radius: 0.5em;
+    width: 20em;
     outline: none;
     font-weight: 500;
 }
@@ -162,21 +165,6 @@ body, h1, h5, a {
     }
 }
 
-.social-icons{
-    margin: 20px 0;
-}
-
-.social-icons a{
-    border: 1px solid #ccc;
-    border-radius: 20%;
-    display: inline-flex;
-    justify-content: center;
-    align-items: center;
-    margin: 0 3px;
-    width: 40px;
-    height: 40px;
-}
-
 .toggle-container{
     position: absolute;
     top: 0;
@@ -185,13 +173,13 @@ body, h1, h5, a {
     height: 100%;
     overflow: hidden;
     transition: all 0.6s ease-in-out;
-    border-radius: 150px 0 0 100px;
-    z-index: 1000;
+    border-radius: 9.375em 0 0 6.25em;
+    z-index: 99;
 }
 
 .container.active .toggle-container{
     transform: translateX(-100%);
-    border-radius: 0 150px 100px 0;
+    border-radius: 0  9.375em 6.25em 0;
 }
 
 .toggle{
@@ -218,15 +206,32 @@ body, h1, h5, a {
     align-items: center;
     justify-content: center;
     flex-direction: column;
-    padding: 0 30px;
+    padding: 0 2em;
     text-align: center;
     top: 0;
     transform: translateX(0);
     transition: all 0.6s ease-in-out;
 }
 
+.toggle-panel h1 {
+    margin-bottom: 1em; 
+}
+
+
+.toggle-panel ul {
+    list-style-type: disc;
+    padding-left: 1.2em;
+}
+
+.toggle-panel ul li {
+    margin-bottom: 2em; 
+}
+
 .toggle-left{
     transform: translateX(-200%);
+}
+.toggle-panel ul li:last-child {
+    margin-bottom: 0; 
 }
 
 .container.active .toggle-left{
@@ -241,12 +246,292 @@ body, h1, h5, a {
 .container.active .toggle-right{
     transform: translateX(200%);
 }
+li{
+    font-size: 1rem;
+    font-weight: 600;
+}
 
-
-/*Calendar*/
+.center{
+    margin-left: 1em;
+}
 
 
 #register, #login{
     color:#ffffff
 }
 
+
+@media only screen and (max-width:850px) { 
+    
+    .container{
+        width: 47em;
+        min-height: 31em;
+    }
+
+.container button{
+    font-size: 0.70em;
+}
+.container input{
+width: 20em;
+font-size: 0.9em;
+
+}
+.container p{
+    margin-left: 1.5em;
+}
+h1{
+    font-size: 1.85rem;
+}
+.toggle-right h1{
+   margin-left: 0.5em;
+}
+li{
+    font-size: 0.9rem;
+}
+h5{
+    font-size:  1.17rem;
+}
+
+
+}
+@media only screen and (max-width:744px) { 
+    .container{
+        width: 37em;
+        min-height: 27em;
+    }
+    .container p{
+        font-size: 0.85em;
+        line-height: 1em;
+        margin: 1.3em 0;
+        margin-left: 1.2em;
+    }
+    
+.container button{
+    font-size: 0.70em;
+}
+.container input{
+    padding: 0.6em 0.85em;
+    font-size: 0.85em;
+    width: 19em;
+}
+h1{
+    font-size: 1.4rem;
+}
+.toggle-right h1{
+   margin-left: 1em;
+}
+li{
+    font-size: 0.8rem;
+}
+h5{
+    font-size:  0.9rem;
+}
+
+.toggle-panel{
+   
+    padding: 0 1.5em;
+   
+}
+.dropdown-menu {
+    min-width: 130px !important;
+}
+}
+@media only screen and (max-width:590px) { 
+    .center{
+        margin-left: 1.3em;
+    }
+    .container{
+        width: 29em;
+        min-height: 20em;
+    }
+   .container p{
+        font-size: 0.70em;
+        line-height: 0.8em;
+        margin: 1em 0;
+        margin-left: 2em;
+    }
+    .container button{
+      
+        font-size: 0.5em;
+        padding: 0.4rem 2rem;
+        margin-top: 0.625rem;
+        cursor: pointer;
+    }
+.container input{
+    padding: 0.5em 0.75em;
+    font-size: 0.85em;
+    width: 18em;
+}
+h1{
+    font-size: 1rem;
+}
+.toggle-right h1{
+   margin-left: 2em;
+}
+li{
+    font-size: 0.6rem;
+}
+h5{
+    font-size:  0.75rem;
+}
+.container a{
+    font-size: 0.6em;
+    margin: 0.7em 0 0.5px;
+  
+}
+.toggle-right{
+   
+    padding: 5em 1em 5em 1em;
+   
+}
+.toggle-left{
+   
+    padding: 5em 2em 4em 1em;
+   
+}
+
+.container form{
+    padding: 0 1em;
+    height: 100%;
+    
+}
+.dropdown-item{
+    font-size: 0.6rem !important;
+   
+}
+#admin{
+    font-size: 0.8rem;
+}
+.admininput{
+    font-size: 0.6rem !important;
+}
+.dropdown-menu {
+    min-width: 100px !important;
+}
+@media only screen and (max-width:461px) {
+    
+    .container{
+        width: 23em;
+        min-height: 17em;
+    }
+    .container p{
+        font-size: 0.60em;
+        line-height: 0.8em;
+        margin: 1.1em 0;
+        margin-left: 1.5em;
+    }
+    .container input{
+        font-size: 0.8em;
+        width: 18em;
+    }
+    .container button{
+        font-size: 0.4em;
+        padding: 0.3rem 1.7rem;
+        margin-top: 0.5rem;
+    }
+    h1{
+        font-size: 0.85rem;
+    }
+    .toggle-right h1{
+       margin-left: 2.7em;
+    }
+    li{
+        font-size: 0.5rem;
+    }
+    h5{
+        font-size:  0.6rem;
+    }
+    .container a{
+        font-size: 0.5em;
+        margin: 0.7em 0 0.5px;
+      
+    }
+
+    .toggle-right{
+   
+        padding: 5em 1.2em 5em 1em;
+       
+    }
+    .toggle-left{
+       
+        padding: 5em 2.5em 4.5em 1em;
+
+    }
+    .dropdown-item{
+        font-size: 0.5rem !important;
+       
+    }
+    #admin{
+        font-size: 0.7rem;
+    }
+    .admininput{
+        font-size: 0.5rem !important;
+    }
+    .dropdown-menu {
+        min-width: 100px !important;
+    }
+}
+@media only screen and (max-width:368px) {
+
+    .container{
+        width: 21em;
+        min-height: 15em;
+    }
+    .container p{
+        font-size: 0.55em;
+        line-height: 0.8em;
+        margin: 1em 0;
+        margin-left: 1.7em;
+    }
+    .container input{
+        font-size: 0.75em;
+        width: 18em;
+    }
+    .container button{
+        font-size: 0.35em;
+        padding: 0.25rem 1.5rem;
+        margin-top: 0.5rem;
+    }
+    h1{
+        font-size: 0.75rem;
+    }
+    .toggle-right h1{
+       margin-right: 0.6em;
+    }
+
+    li{
+        font-size: 0.4rem;
+    }
+    h5{
+        font-size:  0.52rem;
+    }
+    .container a{
+        font-size: 0.4em;
+        margin: 0.5em 0 0.5px;
+    }
+    .toggle-right{
+   
+        padding: 5em 0.1em 5em 1em;
+       
+    }
+    .toggle-left{
+       
+        padding: 5em 2.5em 4.5em 1em;
+
+    }
+    .dropdown-item{
+        font-size: 0.4rem !important;
+       
+    }
+    .dropdown-menu {
+        min-width: 75px !important;
+    }
+    #admin{
+        font-size: 0.6rem;
+    }
+    .admininput{
+        font-size: 0.4rem !important;
+    }
+    
+}
+}

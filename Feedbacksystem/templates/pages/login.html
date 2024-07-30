@@ -38,8 +38,8 @@
         <div class="form-container sign-in" {% if request.POST and 'login' in request.POST %} id="active" {% endif %}>
             <form method="POST" action="">
                 <h1>CvSU</h1>
-                <h5>Feedback and Evaluation System</h5>
-                <h5>Student Login</h5>
+                <h5 class="center">Feedback and Evaluation System</h5>
+                <h5 class="center">Student Login</h5>
               
                 {% csrf_token %}
                 {{ login_form.as_p }}
@@ -49,7 +49,6 @@
                     <a class="btn btn-secondary dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-expanded="false">
                       Sign in as
                     </a>
-                  
                     <ul class="dropdown-menu" aria-labelledby="dropdownMenuLink">
                       <li><a class="dropdown-item" href="{% url 'facultylogin' %}" style="color: black;">Faculty</a></li>
                       <li><a class="dropdown-item" href="{% url 'adminlogin' %}"style="color: black;">Admin</a></li>
@@ -60,31 +59,29 @@
         <div class="toggle-container">
             <div class="toggle">
                 <div class="toggle-panel toggle-left">
-                    <div style="padding: 10px;">
+                    <div>
                     <h1>Creating Account</h1>
-                    <br>
                   <ul>
                     <li>Provide the requested information to register</li>
-                    <br>
+                  
                     <li>Make sure to enter valid student number and password</li>
-                    <br>
+                   
                     <li>Information must match our record</li>
 
                   </ul>
                 </div>
-                <br>
+                
                     <button class="hidden" id="login">Sign In</button>
                 </div>
                 <div class="toggle-panel toggle-right">
                     <h1>Trouble logging into your account?</h1>
-                    <br>
                    <ul>
                     <li>Make sure to enter valid student number and password</li>
-                    <br>
+        
                     <li>Information must match our record</li>
-                    <br>
+
                     <li>Account must be activated</li>
-                    <br>
+
                    </ul>
                   
                     <button class="hidden" id="register">REGISTER</button>
