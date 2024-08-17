@@ -1,65 +1,145 @@
+*{
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+body{
+  overflow-y: hidden; /* Hide scrollbar for sidebar */
+  scroll-behavior: smooth;
+}
+th{
+  color: #ffffff !important; 
+  background-color: #2a9134 !important;
+}
 
-#headerbar{
-    padding: 10px;
-    background-color: #2a9134;
-    
- 
+.table-responsive td, th {
+  vertical-align: middle; /* Center content vertically */
+  padding: 10px;
+}
+.custom-btn{
+  background-color: #ff9400;
+  color: #fafafa !important;
+  transition: background-color .3s;
+}
+.custom-btn:hover{
+  background-color: #2a9134 !important;
+  border-color: #2a9134
+}
+.header{
+  display: flex;
+  align-items: center; 
+  background: linear-gradient(to right, #2a9134 1%, #3fa34d 53%, #2a9134 100%);
+  width:100%;
+  padding: 0;
+  position: fixed;
+  z-index: 3;
+  top: 0;
 }
 #headerlogo{
-    font-size: 24px;
-    cursor: pointer;
-    font-weight: bold;
-    text-transform: uppercase;
-  margin-left: 50px;
-}
+font-size: 1.5rem;
+cursor: pointer;
+font-weight: bold;
+text-transform: uppercase;
+padding-left: 4rem;
 
+}
 a{
   color: black;
   text-decoration: none;
-
 }
 #profile_name:hover{
   text-decoration: underline;
 }
 a:hover {
-
   cursor: pointer;
 }
 #cvsulogo{
-    margin-right: 20px;
+    margin-right: 1.55rem;
+}
+.title-container{
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  font-size: 1.2rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.header-title{
+  display: inline-block;
+  color:white;  
+  font-weight: bold;
+  text-transform: uppercase; 
 }
 .subtitle{
-    font-size: 14px;
-    margin-left: 8em;
+    color:white;  
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 1rem;
+}
 
+.profile-pic{
+  width: 100%;
+  margin-right: 1.5em;
+  padding-right: 1.5em;
+  display: flex;
+  align-items: flex-end;
+  flex-direction: row;
+  justify-content: flex-end;
 }
 main {
-  height: calc(80vh); /* Adjust to leave space for padding */
+  height: calc(90vh); /* Adjust to leave space for padding */
   overflow-y: auto; /* Add a vertical scrollbar when content overflows */
+  margin-top: 4rem;
 }
 #sidebar.lightsidebar {
   background-color: #fafafa;
-  box-sizing: border-box;
   box-shadow: 2px 2px 5px 0px rgba(0,0,0,0.2);
-  max-height: 200%;
-  min-height: 80vh;
   overflow-y: hidden; /* Hide scrollbar for sidebar */
+  transition: all 0.3s;
+  width: 200px;
+  position: fixed;
+  height: 100%;
+
+}
+#sidebarCollapse{
+  position: absolute;
+  left: 1%;
+  font-size: 3rem;
+  border: 0;
+  color: #fff;
+  font-weight: 900;
+  top:-10px;
+}
+.sidebar-collapsed #sidebar {
+  margin-left: -250px; /* Adjust based on sidebar width */
+}
+.sidebar-collapsed .content {
+  margin-left: 0;
+}
+.content {
+  transition: all 0.3s;
+  margin-left: 211px;
+  overflow-x: hidden;
+  padding:1em;
+  z-index:-1;
 }
 .nav-item {/* Add padding to the items */
-    margin: 20px; /* Add margin to create space between items */ 
+    margin: 1.4em; /* Add margin to create space between items */
   }
 .nav-link{
     color: #333;
+    transition: background-color .3s;
 }
 .nav-link:hover {
-    background-color: #fafafa !important;
-    color: darkgreen !important;
+  background-color: #ff9400  !important;
+  color: #fafafa !important;
   }
-  .flex-column li a{
+.flex-column li a{
     background-color: #fafafa;
     &:focus, &:active {
-      color:darkgreen;
-      background-color:  #fafafa;
+      background-color: #ff9400  !important;
+      color: #fafafa !important;
       -webkit-box-shadow: none;
       -moz-box-shadow: none;
       box-shadow: none;
@@ -67,48 +147,62 @@ main {
   }
 }
 .nav-pills > li > a.active {
-  background-color: #fafafa !important;
-  color: darkgreen !important;
+  color: #fafafa !important; 
+  background-color: #ff9400 !important;
 }
 
 
 .nav-link.dropdown-toggle:active,
 .nav-link.dropdown-toggle:focus {
-  color: darkgreen !important;
+  color: #fafafa!important; /* Green color when active */
+  background-color: #ff9400;
 }
-#main-content {
-    flex: 1;
-    padding: 16px;
-  }
+
   #navbarDropdown{
     font-weight: bold;
   }
-
-  #eval{
-    padding: 10px;
-    box-sizing: border-box;
-    box-shadow: 2px 2px 5px 3px rgba(0,0,0,0.2);
-    height: 140px;
+  hr{
+    border: none;
+    border-bottom: 2px solid #ff9400;
   }
 
-#profile{
-  padding: 10px;
-  box-sizing: border-box;
-  box-shadow: 2px 2px 5px 3px rgba(0,0,0,0.2);
-  height: auto;
-  width: 350px;
-  float: left;
-  text-align: center;
+  #eval{
+    padding: 1em ;
+    box-shadow: 2px 2px 5px 3px rgba(0,0,0,0.2);
+    height: 9em;
+    max-width: 550px;
+  }
+
+.button-container button{
+  width: 100%;
 }
 .likert-horizontal {
   display: flex;  /* Arrange radio buttons horizontally */
   justify-content: space-around;
-
 }
 
 .likert-horizontal input[type="radio"] {
   margin-left: 50px; /* Adjust spacing as needed */
   margin-top: 1em;
+  align-self: center;
+}
+
+.form-check {
+  display: block;
+  padding-left: 0 !important;
+  margin-bottom: .125rem;
+  margin-left: -20px !important;
+}
+.form-check-input{
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  appearance: none !important;
+  width: 20px !important; /* Set the width of the custom radio button */
+  height: 20px !important; /* Set the height of the custom radio button */
+  border-radius: 50% !important; /* Make the radio button circular */
+  border: 2px solid #2a9134 !important; /* Add a border */
+  outline: none !important;
+  cursor: pointer !important;
 }
 
 .custom-radio input[type="radio"] {
@@ -125,4 +219,148 @@ main {
 
 .custom-radio input[type="radio"]:checked {
   background-color: #2a9134;/* Change background color when radio button is checked */
+}
+.likert-horizontal.custom-radio .form-check {
+  display: flex;
+  align-items: center;
+  margin-right: 20px; /* Adjust the margin between radio buttons */
+}
+
+.likert-horizontal.custom-radio .form-check-label {
+  margin-left: 10px; /* Adjusts the space between the radio button and its label */
+  margin-top: 1em;
+}
+
+/* Custom margin class */
+
+.custom-text-input {
+  width: 100%; /* Adjust the width as needed */
+  height: 40px; /* Adjust the height as needed */
+  border: none;
+  border-bottom: 1px solid #333;
+  padding: 10px; /* Adjust padding if needed */
+  font-size: 1rem; /* Adjust the font size if needed */
+  text-wrap: wrap;
+}
+.custom-text-input:focus {
+  outline: none; /* Remove the default focus outline */
+  border-bottom: 1px solid #333; /* Change the bottom border color on focus */
+}
+
+.about{
+  padding: 0.7em;
+  margin-bottom:0.3em;
+  line-height: 2.5rem;
+}
+#faculty-select {
+
+  border: 1px solid #000;
+  border-radius: 4px;
+  padding: 0.4em;
+  font-size: 1rem;
+  width: 100%;
+  max-width: 200px; /* Adjust as needed */
+  cursor: pointer;
+  color: #333;
+}
+
+.contact-icon{
+  font-size: 45px;
+  color: #3fa34d;
+}
+
+.sticky-col {
+  position: -webkit-sticky; /* For Safari */
+  position: sticky;
+  left: 0;
+  z-index: 1; /* Ensure the sticky column is above the rest of the table */
+}
+.rating_scale{
+  align-self: center;
+}
+@media (max-width:900px) {
+  .header-title{
+    font-size: 0.9rem;
+   }
+   .subtitle{
+    font-size: 0.8rem;
+   }
+   .table th, .table td {
+    font-size: 0.75rem;
+  }
+}
+@media (max-width: 768px) {
+  #sidebar {
+      margin-left: -250px; /* Adjust based on sidebar width */
+      z-index: 2; 
+  }
+
+  .content {
+      margin-left: 0;
+  }
+
+  .sidebar-collapsed #sidebar {
+      margin-left: 0;
+      z-index: 2;
+  }
+
+   iframe{
+  width:100% !important;
+ }
+  .header-title{
+  font-size: 0.85rem;
+ }
+   .subtitle{
+  font-size: 0.7rem;
+ }
+ .table th, .table td {
+  font-size: 0.75rem;
+}
+.likert-horizontal input[type="radio"] {
+  margin-left: 30px; /* Adjust spacing as needed */
+  margin-top: 1em;
+  align-self: center;
+}
+#faculty-select option{
+  font-size: 0.80rem;
+}
+}
+
+
+
+@media (max-width: 576px) {
+.form-radio{
+  min-width: 20px; /* Set the width of the custom radio button */
+  height: 20px; /* Set the height of the custom radio button */
+}
+.tablecontainer{
+  margin-top: 2em;
+}
+#eval{
+  width: 330px;
+  height: 9em;
+}
+#eval h3{
+font-size: 1.3rem;
+}
+#eval h4{
+font-size: 1.2rem;
+}
+.title-container{
+  visibility: hidden;
+  opacity: 0;
+}
+#profile_name{
+margin-right: 2.75em;
+width: 100%;
+}
+.faculty_evaluation_table th,
+.faculty_evaluation_table td {
+
+        font-size: 0.65rem; /* Adjust the font size */
+        padding: 0.5em; /* Adjust the padding */
+    }
+#faculty-select option{
+  font-size: 0.75rem;
+}
 }

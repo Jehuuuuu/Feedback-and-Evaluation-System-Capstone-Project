@@ -16,26 +16,39 @@
     {% endfor %}
 </ul>
 {% endif %}
-<table class="table table-striped table-bordered table-responsive  " style="margin-top: 1em;">
-    <tr>
-        <th  scope="col" style="color:#fafafa;  background: #2a9134">TITLE</th>
-        <th  scope="col" style="color:#fafafa;  background: #2a9134">DATE</th>
-        <th  scope="col" style="color:#fafafa;  background: #2a9134">TIME</th>
-        <th  scope="col" style="color:#fafafa;  background: #2a9134">LOCATION</th>
-        <th  scope="col" style="color:#fafafa;  background: #2a9134">EVENT TYPE </th>
-        <th  scope="col" style="color:#fafafa;  background: #2a9134">DESCRIPTION</th>
-        <th  scope="col" style="color:#fafafa;  background: #2a9134">OPTIONS </th>
-    </tr>
-    {% for i in event %}
-    <tr>
-        <td>{{ i.title }}</td>
-        <td>{{ i.date }}</td>
-        <td>{{ i.time }}</td>
-        <td>{{ i.location }}</td>
-        <td>{{ i.event_type }}</td>
-        <td>{{ i.description }}</td>
-        <td><a class="nav-link" href="{% url 'event_detail' i.pk %}"><b>EVALUATE</b></td>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="table-responsive">
+                <table class="table table-bordered" style="width: 100%;">
+                    <thead>
+                        <tr>
+                            <th scope="col">TITLE</th>
+                            <th scope="col">DATE</th>
+                            <th scope="col">TIME</th>
+                            <th scope="col">LOCATION</th>
+                            <th scope="col">EVENT TYPE</th>
+                            <th scope="col">DESCRIPTION</th>
+                            <th scope="col">OPTIONS</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for i in event %}
+                        <tr>
+                            <td>{{ i.title }}</td>
+                            <td>{{ i.date }}</td>
+                            <td>{{ i.time }}</td>
+                            <td>{{ i.location }}</td>
+                            <td>{{ i.event_type }}</td>
+                            <td>{{ i.description }}</td>
+                            <td><a href="{% url 'event_detail' i.pk %}"><b>EVALUATE</b></a></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
 
-    </tr>
-    {% endfor %}
 {% endblock feature %}

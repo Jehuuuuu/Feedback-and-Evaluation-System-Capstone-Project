@@ -3,10 +3,34 @@
 {% block title %}Evaluate Teacher{% endblock %}
 
 {% block header %}
-
-    <h2>Faculty Evaluation</h2>
-   
-    <hr>
+<div class="container">
+    <div class="row pt-1">
+        <div class="col-lg-4 col-sm-8 ">
+            <h2>Faculty Evaluation</h2>
+        </div>
+        <div class="container col-lg-8 col-sm-4 ">
+            <div style="padding: 0.2em 0;">
+                {% if evaluation_status.evaluation_status %}
+                <!-- Only show the select if evaluation is ongoing -->
+                <select id="faculty-select" onchange="redirectToEvaluation(this)">
+                    <option value="{}">Select Faculty</option> <!-- Placeholder option -->
+                    {% for i in section_subjects_faculty %}
+                    <option value="{% url 'evaluate_subject_faculty' i.pk %}">{{ i.faculty.first_name }} {{ i.faculty.last_name }}</option>
+                    {% endfor %}
+                </select>
+                {% endif %}
+            </div>
+        </div>
+        <script>
+            function redirectToEvaluation(selectElement) {
+                var selectedValue = selectElement.value;
+                if (selectedValue) {
+                    window.location.href = selectedValue;
+                }
+            }
+        </script>
+    </div>
+    <hr >
 {% endblock header %}
 {% block feature %}
 {% if messages %}
@@ -17,43 +41,39 @@
 </ul>
 {% endif %}
 {% if evaluation_status.evaluation_status %}  
-<div class="container">
-<select id="faculty-select" onchange="redirectToEvaluation(this)">
-    <option value="{}">Select Faculty</option> <!-- Placeholder option -->
-    {% for i in section_subjects_faculty %}
-    <option value="{% url 'evaluate_subject_faculty' i.pk %}">{{ i.faculty.first_name }} {{ i.faculty.last_name }}</option>
-    {% endfor %}
+<div class="pt-1 pb-1 mb-2">
+<h3>General Evaluation of the Faculty</h3>
+</div>
+<div class="pt-1 pb-1  mb-2">
+    <h4>Instructions:</h4>
+</div>
+<div class="pt-1 pb-1  mb-2">
+    <p>1. For each of the items listed check the rating which best describes YOUR OWN assessment of the faculty. Use the scale below:
+    </p>
+</div>
+    <div class="col-md-9 col-12 pt-1 pb-1 mb-2 mx-auto table-responsive">
+        <table class=" table table-bordered table-responsive">
+            <tr>
+                <td>5 - Outstanding </td>
+                <td>4 - Very Satisfactory </td>
+                <td>3 - Satisfactory </td>
+                <td>2 - Unatisfactory </td>
+                <td>1 - Poor </td>
+            </tr>
+        </table>
+    </div>
 
-</select>
-<script>
-    function redirectToEvaluation(selectElement) {
-        var selectedValue = selectElement.value;
-        if (selectedValue) {
-            window.location.href = selectedValue;
-        }
-    }
-</script>
-
-<h3 style= "margin-top: 0.5em;"> <b>General Evaluation of the Faculty </b> </h3>
-<h4 style="margin-top: 0.5em;"> <b>Instructions: </b> </h4>
-<p style="white-space: pre; margin-top: 1em; margin-bottom: -10px;">1. For each of the items listed check the rating which best describes YOUR OWN assessment of the faculty. Use the scale below:
-    <table class="table table-bordered">
-        <tr>
-            <td>5 - Outstanding </td>
-            <td>4 - Very Satisfactory </td>
-            <td>3 - Satisfactory </td>
-            <td>2 - Unatisfactory </td>
-            <td>1 - Poor </td>
-        </tr>
-    </table> 
-</p>
-    
-<p style="white-space: pre; margin-top: 1em;">2. Read the major items and sub-items carefully before you decide; and
-<p style="white-space: pre; margin-top: 1em;">3. Evaluate each indicator separately without considering other characteristics or your
-    general opinion of the teacher.
+    <div class="pt-1 pb-1  mb-2">
+<p>2. Read the major items and sub-items carefully before you decide; and
     </p>
     </div>
+    <div class="pt-1 pb-1  mb-2">
+<p>3. Evaluate each indicator separately without considering other characteristics or your general opinion of the teacher.
+    </p>
+</div>
     {% else %}
-    <p>Student Evaluations for Teachers have ended. Stay tuned for announcements regarding the next evaluation Period. </p>
+
+    <p>Student Evaluations for Teachers have ended. Stay tuned for announcements regarding the next evaluation period. </p>
     {% endif %}
+</div>
 {% endblock feature %}
