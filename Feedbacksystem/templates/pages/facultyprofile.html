@@ -4,51 +4,28 @@
 
 {% block header %}
 
-    <h2> Profile</h2>
+    <h2>Profile</h2>
     <hr>
     {% endblock header %}
     {% block feature %}
-    <div class="container" id="profilecontainer">
-       
-        <div id="profile" class = "container">
-           
-            {% if faculty.profile_picture %}
-            <img src="{{ faculty.profile_picture.url }}" alt="Profile Picture" width="150" style="margin-bottom: 2em;">
-            {% else %}
-            <img src="{% static 'images/Default_avatar.webp' %}" alt="Default Profile Picture" width="150" style="margin-bottom: 2em;" >
-            {% endif %}
-            <table class="table table-responsive">
-
-                <tr>
-                <th>Name: </th>
-                <td>{{ faculty.first_name }} {{ faculty.last_name }}</td>
-                 </tr>
-    
-                <tr>
-    
-                <th>Email: </th>
-                <td>{{ faculty.email }} </td>  
-                </tr>
-    
-                <tr>
+    <div class="row">
+        <div class=" col-lg-3 col-md-4 col-sm-5">
+       <div class="card">
+        {% if faculty.profile_picture %}
+        <img src="{{ faculty.profile_picture.url }}" alt="Profile Picture"  class="card-img-top">
+        {% else %}
+        <img src="{% static 'images/Default_avatar.webp' %}" alt="Default Profile Picture" class="card-img-top" >
+        {% endif %}
+        <div class="button-container">
+            <button class="btn btn-warning btn-block custom-btn" style="border-radius: 0;"><a  href="{}" style="color: inherit;"> <i class="bi bi-pencil-square"></i> Edit</a></button>
+            </div>
+        <ul class="list-group list-group-flush">
+          <li class="list-group-item"><b>Name: </b>{{ faculty.first_name }} {{ faculty.last_name }}</li>
+          <li class="list-group-item"><b>Email: </b>{{ faculty.email }}</li>
+          <li class="list-group-item"><b>Contact Number: </b>{{ faculty.contact_number }}</li>
+          <li class="list-group-item"><b>Department: </b>{{ faculty.department }}</li>
           
-                <th>Contact Number: </th>
-                <td>{{ faculty.contact_number }} </td>
-                </tr>
-    
-                <tr>
-           
-                <tr>
-                <th>Department: </th>
-                <td>{{ faculty.department }}</td>
-                 </tr>
-                
-            </table>
-
-        </div>
-
-    
-    
-    </table>
+        </ul>
+      </div>
     {% endblock feature %}
 
