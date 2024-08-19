@@ -10,26 +10,50 @@
 {% endblock header %}
 <hr>
 {% block feature %}
-<a class="btn btn-warning" style = "color: black; text-decoration: none;" href="{% url 'add_department' %}"><i class="bi bi-plus-square-fill"></i> <b>Add Department</b></a>
+<button type="button" class="btn btn-warning custom-btn" data-bs-toggle="modal" data-bs-target="#exampleModal" style = "color: black; text-decoration: none;"><i class="bi bi-plus-square-fill nav-icon"></i> <b>Add Department</b></button>
+
+<!-- Modal -->
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="exampleModalLabel">Add Department</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <form method="POST" action="">
+                {% csrf_token %}
+                {{ form.as_p }}
+           
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <input type = "submit" value="Add" class="btn custom-btn">
+        </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
 <br>
 <br>
-<table class="table table-striped table-bordered table-responsive " >
-    <tr>
-        <th  scope="col" style="color:#fafafa; background: #2a9134">DEPARTMENT </th>
-     
-        <th  scope="col" style="color:#fafafa; background: #2a9134">OPTIONS </th>
-    </tr>
-    {% for i in department %}
-    <tr>
-        <td>{{ i.name }}</td>
-        <td style="display: flex; flex-direction: row; gap:1em"> 
-        <a class="nav-link" href="{% url 'view_department' i.pk %}"><b>VIEW</b></a>
-        <a class="nav-link" href="{}"><b>EDIT</b></a>
-          <a class="nav-link" href="{}"><b>DELETE</b></a>
-        </td>
-    </tr>
-
-    {% endfor %}
-
-</table>
+<div class="table-responsive">
+  <table class="table table-bordered table-responsive " >
+      <tr>
+          <th  scope="col">DEPARTMENT </th>
+  
+          <th  scope="col">OPTIONS </th>
+      </tr>
+      {% for i in department %}
+      <tr>
+          <td>{{ i.name }}</td>
+          <td style="display: flex; flex-direction: row; gap:1em;"> <a href="{% url 'view_department' i.pk %}"><button class="btn btn-primary" style=" padding:3px 5px 3px 5px"><i class="bi bi-eye-fill" style="font-size:20px"></i> </button></a> <a href="{% url 'edit_department' i.pk %}"><button class="btn btn-warning" style=" padding:3px 5px 3px 5px"><i class="bi bi-pencil-square" style="font-size:20px"></i></button></a>
+            <a href="{% url 'delete_department' i.pk %}"><button class="btn btn-danger" ><i style="font-size:20px" class='bx bxs-trash' ></i></button></a>
+          </td>
+      </tr>
+  
+      {% endfor %}
+  
+  </table>
+</div>
 {% endblock feature %}

@@ -59,12 +59,10 @@ class CourseForm(ModelForm):
 class SectionForm(ModelForm):
     class Meta:
         model = Section
-        fields = ['name', 'subjects']
+        fields = ['name']
 
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control'}),
-            'subjects': forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'}),
-
         }
 
 class SectionSubjectFacultyForm(ModelForm):
@@ -319,9 +317,9 @@ class LikertEvaluationForm(forms.Form):
 
     )
 
-    strengths_of_the_faculty = forms.CharField(required=False,widget=forms.TextInput(attrs={'size': 60}))  # Adjust size as needed
-    other_suggestions_for_improvement = forms.CharField(required=False,widget=forms.TextInput(attrs={'size': 60}))  # Adjust size as needed
-    comments = forms.CharField(required=True, widget=forms.TextInput(attrs={'size': 60}))  # Adjust size as needed
+    strengths_of_the_faculty = forms.CharField(required=False,widget=forms.TextInput(attrs={'size': 60, 'class': 'custom-text-input'}))  # Adjust size as needed
+    other_suggestions_for_improvement = forms.CharField(required=False,widget=forms.TextInput(attrs={'size': 60, 'class': 'custom-text-input'}))  # Adjust size as needed
+    comments = forms.CharField(required=True, widget=forms.TextInput(attrs={'size': 60, 'class': 'custom-text-input'}))  # Adjust size as needed
 
 LikertEvaluationFormSet = formset_factory(LikertEvaluationForm, extra=1)
 

@@ -1,22 +1,19 @@
 {% extends "pages/admin.html" %}
 
-{% block title %}Edit Course{% endblock %}
+{% block title %}Edit Department{% endblock %}
 
 {% block header %}
 
-    <h2> Edit Course</h2>
+    <h2> Edit Student</h2>
     <hr>
    
 {% endblock header %}
-<hr>
 {% block feature %}
 <div class="row">
     <div class="container col-md-6">
     <form method="POST" action=""  enctype="multipart/form-data">
         {% csrf_token %}
         {{ form.as_p }}
-    
-    
     <input type = "submit" value="Save changes" enctype="multipart/form-data" class="btn btn-warning custom-btn">
     </form>
     </div>

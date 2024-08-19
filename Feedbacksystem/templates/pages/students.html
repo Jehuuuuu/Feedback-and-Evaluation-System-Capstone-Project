@@ -17,52 +17,73 @@
     {% endfor %}
 </ul>
 {% endif %}
-<div style="gap: 1em;" class="d-flex">
-<a class="btn btn-warning" style = "color: black; text-decoration: none;" href="{% url 'addstudent' %}"><i class="bi bi-person-plus-fill"></i><b>Add Student</b></a>
-
-<form method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-    
-<input type="file" name="studentfile" accept=".xlsx">
-<button type="submit" class="btn btn-primary">Import Excel File</button>
+<div class="row g-0">
+<div class="col-lg-2 col-md-3 mb-2"><a class="btn btn-warning custom-btn" data-bs-toggle="modal" data-bs-target="#exampleModal" style = "color: black; text-decoration: none;"><i class="bi bi-person-plus-fill"></i><b>Add Student</b></a></div>
+<!-- Modal -->
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="exampleModalLabel">Add Student</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <form method="POST" action="" enctype="multipart/form-data">
+                {% csrf_token %}
+                {{ form.as_p }}
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <input type = "submit" value="Add" enctype="multipart/form-data" class="btn btn-warning custom-btn">
+        </form>
+        </div>
+      </div>
+    </div>
+  </div>
+<div class="col-lg-9 col-md-8 mb-2">
+  <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+  <input class="mb-2" type="file" name="studentfile" accept=".xlsx"> 
+  <button type="submit" class="btn btn-primary">Import Excel File</button>
+</div>
 </form>
 </div>
-<br>
-<br>
-<table class="table table-bordered table-responsive  ">
-    <tr>
-        <th  scope="col"  style="color:#fafafa;  background: #2a9134">STUDENT NUMBER </th>
-        <th  scope="col"  style="color:#fafafa;  background: #2a9134">FIRST NAME </th>
-        <th  scope="col"  style="color:#fafafa;  background: #2a9134">LAST NAME </th>
-        <th  scope="col"  style="color:#fafafa;  background: #2a9134">EMAIL </th>
-        <th  scope="col"  style="color:#fafafa;  background: #2a9134">AGE </th>
-        <th  scope="col"  style="color:#fafafa;  background: #2a9134">SEX </th>
-        <th  scope="col"  style="color:#fafafa;  background: #2a9134">CONTACT NUMBER </th>
-        <th  scope="col"  style="color:#fafafa;  background: #2a9134">STATUS</th>
-        <th  scope="col"  style="color:#fafafa;  background: #2a9134">COURSE </th>
-        <th  scope="col"  style="color:#fafafa;  background: #2a9134">SECTION </th>
-        <th  scope="col"  style="color:#fafafa;  background: #2a9134">OPTIONS </th>
-       
-       
-    </tr>
-    {% for i in students %}
-    <tr>
-        <td>{{ i.pk }}</td>
-        <td>{{ i.first_name }}</td>
-        <td>{{ i.last_name }}</td>
-        <td>{{ i.email}}</td>
-        <td>{{ i.age }}</td> 
-        <td>{{ i.sex }}</td> 
-        <td>{{ i.contact_no }}</td>
-        <td>{{ i.status }}</td>
-        <td>{{ i.Course }}</td>
-        <td>{{ i.Section }}</td>    
-        <td style="display: flex; flex-direction: row;"> <a style="margin-right: 10px;" class="nav-link" href="{% url 'editstudent'  i.pk  %}"><button class="btn btn-warning" style=" padding:3px 5px 3px 5px"><i class="bi bi-pencil-square" style="font-size:20px"></i></button></a>
-            <a style="margin-right: 10px;" class="nav-link" href="{% url 'deleteStudent'  i.pk  %}"><button class="btn btn-danger" ><i style="font-size:20px" class='bx bxs-trash' ></i></button></a>
-          </td>
-    </tr>
-
-    {% endfor %}
-
-</table>
+<div class="table-responsive">
+  <table class="table table-bordered">
+      <tr>
+          <th  scope="col">STUDENT NUMBER </th>
+          <th  scope="col">FIRST NAME </th>
+          <th  scope="col">LAST NAME </th>
+          <th  scope="col">EMAIL </th>
+          <th  scope="col">AGE </th>
+          <th  scope="col">SEX </th>
+          <th  scope="col">CONTACT NUMBER </th>
+          <th  scope="col">STATUS</th>
+          <th  scope="col">COURSE </th>
+          <th  scope="col">SECTION </th>
+          <th  scope="col">OPTIONS </th>
+  
+  
+      </tr>
+      {% for i in students %}
+      <tr>
+          <td>{{ i.pk }}</td>
+          <td>{{ i.first_name }}</td>
+          <td>{{ i.last_name }}</td>
+          <td>{{ i.email}}</td>
+          <td>{{ i.age }}</td>
+          <td>{{ i.sex }}</td>
+          <td>{{ i.contact_no }}</td>
+          <td>{{ i.status }}</td>
+          <td>{{ i.Course }}</td>
+          <td>{{ i.Section }}</td>
+          <td style="display: flex; flex-direction: row;"> <a style="margin-right: 10px;" href="{% url 'editstudent'  i.pk  %}"><button class="btn btn-warning" style=" padding:3px 5px 3px 5px"><i class="bi bi-pencil-square" style="font-size:20px"></i></button></a>
+              <a style="margin-right: 10px;" href="{% url 'deleteStudent'  i.pk  %}"><button class="btn btn-danger" ><i style="font-size:20px" class='bx bxs-trash' ></i></button></a>
+            </td>
+      </tr>
+  
+      {% endfor %}
+  
+  </table>
+</div>
 {% endblock feature %}

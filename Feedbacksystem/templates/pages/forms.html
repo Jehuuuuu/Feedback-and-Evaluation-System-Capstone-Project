@@ -10,11 +10,14 @@
 {% endblock header %}
 
 {% block feature %}
-
-<div class="card w-50 mb-3">
-    <div class="card-body">
-      <h2 class="card-title">Faculty Evaluation Form</h2><a href="{% url 'edit_form' %}" class="btn btn-warning">Edit</a>
-      
+  <div class="row">
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-body">
+          <h2 class="card-title">Faculty Evaluation Form</h2>
+          <a href="{% url 'edit_form' %}" class="btn btn-warning custom-btn" style="width: 100%;">Edit</a>
+        </div>
+      </div>
     </div>
   </div>
 {% endblock feature %}

@@ -87,13 +87,25 @@ def home(request):
 
 def faculty(request):
     faculty = Faculty.objects.all()  
-    context = {'faculty': faculty}
+    form = TeacherForm()
+    if request.method == 'POST':
+        form = TeacherForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('faculty')
+    context = {'faculty': faculty, 'form': form}
 
     return render(request, 'pages/faculty.html', context)
 
 def department(request):
     department = Department.objects.all()
-    context = {'department': department}
+    form = DepartmentForm()
+    if request.method == 'POST':
+        form = DepartmentForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('department')
+    context = {'department': department, 'form': form}
 
     return render(request, 'pages/departments.html', context)
 
@@ -107,6 +119,26 @@ def view_department(request, pk):
     }
 
     return render(request, 'pages/view_department.html', context)
+
+def edit_department(request, pk):
+    department = Department.objects.get(pk=pk)
+    form = DepartmentForm(instance=department)
+    if request.method == 'POST':
+        form = StudentForm(request.POST, instance=department)
+        if form.is_valid():
+            form.save()
+            return redirect('department')
+
+    context = {'form':form}
+    return render(request, 'pages/edit_department.html', context)
+
+def delete_department(request, pk):
+    department = Department.objects.get(pk=pk)
+    if request.method == 'POST':
+            department.delete()
+            return redirect('department')
+
+    return render(request, 'pages/delete.html', {'obj':department})
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['admin'])
@@ -269,9 +301,17 @@ def courses(request):
     student = Student.objects.all()
     
     total_students = student.count()
+
+    form = CourseForm()
+    if request.method == 'POST':
+        form = CourseForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('courses')
     context = {'course': course,
                'total_students': total_students,
-              'student': student}
+              'student': student,
+              'form':form}
    
 
    
@@ -303,20 +343,16 @@ def student_profile(request):
 
 def sections(request):
     section = Section.objects.all()
-    context = {'section': section}
-   
-    return render(request, 'pages/sections.html',  context)
-
-def addteacher(request):
-    form = TeacherForm()
+    form = SectionForm()
     if request.method == 'POST':
-        form = TeacherForm(request.POST)
+        form = SectionForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('faculty')
+            return redirect('sections')
 
-    context = {'form': form}
-    return render(request, 'pages/addteacher.html', context)
+    context = {'section': section, 'form':form}
+   
+    return render(request, 'pages/sections.html',  context)
 
 def editteacher(request, pk):
     faculty = Faculty.objects.get(pk=pk)
@@ -339,21 +375,15 @@ def deleteTeacher(request, pk):
     return render(request, 'pages/delete.html', {'obj':faculty})
 
 
-def add_department(request):
-    form = DepartmentForm()
-    if request.method == 'POST':
-        form = DepartmentForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('department')
-
-    context = {'form': form}
-    return render(request, 'pages/add_department.html', context)
-
 def students(request):
         students = Student.objects.all()
-        context = {'students': students}
-
+        form = StudentForm()
+        if request.method == 'POST':
+            form = StudentForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save(commit=True)  # Ensure commit is set to True to save to the database
+            return redirect('students')
+        context = {'students': students, 'form': form}
         if request.method == 'POST':
             student_resource = StudentResource()
             dataset = Dataset()
@@ -395,19 +425,6 @@ def students(request):
         return render(request, 'pages/students.html',  context)
         
 
-        
-
-
-def addstudent(request):
-    form = StudentForm()
-    if request.method == 'POST':
-        form = StudentForm(request.POST, request.FILES)
-        if form.is_valid():
-            form.save(commit=True)  # Ensure commit is set to True to save to the database
-            return redirect('students')
-
-    context = {'form': form}
-    return render(request, 'pages/addstudent.html', context)
 
 def editstudent(request, pk):
     student = Student.objects.get(pk=pk)
@@ -510,8 +527,16 @@ def addsub_section(request, pk):
 
 def section_details(request, pk):
     section = Section.objects.get(pk=pk)
+    section = get_object_or_404(Section, pk=pk) #get the primary key of the selected section
+    form = SectionSubjectFacultyForm(initial={'section': section}) # pass the instance of the section attribute to the section that is selected to add subjects
+    if request.method == 'POST':
+        form = SectionSubjectFacultyForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('section_details', pk=pk)
+
     subjects_faculty = SectionSubjectFaculty.objects.filter(section=section)
-    return render(request, 'pages/section_details.html', {'section': section, 'subjects_faculty': subjects_faculty})
+    return render(request, 'pages/section_details.html', {'section': section, 'subjects_faculty': subjects_faculty, 'form': form})
 
 def view_evaluation_form(request, pk):
     faculty = Faculty.objects.filter(email=request.user.username).first()
@@ -519,10 +544,22 @@ def view_evaluation_form(request, pk):
 
     return render(request, 'pages/view_evaluation_form.html', {'faculty_evaluation_form': faculty_evaluation_form, 'faculty': faculty})
 
+def admin_view_evaluation_form(request, pk):
+    faculty = Faculty.objects.filter(email=request.user.username).first()
+    faculty_evaluation_form = LikertEvaluation.objects.get(pk=pk)
+
+    return render(request, 'pages/admin_view_evaluation_form.html', {'faculty_evaluation_form': faculty_evaluation_form, 'faculty': faculty})
+
 
 def subjects(request):
     subject = Subject.objects.all()
-    context = {'subject': subject}
+    form = SubjectForm()
+    if request.method == 'POST':
+        form = SubjectForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('subjects')
+    context = {'subject': subject, 'form': form}
     return render(request, 'pages/subjects.html', context)
 
 def addsubject(request):
@@ -761,6 +798,9 @@ def evaluations_csv(request):
         writer.writerow([i.section_subject_faculty.subjects, i.section_subject_faculty.faculty, i.average_rating, i.comments, i.predicted_sentiment, i.academic_year, i.semester ])
 
     return response
+
+@login_required(login_url='signin')
+@allowed_users(allowed_roles=['admin'])
 def evaluations(request):
     evaluation = LikertEvaluation.objects.all()
     
@@ -788,7 +828,7 @@ def evaluations(request):
     except EmptyPage:
         page = evaluation_paginator.page(evaluation_paginator.num_pages)
  
-
+    
 
 
     context = {'evaluation': page.object_list,'total_evaluations': total_evaluations, 'faculty_evaluation_filter': faculty_evaluation_filter, 'page_obj':page, 'is_paginated': True, 'paginator':evaluation_paginator,'ordering': ordering}
@@ -906,7 +946,21 @@ def facultyfeedbackandevaluations(request):
 def faculty_events(request):
      faculty = Faculty.objects.filter(email=request.user.username).first()    
      event = Event.objects.all()
-     context = {'event': event, 'faculty': faculty}
+     form = EventCreationForm()
+     if request.method == 'POST':
+        form = EventCreationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            #event = form.save(commit=False)
+            #event.published_by = faculty 
+            #event.save()
+
+            return redirect('faculty_events')
+        else:
+            # Print form errors for debugging
+            print(form.errors)
+           
+     context = {'event': event, 'faculty': faculty, 'form':form}
      return render(request, 'pages/faculty_events.html', context)
 
 def event_creation_form(request):
@@ -1054,3 +1108,11 @@ def edit_user_group(request, user_id):
             'all_groups': all_groups
         }
         return render(request, 'pages/edit_user_group.html', context)
+
+def delete_user(request, user_id):
+    user = User.objects.get(username=user_id)
+    if request.method == 'POST':
+            user.delete()
+            return redirect('users')
+
+    return render(request, 'pages/delete.html', {'obj':user})

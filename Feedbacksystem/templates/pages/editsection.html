@@ -10,27 +10,29 @@
 {% endblock header %}
 <hr>
 {% block feature %}
-<div class="container" style="width: 60%;">
-<form method="POST" action="">
-    {% csrf_token %}
-    <div class="form-group">
-        {{ form.name.label_tag }}
-        {{ form.name }}
+<div class="row">
+    <div class="container col-md-6">
+    <form method="POST" action="">
+        {% csrf_token %}
+        <div class="form-group">
+            {{ form.name.label_tag }}
+            {{ form.name }}
+            </div>
+    
+        <div class="form-group">
+            {{ form.subjects.label_tag }}
+            <div class="checkbox-list">
+                {% for subject in form.subjects %}
+                    <div class="form-check">
+                    {{ subject }}
+                    </div>
+                {% endfor %}
+            </div>
         </div>
-
-    <div class="form-group">
-        {{ form.subjects.label_tag }}
-        <div class="checkbox-list">
-            {% for subject in form.subjects %}
-                <div class="form-check">
-                {{ subject }}
-                </div>
-            {% endfor %}
-        </div>
+    
+    
+    <input type = "submit" value="Save changes" class="btn btn-warning custom-btn" style="margin-top: 1em;">
+    </form>
     </div>
-
-
-<input type = "submit" value="Save changes" class="btn btn-warning">
-</form>
 </div>
 {% endblock feature %}

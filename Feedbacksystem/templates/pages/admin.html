@@ -15,35 +15,40 @@
   <link href="https://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
   <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
 </head>
 
 <body>
   <div class="container-fluid" style="padding: 0;">
-    <div style="display: flex; align-items: center; background-color: #2a9134; margin: 0; width: 100%; height: 20vh;">
-        <a class="navbar-brand" style="color: #fafafa;" href="{% url 'admin' %}" id="headerlogo">
-            <img src="{% static 'images/cvsulogo.png'%}" alt="Cavite State Univeristy Logo" width="78px" height="78px" id="cvsulogo"> Feedback and Evaluation System 
-            <div class="subtitle">Cavite State University - Bacoor Campus</div>
+    <div class="header">
+      <button id="sidebarCollapse" class="btn">
+        <span class="material-symbols-outlined">
+          menu
+          </span>
+    </button>
+        <a class="navbar-brand" style="color: #fafafa;" id="headerlogo">
+            <img src="{% static 'images/cvsulogo.png'%}" alt="Cavite State Univeristy Logo" width="70px" height="70px" id="cvsulogo"> 
+            
         </a>
-        <div style="margin-left: 43rem;">
-          {% if faculty.profile_picture %}
-          <img src="{{ faculty.profile_picture.url }}" alt="Profile Picture" width="60" style=" border-radius: 50%;">
+        <div class="title-container">
+          <div class="header-title">Feedback and Evaluation System </div>
+          <div class="subtitle">Cavite State University - Bacoor Campus</div>
+        </div>
+        <div class="profile-pic">
+          {% if student.profile_picture %}
+          <img src="{{ student.profile_picture.url }}" alt="Profile Picture" width="60" style=" border-radius: 50%; margin-right: 1em;">
           {% else %}
           <img src="{% static 'images/Default_avatar.webp' %}" alt="Default Profile Picture" width="60" style="margin-right: 1em; border-radius: 50%;" >
           {% endif %}
-         <p id="profile_name" style="color: #fafafa; display: inline-block; font-weight: 500;">{{ request.user }}</p> </a>
+            <a href="{% url 'student_profile' %}" style="font-weight: 500;"> <p id="profile_name" style="color: #fafafa; display: inline-block;">{{ request.user }}</p> </a>
         </div>
     </div>
 </div>
-</div>
-</nav>
-  <div class="container-fluid">
-  <div class="row">
-    <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block sidebar lightsidebar"> 
-      <ul class="nav flex-column nav-pills">
+    <nav id="sidebar" class="sidebar lightsidebar"> 
+      <ul class="nav flex-column nav-pills nav-container">
         <li class="nav-item">
-          <a class="nav-link {% if request.path == '/admin' %} active {% endif %}" href="/administrator">
-          <i class="bi bi-grid-1x2-fill"></i> <b>DASHBOARD</b>
+          <a class="nav-link {% if request.path == '/administrator' %} active {% endif %}" href="/administrator">
+          <i class="bi bi-grid-1x2-fill nav-icon"></i> <b>DASHBOARD</b>
         
         
         </a>
@@ -51,7 +56,7 @@
        
       <li class="nav-item dropdown">
         <button class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-          <i class="bi bi-chat-left-fill"></i> <b>EVALUATIONS</b>
+          <i class="bi bi-chat-left-fill nav-icon"></i> <b>EVALUATIONS</b>
         </button>
         <div class="dropdown-menu" aria-labelledby="navbarDropdown">
             <a class="dropdown-item" href="{% url 'evaluations' %}">Faculty Evaluations</a>
@@ -59,13 +64,13 @@
           </div>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="{% url 'forms' %}">
-            <i class="bi bi-ui-radios"></i> <b>FORMS</b>
+          <a class="nav-link {% if request.path == '/forms' %} active {% endif %}" href="{% url 'forms' %}">
+            <i class="bi bi-ui-radios nav-icon"></i> <b>FORMS</b>
           </a>
         </li>
       <li class="nav-item dropdown">
         <button class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-          <i class="bi bi-duffle-fill"></i> <b>FACULTY</b>
+          <i class="bi bi-duffle-fill nav-icon"></i> <b>FACULTY</b>
         </button>
         <div class="dropdown-menu" aria-labelledby="navbarDropdown">
             <a class="dropdown-item" href="{% url 'faculty' %}">Faculty</a>
@@ -74,7 +79,7 @@
       </li>
       <li class="nav-item dropdown">
         <button class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-          <i class="bi bi-backpack-fill"></i> <b>STUDENTS</b>
+          <i class="bi bi-backpack-fill nav-icon"></i> <b>STUDENTS</b>
         </button>
         <div class="dropdown-menu" aria-labelledby="navbarDropdown">
             <a class="dropdown-item" href="{% url 'students' %}">Students</a>
@@ -86,43 +91,68 @@
  
    
     <li class="nav-item">
-      <a class="nav-link" href="{% url 'users' %}">
-        <i class="bi bi-people-fill"></i> <b>USERS</b>
+      <a class="nav-link {% if request.path == '/users' %} active {% endif %}" href="{% url 'users' %}">
+        <i class="bi bi-people-fill nav-icon"></i> <b>USERS</b>
       </a>
     </li>
     <li class="nav-item">
       <a class="nav-link" href="{% url 'adminlogout' %}">
-        <i class="bi bi-box-arrow-in-left"></i> <b>LOGOUT</b>
+        <i class="bi bi-box-arrow-in-left nav-icon"></i> <b>LOGOUT</b>
       </a>
     </li>
 
     </ul>
   </nav>
-  <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
+  <main role="main" class="content">
  
-  <div class="container" style="padding:10px; margin-top:10px;">
+  <div class="container">
       {% block header %}
         <!-- Main content area -->
-
-      
-          <div id="wrapper">
-          <div id="header">
-            <h4 style="margin-left: 0.5em;font-weight: bold">Academic Year: {{evaluation_status.academic_year}} {{ evaluation_status.semester }} Semester</h4>
-            <h5 style="margin-left: 0.5em;">Student Evaluation for Teachers Status: {% if evaluation_status.evaluation_status %} In Progress {% else %} Concluded {% endif %}</h5>
-      
-            <button type="button" class="btn btn-warning"  style = "color: black; text-decoration: none; margin-left: 0.5em;"data-bs-toggle="modal" data-bs-target="#exampleModal"><i class="bi bi-pencil-square"></i>
-              <b>Edit</b>
+            <div class="row">
+              <div class="col-md-4">
+                <h5 style="font-weight: bold">Academic Year: {{evaluation_status.academic_year}}</h5>
+                <h5 style="font-weight: bold;">{{ evaluation_status.semester }} Semester</h5>
+                <h5>Student Evaluation for Teachers Status: {% if evaluation_status.evaluation_status %} In Progress {% else %} Concluded {% endif %}</h5>
+                <button type="button" class="btn btn-warning custom-btn"  style = "color: black; text-decoration: none; "data-bs-toggle="modal" data-bs-target="#exampleModal"><i class="bi bi-pencil-square"></i>
+                  <b>Edit</b>
               
-            </button>
-            <a class="btn btn-warning"  style = "color: black; text-decoration: none; margin-left: 0.5em;" href="{% url 'adminregister' %}"><i class="bi bi-person-plus-fill"></i> <b>Add New Admin</b></a>
-          </div>  
-          <div id = "grid"  style="margin-left: 1em;"  ><p> <div style="margin-left: 1em; font-weight: bold; font-size: 30px;">{{ total_user }}</div>  <div style="margin-left: 1em;">  Total Users </div>  </p></div> 
-          <div id = "gridtwo" ><p> <div style="margin-left: 1em; font-weight: bold; font-size: 30px;">{{ total_faculty }}</div> <div style="margin-left: 1em;">  Total Faculty </div> </p></div> 
-          <div id = "gridtwo" ><p> <div style="margin-left: 1em; font-weight: bold; font-size: 30px;">{{ total_students }}</div> <div style="margin-left: 1em;">  Total Students </div> </p></div> 
-          <div id = "gridtwo" ><p> <div style="margin-left: 1em; font-weight: bold; font-size: 30px;">{{ total_sections }}</div> <div style="margin-left: 1em;">  Total Sections </div> </p></div> 
-         
-        </div>
-       
+                </button>
+                <a class="btn btn-warning custom-btn"  style = "color: black; text-decoration: none; " href="{% url 'adminregister' %}"><i class="bi bi-person-plus-fill"></i> <b>Add New Admin</b></a>
+              </div>
+               <div class="col-md-2 mt-2">
+                <div class="card">
+                  <div class="card-body">
+                    <h5 class="card-title" style="text-align: center;">{{ total_user }}</h5>
+                    <p class="card-text " style="text-align: center;">Total User</p>
+                </div>
+              </div>
+              </div>
+               <div class="col-md-2 mt-2">
+                <div class="card">
+                  <div class="card-body">
+                    <h5 class="card-title" style="text-align: center;">{{ total_faculty }}</h5>
+                    <p class="card-text " style="text-align: center;">Total Faculty</p>
+                </div>
+              </div>
+              </div>
+               <div class="col-md-2 mt-2">
+                <div class="card">
+                  <div class="card-body">
+                    <h5 class="card-title" style="text-align: center;">{{ total_students }}</h5>
+                    <p class="card-text " style="text-align: center;">Total Students</p>
+                </div>
+              </div>
+              </div>
+               <div class="col-md-2 mt-2">
+                <div class="card">
+                  <div class="card-body">
+                    <h5 class="card-title" style="text-align: center;">{{ total_sections }}</h5>
+                    <p class="card-text " style="text-align: center;">Total Section</p>
+                </div>
+              </div>
+              </div>
+            </div>
+      
 
           <!-- Modal -->
             <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -151,22 +181,29 @@
     {% block feature %}
     <br>
     <br>
-    <div class="d-flex" style="gap: 5em;  width: 100%; height: 60vh;">
-      <div id="chart-container">
-      <h4>Sentiment Analysis of Faculty Members</h4>
-      <canvas id="myChart"></canvas>
+    <div class="row">
+
+      <div class="col-md-6">
+        <div id="chart-container">
+        <h4>Sentiment Analysis of Faculty Members</h4>
+        <canvas id="myChart"></canvas>
+        </div>
       </div>
   
-      <div id="chart-container">
-      <h4>Total Responses per Year/Semester</h4>
-     <canvas id="evaluationChart"></canvas>
-     </div>
-    
+      <div class="col-md-6">
+        <div id="chart-container">
+        <h4>Total Responses per Year/Semester</h4>
+             <canvas id="evaluationChart"></canvas>
+             </div>
+            
+            </div>
+      </div>
+   
+    <div style="margin-top: 1em;">
+      <h4>Faculty Evaluations</h4>
+      <canvas id="facultyChart"></canvas>
     </div>
-    <div class="container" style="margin-top: 5em;">
-    <h4>Faculty Evaluations</h4>
-    <canvas id="facultyChart"></canvas>
-    </div>
+
     
    
 
@@ -271,9 +308,7 @@
   });
 </script>
  {% endblock feature %}
-  </div>
-  </div>
-  </div>
+
  
   </main>
 
@@ -300,7 +335,13 @@
  
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
    
-   
+  <script>
+    $(document).ready(function () {
+        $('#sidebarCollapse').on('click', function () {
+            $('body').toggleClass('sidebar-collapsed');
+        });
+    });
+</script>
 </body>
 
 </html>

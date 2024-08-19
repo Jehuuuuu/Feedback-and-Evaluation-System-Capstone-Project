@@ -2,6 +2,7 @@ import django_filters
 from .models import *
 from django_filters import CharFilter
 from django import forms
+from django.db.models import Q
 
 class EvaluationFilter(django_filters.FilterSet):
      # Foreign key field filter
@@ -12,6 +13,14 @@ class EvaluationFilter(django_filters.FilterSet):
     widget=forms.Select(attrs={'class': 'form-control'})
 
     )
+      # Adding the subject category filter
+    subject = django_filters.ModelChoiceFilter(
+        field_name='section_subject_faculty__subjects',  # This is the related field path
+        queryset=Subject.objects.all(),
+        label='Subject',
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+
     PREDICTED_SENTIMENT_CHOICES = [
         ('Positive', 'Positive'),
         ('Negative', 'Negative'),
@@ -44,12 +53,33 @@ class EvaluationFilter(django_filters.FilterSet):
         academic_years = LikertEvaluation.objects.order_by('academic_year').values_list('academic_year', flat=True).distinct()
         academic_year_choices = [(year, year) for year in academic_years]
         self.filters['academic_year'].extra['choices'] = academic_year_choices
-    
-    comments = CharFilter(field_name = 'comments', lookup_expr='icontains', label = 'Comments', 
-                          widget=forms.TextInput(attrs={'class': 'form-control'})
-)
+ 
+ 
+    search = django_filters.CharFilter(
+        method='filter_search',
+        label='',
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Search...'
+        })
+    )
+
+    # Other filters...
+
+    def filter_search(self, queryset, name, value):
+        return queryset.filter(
+            Q(section_subject_faculty__faculty__first_name__icontains=value) |
+            Q(section_subject_faculty__faculty__last_name__icontains=value) |
+            Q(section_subject_faculty__subjects__subject_name__icontains=value) |
+            Q(comments__icontains=value) |
+            Q(predicted_sentiment__icontains=value) |
+            Q(academic_year__icontains=value) |
+            Q(semester__icontains=value)     
+        )
+
+
 
 class Meta: 
         model = LikertEvaluation
-        fields =  ('section_subject_faculty',  'predicted_sentiment' , 'academic_year', 'semester', 'comments')
+        fields =  ('section_subject_faculty', 'subject',  'predicted_sentiment' , 'academic_year', 'semester', 'search')
   

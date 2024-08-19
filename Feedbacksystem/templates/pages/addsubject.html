@@ -13,8 +13,6 @@
 <form method="POST" action="">
     {% csrf_token %}
     {{ form.as_p }}
-
-
-<input type = "submit" value="Add">
+<input class="btn custom-btn" type ="submit" value="Add">
 </form>
 {% endblock feature %}

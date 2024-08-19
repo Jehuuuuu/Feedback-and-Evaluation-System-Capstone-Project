@@ -10,13 +10,15 @@
 {% endblock header %}
 <hr>
 {% block feature %}
-<div class="container" style="width: 60%;">
-<form method="POST" action=""  enctype="multipart/form-data">
-    {% csrf_token %}
-    {{ form.as_p }}
-
-
-<input type = "submit" value="Save changes" enctype="multipart/form-data" class="btn btn-warning">
-</form>
+<div class="row">
+    <div class="container col-md-6">
+    <form method="POST" action=""  enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+    
+    
+    <input type = "submit" value="Save changes" enctype="multipart/form-data" class="btn btn-warning custom-btn">
+    </form>
+    </div>
 </div>
 {% endblock feature %}

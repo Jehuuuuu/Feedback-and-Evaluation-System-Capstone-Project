@@ -11,23 +11,46 @@
 <hr>
 {% block feature %}
 
-<a class="btn btn-warning" style = "color: black; text-decoration: none;" href="{% url 'addsub_section'  section.pk  %}"><i class="bi bi-plus-square-fill"></i> <b>Add Subject and Teacher</b></a>
-
+<a class="btn btn-warning custom-btn" data-bs-toggle="modal" data-bs-target="#exampleModal" style = "color: black; text-decoration: none;" href="{% url 'addsub_section'  section.pk  %}"><i class="bi bi-plus-square-fill"></i> <b>Add Subject and Teacher</b></a>
+<!-- Modal -->
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="exampleModalLabel">Modal title</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <form method="POST" action="">
+                {% csrf_token %}
+                {{ form.as_p }}
+            
+            
+            
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <input type = "submit" value="Add" class="btn btn-warning custom-btn">
+        </form>
+        </div>
+      </div>
+    </div>
+  </div>
 <br>
 <br>
-    <table class="table table-hover table-striped table-bordered table-responsive  ">
+    <table class="table table-bordered table-responsive  ">
         <tr>
-        <th  scope="col" style="color:#fafafa;  background: #2a9134">Subject</th>
-        <th  scope="col" style="color:#fafafa;  background: #2a9134">Subject Name</th>
-        <th  scope="col" style="color:#fafafa;  background: #2a9134">Teacher</th>
-        <th  scope="col" style="color:#fafafa;  background: #2a9134">Options</th>
+        <th  scope="col">Subject</th>
+        <th  scope="col">Subject Name</th>
+        <th  scope="col">Teacher</th>
+        <th  scope="col">Options</th>
     </tr>
     <tr>
         {% for i in subjects_faculty %}
             <td>{{ i.subjects.subject_code }}</td>
             <td>{{ i.subjects.subject_name }}</td>
             <td>{{ i.faculty.first_name }} {{ i.faculty.last_name }}</td>
-            <td> <a class="nav-link" href="{% url 'deleteSub_Section'  i.pk  %}"><b>DELETE</b></a></td>
+            <td> <a style="margin-right: 10px;" href="{% url 'deleteSub_Section'  i.pk  %}"><button class="btn btn-danger" ><i style="font-size:20px" class='bx bxs-trash' ></</td>
     </tr>
 
     {% endfor %}

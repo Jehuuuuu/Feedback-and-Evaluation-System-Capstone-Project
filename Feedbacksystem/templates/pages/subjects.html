@@ -10,29 +10,49 @@
 {% endblock header %}
 <hr>
 {% block feature %}
-<a class="btn btn-warning" style = "color: black; text-decoration: none;" href="{% url 'addsubject' %}"><i class="bi bi-plus-square-fill"></i> <b>Add Subject</b></a>
+<a class="btn btn-warning custom-btn" data-bs-toggle="modal" data-bs-target="#exampleModal" style = "color: black; text-decoration: none;" href="{% url 'addsubject' %}"><i class="bi bi-plus-square-fill"></i> <b>Add Subject</b></a>
+<!-- Modal -->
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="exampleModalLabel">Add Subject</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <form method="POST" action="">
+                {% csrf_token %}
+                {{ form.as_p }}
+          
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <input class="btn custom-btn" type ="submit" value="Add">
+        </form>
+        </div>
+      </div>
+    </div>
+  </div>
 <br>
 <br>
-<table class="table table-hover table-striped table-bordered table-responsive  ">
-    <tr>
-        <th  scope="col"style="color:#fafafa; background: #2a9134">SUBJECT CODE </th>
-        <th  scope="col"style="color:#fafafa; background: #2a9134">SUBJECT NAME </th>
-        <th  scope="col"style="color:#fafafa; background: #2a9134">OPTIONS </th>
-       
-       
-    </tr>
-    {% for i in subject %}
-    <tr>
-        <td>{{ i.subject_code }}</td>
-        <td>{{ i.subject_name }}</td>   
-        <td style="display: flex; flex-direction: row;"> 
-  
-        <a style="margin-right: 10px;" class="nav-link" href="{% url 'editsubject' i.pk %}"><b>EDIT</b></a>
-        <a style="margin-right: 10px;" class="nav-link" href="{% url 'deleteSubject' i.pk %}"><b>DELETE</b></a>
+<div class="table-responsive">
+  <table class="table table-bordered table-responsive  ">
+      <tr>
+          <th  scope="col">SUBJECT CODE </th>
+          <th  scope="col">SUBJECT NAME </th>
+          <th  scope="col">OPTIONS </th>
+      </tr>
+      {% for i in subject %}
+      <tr>
+          <td>{{ i.subject_code }}</td>
+          <td>{{ i.subject_name }}</td>
+          <td style="display: flex; flex-direction: row;"> <a style="margin-right: 10px;" href="{% url 'editsubject'  i.pk  %}"><button class="btn btn-warning" style=" padding:3px 5px 3px 5px"><i class="bi bi-pencil-square" style="font-size:20px"></i></button></a>
+            <a style="margin-right: 10px;" href="{% url 'deleteSubject'  i.pk  %}"><button class="btn btn-danger" ><i style="font-size:20px" class='bx bxs-trash' ></i></button></a>
           </td>
-    </tr>
-
-    {% endfor %}
-
-</table>
+      </tr>
+  
+      {% endfor %}
+  
+  </table>
+</div>
 {% endblock feature %}
