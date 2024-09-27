@@ -72,7 +72,7 @@ padding-left: 4rem;
   justify-content: flex-end;
 }
 main {
-  height: calc(90vh); /* Adjust to leave space for padding */
+  height: calc(85vh); /* Adjust to leave space for padding */
   overflow-y: auto; /* Add a vertical scrollbar when content overflows */
   margin-top: 4rem;
 }

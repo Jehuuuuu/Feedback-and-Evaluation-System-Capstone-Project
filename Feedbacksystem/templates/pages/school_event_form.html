@@ -4,37 +4,54 @@
 
 {% block header %}
 
-    <h2> Evaluate Event </h2>
+    <h2> Evaluate {{ event.title }} </h2>
     <hr>
     {% endblock header %}
     {% block feature %}
     <div class="container">
     <form method="POST" action="">
         {% csrf_token %}
-        <table class="table table-bordered table-responsive  " style="margin-top: 1em;">
-            <tr>  
-                <th  scope="col" style="color:#fafafa;  background: #2a9134">I. OVERALL EVALUATION </th>
-                <th  scope="col" style="color:#fafafa;  background: #2a9134"><div style="display: flex; white-space: pre; width: 50%;"><div style="width: 5em;margin-left: 3em;">Outstanding </div>          <div style="width: 100%; margin-left: 4em;">Very Satisfactory</div>      <div style="width: 100%; margin-right: 3.5em; margin-left:3em;">Satisfactory</div> <div style="width: 100%; margin-right: 5em;">Unsatisfactory</div>        <div style="width: 100%; margin-right: 2em;">Poor</div> </th>      
-            </tr>
-          
-            <tr>
-                <td>Relevance of the activity</td>
-                <td>{{ form.relevance_of_the_activity }}</td>
-            </tr>
-            <tr>
-                <td>Quality of the activity</td>
-                <td>{{ form.quality_of_the_activity }}</td>
-            </tr>
-            <tr>
-                <td>Timeliness</td>
-                <td>{{ form.timeliness }}</td>
-            </tr>
-        
-    </table>
+        <div class="table-responsive">
+            <table class="table table-bordered table-responsive  " style="margin-top: 1em;">
+                <tr>
+                    <th  scope="col" class="sticky-col">I. OVERALL EVALUATION </th>
+                    <th  scope="col"><div style="display: flex; white-space: pre;">
+                        <div style="width: 5em;margin-left: 3.5em;">Outstanding </div>          
+                        <div style="width: 100%; margin-left: 4em;">Very Satisfactory</div>      
+                        <div style="width: 100%; margin-right: 3.5em; margin-left:3em;">Satisfactory</div> 
+                        <div style="width: 100%; margin-right: 5em;">Unsatisfactory</div>        
+                        <div style="width: 100%; margin-right: 2.4em;">Poor</div> </th>
+                </tr>
+                {% for question in questions %}
+                <tr>
+                    {% if question.order == 1 %}
+                    <td>{{question.text}}</td>
+                    <td>{{ form.relevance_of_the_activity }}</td>
+                    {% endif %}
+                </tr>
+                <tr> 
+                    {% if question.order == 2 %}
+                    <td>{{question.text}}</td>
+                    <td>{{ form.quality_of_the_activity }}</td>
+                    {% endif %}
+                </tr>
+                <tr>
+                    {% if question.order == 3 %}
+                    <td>{{question.text}}</td>
+                    <td>{{ form.timeliness }}</td>
+                    {% endif %}
+                </tr>
+                {% endfor %}
+                </table>
+        </div>
+    {% for question in questions %}
     <div style="margin-top: 2em;">
-        <label for="comments">Suggestions and Comments:</label>
+        {% if question.order == 4 %}
+        <label for="comments">{{question.text}}</label>
         {{ form.suggestions_and_comments }}
+        {% endif %}
     </div>    
+    {% endfor %}
     <br>
     <button type="submit" class="btn btn-warning custom-btn">Submit</button>
     </form>

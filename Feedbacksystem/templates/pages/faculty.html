@@ -5,7 +5,18 @@
 
 {% block header %}
   
-      <h2> Manage Faculty</h2>
+      <div class="row">
+        <div class="col-md-5">
+          <h2> Manage Faculty</h2>
+        </div>
+        <div class="col-lg-6 col-md-7 mt-1" style="margin-left: auto;">
+          <form method="get" action="" class="d-flex" style="gap: 1em;">
+              {{faculty_filter.form.search.label_tag}}
+              {{faculty_filter.form.search}}
+          <button type="submit" class="btn custom-btn"><i class="bi bi-search"></i></button>
+            </form>
+          </div>
+      </div>
       <hr>
   
   {% endblock header %}
@@ -35,35 +46,86 @@
         </div>
       </div>
     </div>
-  
-  <br>
-  <br>
-  <div class="table-responsive">
-    <table class="table table-bordered table-responsive  ">
-        <tr>
-            <th scope="col">FIRST NAME </th>
-            <th  scope="col">LAST NAME </th>
-            <th  scope="col">GENDER </th>
-            <th  scope="col">EMAIL </th>
-            <th  scope="col">CONTACT NUMBER </th>
-            <th  scope="col">DEPARTMENT </th>
-            <th  scope="col">OPTIONS </th>
-        </tr>
-        {% for i in faculty %}
-        <tr>
-            <td>{{ i.first_name }}</td>
-            <td>{{ i.last_name }}</td>
-            <td>{{ i.gender }}</td>
-            <td>{{ i.email }}</td>
-            <td>{{ i.contact_number }}</td>
-            <td>{{ i.department }}</td>
-            <td style="display: flex; flex-direction: row; gap:1em"> <a href="{% url 'facultyevaluations' i.pk %}"><button class="btn btn-primary" style=" padding:3px 5px 3px 5px"><i class="bi bi-eye-fill" style="font-size:20px"></i> </button></a> <a href="{% url 'editteacher'  i.pk  %}"><button class="btn btn-warning" style=" padding:3px 5px 3px 5px"><i class="bi bi-pencil-square" style="font-size:20px"></i></button></a>
-              <a href="{% url 'deleteTeacher'  i.pk  %}"><button class="btn btn-danger" ><i style="font-size:20px" class='bx bxs-trash' ></i></button></a>
-            </td>
-        </tr>
-    
-        {% endfor %}
-    
-    </table>
+    <button type="button" class="btn btn-warning custom-btn" style="color: black; text-decoration: none; margin-left: 0.5em;" data-bs-toggle="modal" data-bs-target="#filterModal">
+      <i class="bi bi-pencil-square"></i> <b>Filter Options</b>
+    </button>
   </div>
+
+  <br>
+  <div class="container">
+    <div class="table-responsive">
+      <table class="table table-bordered table-responsive  ">
+          <tr>
+              <th scope="col">FIRST NAME </th>
+              <th  scope="col">LAST NAME </th>
+              <th  scope="col">GENDER </th>
+              <th  scope="col">EMAIL </th>
+              <th  scope="col">CONTACT NUMBER </th>
+              <th  scope="col">DEPARTMENT </th>
+              <th  scope="col">OPTIONS </th>
+          </tr>
+          {% for i in page_obj %}
+          <tr>
+              <td>{{ i.first_name }}</td>
+              <td>{{ i.last_name }}</td>
+              <td>{{ i.gender }}</td>
+              <td>{{ i.email }}</td>
+              <td>{{ i.contact_number }}</td>
+              <td>{{ i.department }}</td>
+              <td style="display: flex; flex-direction: row; gap:1em"> <a href="{% url 'facultyevaluations' i.pk %}"><button class="btn btn-primary" style=" padding:3px 5px 3px 5px"><i class="bi bi-eye-fill" style="font-size:20px"></i> </button></a> <a href="{% url 'editteacher'  i.pk  %}"><button class="btn btn-warning" style=" padding:3px 5px 3px 5px"><i class="bi bi-pencil-square" style="font-size:20px"></i></button></a>
+                <a href="{% url 'deleteTeacher'  i.pk  %}"><button class="btn btn-danger" ><i style="font-size:20px" class='bx bxs-trash' ></i></button></a>
+              </td>
+          </tr>
+    
+          {% endfor %}
+    
+      </table>
+    </div>
+  </div>
+  
+<!-- Modal -->
+<div class="modal fade" id="filterModal" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="filterModalLabel">Filter Options</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form method="get" action="">
+          {{faculty_filter.form.department.label_tag}}
+          {{faculty_filter.form.department}}
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <input type = "submit" value="Save Changes" class="btn btn-success">
+      </div>
+    </div>
+  </div>
+</div>
+  <nav aria-label="Page navigation">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous">
+                <span aria-hidden="true">&laquo;</span>
+            </a>
+        </li>
+        {% endif %}
+
+        {% for num in page_obj.paginator.page_range %}
+        <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+            <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+        </li>
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Next">
+                <span aria-hidden="true">&raquo;</span>
+            </a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
 {% endblock feature %}

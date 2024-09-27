@@ -17,84 +17,110 @@
          <th  scope="col">RATING</th>
     </tr>
     </thead>
+    {% for question in questions %}
     <tr>
-        <td>Shows good command and knowledge of the subject 
-            matter</td> 
-        <td> {{ faculty_evaluation_form.command_and_knowledge_of_the_subject }}</td> 
+        {% if question.order == 0 %}
+        <td>{{ question.text }}</td>
+        <td> {{ faculty_evaluation_form.command_and_knowledge_of_the_subject }}</td>
+        {% endif %}
     </tr>
     <tr>
-        <td>Demonstrates breadth and depth of mastery</td> 
-        <td> {{ faculty_evaluation_form.depth_of_mastery }}</td> 
+        {% if question.order == 1 %}
+        <td>{{ question.text }}</td>
+        <td> {{ faculty_evaluation_form.depth_of_mastery }}</td>
+        {% endif %}
     </tr>
     <tr>
-        <td>Draws and share information in the state-of-the-art
-            theory and practice in his/her respective discipline</td> 
-        <td> {{ faculty_evaluation_form.practice_in_respective_discipline }}</td> 
+        {% if question.order == 2 %}
+        <td>{{ question.text }}</td>
+        <td> {{ faculty_evaluation_form.practice_in_respective_discipline }}</td>
+        {% endif %}
     </tr>
     <tr>
-        <td>Demonstrates up-to-date knowledge and/or awareness 
-            on current trends and issues of the subject matter</td> 
-        <td> {{ faculty_evaluation_form.up_to_date_knowledge }}</td> 
+        {% if question.order == 3 %}
+        <td>{{ question.text }}</td>        
+        <td> {{ faculty_evaluation_form.up_to_date_knowledge }}</td>
+        {% endif %}
     </tr>
     <tr>
-        <td>Integrates subject to practical circumstances</td> 
+        {% if question.order == 4 %}
+        <td>{{ question.text }}</td>        
         <td> {{ faculty_evaluation_form.integrates_subject_to_practical_circumstances }}</td> 
+        {% endif %}
     </tr>
-    
-    <tr>
+    {% endfor %}
+    <tr>       
         <th  scope="col">II. ORGANIZATION  </th>
         <th  scope="col">RATING</th>
     </tr>
+    {% for question in questions %}
     <tr>
-        <td>Organizes the subject matter</td>
+        {% if question.order == 5 %}
+        <td>{{ question.text }}</td>        
         <td>{{ faculty_evaluation_form.organizes_the_subject_matter }}</td>
+        {% endif %}
     </tr>
     <tr>
-        <td>Provides an orientation on course content and course
-            policies at the start of the semester</td>
+        {% if question.order == 6 %}
+        <td>{{ question.text }}</td>        
         <td>{{ faculty_evaluation_form.provides_orientation_on_course_content }}</td>
+        {% endif %}
     </tr>
     <tr>
-        <td>Shows substantial efforts of class preparation</td>
+        {% if question.order == 7 %}
+        <td>{{ question.text }}</td>        
         <td>{{ faculty_evaluation_form.efforts_of_class_preparation }}</td>
+        {% endif %}
     </tr>
     <tr>
-        <td>Emphasizes and summarizes main points </td>
+        {% if question.order == 8 %}
+        <td>{{ question.text }}</td>        
         <td>{{ faculty_evaluation_form.summarizes_main_points }}</td>
+        {% endif %}
     </tr>
     <tr>
-        <td>Monitors online class when possible </td>
+        {% if question.order == 9 %}
+        <td>{{ question.text }}</td>        
         <td>{{ faculty_evaluation_form.monitors_online_class }}</td>
+        {% endif %}
     </tr>
-    
+    {% endfor %}
     <tr>      
         <th  scope="col">III. TEACHER-STUDENT RAPPORT </th>
         <th  scope="col">RATING</th> 
     </tr>
-  
+    {% for question in questions %}
     <tr>
-        <td>Holds interest of students </td>
+        {% if question.order == 10 %}
+        <td>{{ question.text }}</td>        
         <td>{{ faculty_evaluation_form.holds_interest_of_students }}</td>
+        {% endif %}
     </tr>
     <tr>
-        <td>Provides relevant feedback</td>
+        {% if question.order == 11 %}
+        <td>{{ question.text }}</td>        
         <td>{{ faculty_evaluation_form.provides_relevant_feedback }}</td>
+        {% endif %}
     </tr>
     <tr>
-        <td>Encourages participation and greater students’
-            interaction</td>
+        {% if question.order == 12 %}
+        <td>{{ question.text }}</td>        
         <td>{{ faculty_evaluation_form.encourages_participation }}</td>
+        {% endif %}
     </tr>
     <tr>
-        <td>Shows enthusiasm in every lesson and activity </td>
+        {% if question.order == 13 %}
+        <td>{{ question.text }}</td>        
         <td>{{ faculty_evaluation_form.shows_enthusiasm }}</td>
+        {% endif %}
     </tr>
     <tr>
-        <td>Shows sense of humor and openness to others point of
-            view</td>
+        {% if question.order == 14 %}
+        <td>{{ question.text }}</td>        
         <td>{{ faculty_evaluation_form.shows_sense_of_humor }}</td>
+        {% endif %}
     </tr>
-
+    {% endfor %}
     <tr>
         <th  scope="col">IV. TEACHING METHODS</th>
         <th  scope="col">RATING</th>
@@ -103,98 +129,149 @@
        
        
     </tr>
-  
+    {% for question in questions %}
     <tr>
-        <td>Uses various and relevant teaching methods,
-            instructional materials, and technology </td>
+        {% if question.order == 15 %} 
+            <td>{{ question.text }}</td>        
         <td>{{ faculty_evaluation_form.teaching_methods }}</td>
+        {% endif %}
     </tr>
     <tr>
-        <td>Employs flexible learning strategies effectively</td>
+        {% if question.order == 16 %}
+            <td>{{ question.text }}</td>        
         <td>{{ faculty_evaluation_form.flexible_learning_strategies }}</td>
+        {% endif %}
     </tr>
     <tr>
-        <td>Includes varied, creative, and balanced student
-            engagement </td>
+        {% if question.order == 17 %}  
+        <td>{{ question.text }}</td>        
         <td>{{ faculty_evaluation_form.student_engagement }}</td>
+        {% endif %}
     </tr>
     <tr>
-        <td>Uses examples that are simple, clear, precise, and
-            appropriate both in offline and online modes  </td>
+        {% if question.order == 18 %}
+        <td>{{ question.text }}</td>        
         <td>{{ faculty_evaluation_form.clear_examples }}</td>
+        {% endif %}
     </tr>
     <tr>
-        <td>Stays focused on and meets stated objectives</td>
+        {% if question.order == 19 %} 
+        <td>{{ question.text }}</td>        
         <td>{{ faculty_evaluation_form.focused_on_objectives }}</td>
+        {% endif %}
     </tr>
-    
+    {% endfor %}
+    <tr>
+        <th  scope="col">V. PRESENTATION</th>
+        <th  scope="col">RATING</th>
+         
+    </tr>
+    {% for question in questions %}
+    <tr>
+        {% if question.order == 20 %} 
+            <td>{{ question.text }}</td>        
+        <td>{{ faculty_evaluation_form.starts_with_motivating_activities }}</td>
+        {% endif %}
+    </tr>
+    <tr>
+        {% if question.order == 21 %}
+            <td>{{ question.text }}</td>        
+        <td>{{ faculty_evaluation_form.speaks_in_clear_and_audible_manner }}</td>
+        {% endif %}
+    </tr>
+    <tr>
+        {% if question.order == 22 %}  
+        <td>{{ question.text }}</td>        
+        <td>{{ faculty_evaluation_form.uses_appropriate_medium_of_instruction }}</td>
+        {% endif %}
+    </tr>
+    <tr>
+        {% if question.order == 23 %}
+        <td>{{ question.text }}</td>        
+        <td>{{ faculty_evaluation_form.establishes_online_classroom_environment }}</td>
+        {% endif %}
+    </tr>
+    <tr>
+        {% if question.order == 24 %} 
+        <td>{{ question.text }}</td>        
+        <td>{{ faculty_evaluation_form.observes_proper_classroom_etiquette }}</td>
+        {% endif %}
+    </tr>
+    {% endfor %}
     <tr>
         <th  scope="col">VI. CLASSROOM MANAGEMENT</th>
         <th  scope="col">RATING</th>
-      
-        
-       
-       
+
     </tr>
-  
+    {% for question in questions %}
     <tr>
-        <td>Uses time wisely both in offline and online learning
-            modes and attends to interaction using varied learning
-            platforms</td>
+        {% if question.order == 25 %} 
+            <td>{{ question.text }}</td>        
         <td>{{ faculty_evaluation_form.uses_time_wisely }}</td>
+        {% endif %}
     </tr>
     <tr>
-        <td> Gives ample time for the students to prepare for
-            scheduled synchronous sessions.</td>
+        {% if question.order == 26 %}
+        <td>{{ question.text }}</td>        
         <td>{{ faculty_evaluation_form.gives_ample_time_for_students_to_prepare }}</td>
+        {% endif %}
     </tr>
     <tr>
-        <td>Updates the students of their progress using objective
-            and consistent grading system </td>
+        {% if question.order == 27 %}
+        <td>{{ question.text }}</td>        
         <td>{{ faculty_evaluation_form.updates_the_students_of_their_progress }}</td>
+        {% endif %}
     </tr>
     <tr>
-        <td>Demonstrates leadership ability and professionalism</td>
+        {% if question.order == 28 %}
+        <td>{{ question.text }}</td>        
         <td>{{ faculty_evaluation_form.demonstrates_leadership_and_professionalism }}</td>
+        {% endif %}
     </tr>
     <tr>
-        <td>Understands possible distractions on content delivery
-            caused by connectivity and other situations beyond
-            control
-            </td>
+        {% if question.order == 29 %}
+        <td>{{ question.text }}</td>        
         <td>{{ faculty_evaluation_form.understands_possible_distractions }}</td>
+        {% endif %}
     </tr>
-    
+    {% endfor %}
     <tr>
         <th  scope="col">VII. SENSITIVITY and SUPPORT to STUDENTS</th>
         <th  scope="col">RATING</th>
     
     </tr>
-  
+    {% for question in questions %}
     <tr>
-        <td>Exhibits sensitivity to students' personal culture, gender
-            differences and disabilities</td>
+        {% if question.order == 30 %}
+        <td>{{ question.text }}</td>        
         <td>{{ faculty_evaluation_form.sensitivity_to_student_culture }}</td>
+        {% endif %}
     </tr>
     <tr>
-        <td>  Responds appropriately in a non-threatening, proactive learning environment </td>
+        {% if question.order == 31 %}
+        <td>{{ question.text }}</td>        
         <td>{{ faculty_evaluation_form.responds_appropriately }}</td>
+        {% endif %}
     </tr>
     <tr>
-        <td>Assists students on their concerns in the subject </td>
+        {% if question.order == 32 %}
+        <td>{{ question.text }}</td>        
         <td>{{ faculty_evaluation_form.assists_students_on_concerns }}</td>
+        {% endif %}
     </tr>
     <tr>
-        <td>Guides the students in accomplishing the learning
-            tasks both in offline and online learning modes </td>
+        {% if question.order == 33 %}
+        <td>{{ question.text }}</td>        
         <td>{{ faculty_evaluation_form.guides_the_students_in_accomplishing_tasks }}</td>
+        {% endif %}
     </tr>
     <tr>
-        <td>Extends consideration and adjusts to the situations of
-            the students accordingly 
-            </td>
+        {% if question.order == 34 %}
+        <td>{{ question.text }}</td>        
         <td>{{ faculty_evaluation_form.extends_consideration_to_students }}</td>
+        {% endif %}
     </tr>
+    {% endfor %}
     <tr>
         <th  scope="col">Other Suggestions for Improvement:</th>
         <th  scope="col">Comments</th> 
@@ -208,20 +285,25 @@
             Require more task for the credit
           {% endif %}</td>
     </tr>
+    {% for question in questions %}
     <tr>
-        <td>Strengths of the Faculty: 
-            </td>
+        {% if question.order == 35 %}
+        <td>{{ question.text }}</td>        
         <td>{{ faculty_evaluation_form.strengths_of_the_faculty }}</td>
+        {% endif %}
     </tr>
     <tr>
-        <td>Other Suggestions for Improvement:
-            </td>
+        {% if question.order == 36 %}
+        <td>{{ question.text }}</td>        
         <td>{{ faculty_evaluation_form.other_suggestions_for_improvement }}</td>
+        {% endif %}
     </tr>
     <tr>
-        <td>Overall Impression of the Faculty:
-            </td>
+        {% if question.order == 37 %}
+        <td>{{ question.text }}</td>        
         <td>{{ faculty_evaluation_form.comments }}</td>
+        {% endif %}
     </tr>
+    {% endfor %}
     </table>
 {% endblock feature %}

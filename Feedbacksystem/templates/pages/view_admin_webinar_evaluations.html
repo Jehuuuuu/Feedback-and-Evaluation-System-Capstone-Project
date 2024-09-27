@@ -1,0 +1,168 @@
+{% extends "pages/admin.html" %}
+
+{% block title %}Event Evaluation Details{% endblock %}
+
+{% block header %}
+
+    <h2> Event Evaluation Form Details </h2>
+    <hr>
+   
+{% endblock header %}
+<hr>
+{% block feature %}
+
+<table class="table table-responsive table-bordered " >
+        <tr>
+         <th  scope="col" style="color:#fafafa;  background: #2a9134">I.  Overall Evaluation </th>
+         <th  scope="col" style="color:#fafafa;  background: #2a9134">RATING</th>
+    </tr>
+    </thead>
+    {% for question in questions %}
+    <tr>
+        {% if question.order == 1 %}
+        <td>{{question.text}}</td>
+        <td> {{ event_form_details.relevance_of_the_activity }}</td> 
+        {% endif %}
+    </tr>
+    <tr>
+        {% if question.order == 2 %}
+        <td>{{question.text}}</td>
+        <td> {{ event_form_details.quality_of_the_activity }}</td> 
+        {% endif %}
+    </tr>
+    <tr>
+        {% if question.order == 3 %}
+        <td>{{question.text}}</td>
+        <td> {{ event_form_details.timeliness }}</td> 
+        {% endif %}
+    </tr>
+    <tr>
+        {% if question.order == 4 %}
+        <td>{{question.text}}</td>
+        <td> {{ event_form_details.suggestions_and_comments }}</td> 
+        {% endif %}
+    </tr>
+
+
+    {% endfor %}
+</table>
+
+<table class="table table-responsive table-bordered " >
+        <tr>
+         <th  scope="col" style="color:#fafafa;  background: #2a9134">II.  Procedure and Content </th>
+         <th  scope="col" style="color:#fafafa;  background: #2a9134">RATING</th>
+    </tr>
+    </thead>
+    {% for question in questions %}
+    <tr>
+        {% if question.order == 5 %}
+        <td>{{question.text}}</td>
+        <td> {{ event_form_details.attainment_of_the_objective }}</td> 
+        {% endif %}
+    </tr>
+    <tr>
+        {% if question.order == 6 %}
+        <td>{{question.text}}</td>
+        <td> {{ event_form_details.appropriateness_of_the_topic_to_attain_the_objective }}</td> 
+        {% endif %}
+    </tr>
+    <tr>
+        {% if question.order == 7 %}
+        <td>{{question.text}}</td>
+        <td> {{ event_form_details.appropriateness_of_the_searching_methods_used }}</td> 
+        {% endif %}
+    </tr>
+    <tr>
+        {% if question.order == 8 %}
+        <td>{{question.text}}</td>
+        <td> {{ event_form_details.topics_to_be_included }}</td> 
+        {% endif %}
+    </tr>
+
+
+    {% endfor %}
+</table>
+
+<table class="table table-responsive table-bordered " >
+        <tr>
+         <th  scope="col" style="color:#fafafa;  background: #2a9134">III.  Suitability of the present time </th>
+         <th  scope="col" style="color:#fafafa;  background: #2a9134">RATING</th>
+    </tr>
+    </thead>
+    {% for question in questions %}
+    <tr>
+        {% if question.order == 9 %}
+        <td>{{question.text}}</td>
+        <td> {{ event_form_details.appropriateness_of_the_topic_in_the_present_time }}</td> 
+        {% endif %}
+    </tr>
+    <tr>
+        {% if question.order == 10 %}
+        <td>{{question.text}}</td>
+        <td> {{ event_form_details.usefulness_of_the_topic_discusssed_in_the_activity }}</td> 
+        {% endif %}
+    </tr>
+    <tr>
+        {% if question.order == 11 %}
+        <td>{{question.text}}</td>
+        <td> {{ event_form_details.appropriateness_of_the_searching_methods }}</td> 
+        {% endif %}
+    </tr>
+    {% endfor %}
+</table>
+
+<table class="table table-responsive table-bordered " >
+        <tr>
+         <th  scope="col" style="color:#fafafa;  background: #2a9134">IV.  Speaker Evaluation </th>
+         <th  scope="col" style="color:#fafafa;  background: #2a9134">RATING</th>
+    </tr>
+    </thead>
+    {% for question in questions %}
+    <tr>
+        {% if question.order == 12 %}
+        <td>{{question.text}}</td>
+        <td> {{ event_form_details.displayed_a_thorough_knowledge_of_the_topic }}</td> 
+        {% endif %}
+    </tr>
+    <tr>
+        {% if question.order == 13 %}
+        <td>{{question.text}}</td>
+        <td> {{ event_form_details.thoroughly_explained_and_processed_the_learning_activities_throughout_the_training }}</td> 
+        {% endif %}
+    </tr>
+    <tr>
+        {% if question.order == 14 %}
+        <td>{{question.text}}</td>
+        <td> {{ event_form_details.able_to_create_a_good_learning_environment }}</td> 
+        {% endif %}
+    </tr>
+    <tr>
+        {% if question.order == 15 %}
+        <td>{{question.text}}</td>
+        <td> {{ event_form_details.able_to_manage_her_time_well }}</td> 
+        {% endif %}
+    </tr>
+    <tr>
+        {% if question.order == 16 %}
+        <td>{{question.text}}</td>
+        <td> {{ event_form_details.demonstrated_keenness_to_the_participant_needs }}</td> 
+        {% endif %}
+    </tr>
+    <tr>
+        {% if question.order == 18 %}
+        <td>{{question.text}}</td>
+        <td> {{ event_form_details.timeliness_or_suitability_of_service }}</td> 
+        {% endif %}
+    </tr>
+    <tr>
+        {% if question.order == 17 %}
+
+        <td>{{question.text}}</td>
+        <td> {{ event_form_details.overall_satisfaction }}</td> 
+        {% endif %}
+    </tr>
+
+
+    {% endfor %}   
+</table>
+{% endblock feature %}  

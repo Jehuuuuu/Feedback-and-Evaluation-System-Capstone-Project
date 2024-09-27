@@ -51,7 +51,7 @@
                     {% if status == 'evaluated' %}
                         <span class="text-success">Evaluated</span>
                     {% else %}
-                        <span class="text-danger">Pending</span>
+                        <a href = "{% url 'facultyeval' %}"><span class="text-danger">Pending</a></span>
                     {% endif %}
                 </td>
             </tr>

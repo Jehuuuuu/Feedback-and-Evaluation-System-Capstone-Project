@@ -1,39 +1,81 @@
 {% extends "pages/admin.html" %}
 
-{% block title %}Event Feedback and Evaluations{% endblock %}
+{% block title %}Event Evaluation Details{% endblock %}
 
 {% block header %}
-        <h2> Event Feedback and Evaluations </h2>
-        <hr>    
-    {% endblock header %}
+
+    <h2> Event Evaluation Details </h2>
     <hr>
-    {% block feature %}
-    
-    <div class="table-responsive">
-        <table class="table table-bordered">
+   
+{% endblock header %}
+<hr>
+{% block feature %}
+
+<div class="table-responsive">
+    <table class="table table-bordered " >
             <tr>
-                <th  scope="col">EVENT</th>
-                <th  scope="col">AVERAGE RATING </th>
-                <th  scope="col">COMMENTS </th>
-                <th  scope="col">POLARITY </th>
-                <th  scope="col">ACADEMIC YEAR </th>
-                <th  scope="col">SEMESTER </th>
-                <th  scope="col">OPTIONS </th>
-            </tr>
-            {% for i in events %}
-            <tr>
-                <td>{{ i.event.title }} </td>
-                <td>{{ i.average_rating }}</td>
-                <td>{{ i.suggestions_and_comments }}</td>
-                <td></td>
-                <td>{{ i.academic_year }}</td>
-                <td>{{ i.semester }}</td>
-                <td><a href="{% url 'view_admin_schoolevent_evaluations' i.pk %}"><button class="btn btn-primary" style=" padding:3px 5px 3px 5px"><i class="bi bi-eye-fill" style="font-size:20px"></i></button></td>
+             <th  scope="col" style="color:#fafafa;  background: #2a9134">EVENT</th>
+             <th  scope="col" style="color:#fafafa;  background: #2a9134">SUGGESTIONS AND COMMENTS</th>
+             <th  scope="col" style="color:#fafafa;  background: #2a9134">AVERAGE RATING</th>
+             <th  scope="col" style="color:#fafafa;  background: #2a9134">POLARITY</th>
+             <th  scope="col" style="color:#fafafa;  background: #2a9134">ACADEMIC YEAR</th>
+             <th  scope="col" style="color:#fafafa;  background: #2a9134">SEMESTER</th>
+             <th  scope="col" style="color:#fafafa;  background: #2a9134">OPTIONS</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for i in page_obj %}
+        <tr>
+            <td> {{ i.event.title }}</td>
     
-            </tr>
     
-            {% endfor %}
+            <td> {{ i.suggestions_and_comments }}</td>
     
-        </table>
-    </div>
+    
+            <td> {{ i.average_rating }}</td>
+    
+    
+            <td>...</td>
+    
+    
+            <td> {{ i.academic_year }}</td>
+    
+    
+            <td> {{ i.semester }}</td>
+
+            <td style="display: flex; flex-direction: row; gap:1em;"> <a href="{% url 'view_admin_schoolevent_evaluations' i.pk %}"><button class="btn btn-primary" style=" padding:3px 5px 3px 5px"><i class="bi bi-eye-fill" style="font-size:20px"></i> </button></a> 
+            </td>
+     </tr>
+    
+        {% endfor %}
+    </tbody>
+    
+    </table>
+</div>
+
+<nav aria-label="Page navigation">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous">
+                <span aria-hidden="true">&laquo;</span>
+            </a>
+        </li>
+        {% endif %}
+
+        {% for num in page_obj.paginator.page_range %}
+        <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+            <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+        </li>
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Next">
+                <span aria-hidden="true">&raquo;</span>
+            </a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
 {% endblock feature %}

@@ -6,7 +6,7 @@
     {% endblock header %}
     {% block feature %}
     <div class="table-responsive">
-        <a class = "btn btn-warning custom-btn" data-bs-toggle="modal" data-bs-target="#exampleModal" href = "{% url 'event_creation_form' %}"> <i class="bi bi-plus-square-fill"> </i>Create Event </a>
+        <a class = "btn btn-warning custom-btn" data-bs-toggle="modal" data-bs-target="#exampleModal"> <i class="bi bi-plus-square-fill"> </i>Create Event </a>
   
   <!-- Modal -->
   <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -69,51 +69,54 @@
                         {% endfor %}
                     </div>
                 </div>
-               
+                    <p>{{ form.evaluation_status.label_tag }} {{ form.evaluation_status }}</p>
+                    
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-          <button type="submit" class="btn custom-btn"">Create Event</button>
+          <button type="submit" class="btn custom-btn">Create Event</button>
         </form>
         </div>
       </div>
     </div>
   </div>
-        <table class="table table-bordered" style="margin-top: 1em;">
-            <tr>
-                <th  scope="col">TITLE</th>
-                <th  scope="col">DATE</th>
-                <th  scope="col">TIME</th>
-                <th  scope="col">LOCATION</th>
-                <th  scope="col">EVENT TYPE </th>
-                <th  scope="col">COURSE/DEPARTMENT ATTENDEES</th>
-                <th  scope="col">DESCRIPTION</th>
-                <th  scope="col">OPTIONS </th>
-            </tr>
-            {% for i in event %}
-            <tr>
-                <td>{{ i.title }}</td>
-                <td>{{ i.date }}</td>
-                <td>{{ i.time }}</td>
-                <td>{{ i.location }}</td>
-                <td>{{ i.event_type }}</td>
-                <td>
-                    {% for course in i.course_attendees.all %}
-                        {{ course.name }}{% if not forloop.last %}, {% endif %}
-                    {% endfor %}
-                    <br>
-                    {% for department in i.department_attendees.all %}
-                        {{ department.name }}{% if not forloop.last %}, {% endif %}
-                    {% endfor %}
-                </td>
-                <td>{{ i.description }}</td>
-                <td style="display: flex; align-items: center; justify-content: center;flex-direction: row; gap:1em; margin-top: 0.4em;"> <a href="{% url 'faculty_event_evaluations'%}"><button class="btn btn-primary" style=" padding:3px 5px 3px 5px"><i class="bi bi-eye-fill" style="font-size:20px"></i> </button></a> <a href="{% url 'editteacher'  i.pk  %}"><button class="btn btn-warning" style=" padding:3px 5px 3px 5px"><i class="bi bi-pencil-square" style="font-size:20px"></i></button></a>
-                    <a href="{% url 'deleteTeacher'  i.pk  %}"><button class="btn btn-danger" ><i style="font-size:15px" class="bi bi-trash" ></i></button></a>
-                  </td>
-        
-                  {% endfor %}
-            </tr>
-       </table>
+        <div class="table-responsive">
+            <table class="table table-bordered" style="margin-top: 1em;">
+                <tr>
+                    <th  scope="col">TITLE</th>
+                    <th  scope="col">DATE</th>
+                    <th  scope="col">TIME</th>
+                    <th  scope="col">LOCATION</th>
+                    <th  scope="col">EVENT TYPE </th>
+                    <th  scope="col">COURSE/DEPARTMENT ATTENDEES</th>
+                    <th  scope="col">EVALUATION STATUS</th>
+                    <th  scope="col">OPTIONS </th>
+                </tr>
+                {% for i in event %}
+                <tr>
+                    <td>{{ i.title }}</td>
+                    <td>{{ i.date }}</td>
+                    <td>{{ i.time }}</td>
+                    <td>{{ i.location }}</td>
+                    <td>{{ i.event_type }}</td>
+                    <td>
+                        {% for course in i.course_attendees.all %}
+                            {{ course.name }}{% if not forloop.last %}, {% endif %}
+                        {% endfor %}
+                        <br>
+                        {% for department in i.department_attendees.all %}
+                            {{ department.name }}{% if not forloop.last %}, {% endif %}
+                        {% endfor %}
+                    </td>
+                    <td>{{ i.evaluation_identifier }}</td>
+                    <td style="display: flex; align-items: center; justify-content: center;flex-direction: row; gap:1em; margin-top: 0.4em;"> <a href="{% url 'faculty_event_evaluations' %}"><button class="btn btn-primary" style=" padding:3px 5px 3px 5px"><i class="bi bi-eye-fill" style="font-size:20px"></i> </button></a> <a href="{% url 'edit_faculty_events' i.pk %}"><button class="btn btn-warning" style=" padding:3px 5px 3px 5px"><i class="bi bi-pencil-square" style="font-size:20px"></i></button></a>
+                        <a href="{% url 'delete_faculty_events' i.pk %}"><button class="btn btn-danger" ><i style="font-size:15px" class="bi bi-trash" ></i></button></a>
+                      </td>
+            
+                      {% endfor %}
+                </tr>
+                   </table>
+        </div>
        </div>   
     {% endblock feature %}
 

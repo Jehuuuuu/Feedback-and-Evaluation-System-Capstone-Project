@@ -29,7 +29,7 @@
     <form method="POST" action="">
         {% csrf_token %}
 
-        <div class="table-responsive faculty_evaluation_table">
+        <div class="table-responsive">
             <table class="table table-bordered" style="margin-top: 1em;">
                 <tr>
                     <th  scope="col" class="sticky-col">I. SUBJECT MATTER CONTENT </th>
@@ -183,35 +183,35 @@
             </tr>
             {% for question in questions %}
             <tr>
-                {% if question.order == 15 %}  <tr>
+                {% if question.order == 15 %}  
                     <td class="sticky-col">{{ question.text }}</td>
         
                 <td>{{ form.teaching_methods }}</td>
                 {% endif %}
             </tr>
             <tr>
-                {% if question.order == 16 %}  <tr>
+                {% if question.order == 16 %}  
                     <td class="sticky-col">{{ question.text }}</td>
         
                 <td>{{ form.flexible_learning_strategies }}</td>
                 {% endif %}
             </tr>
             <tr>
-                {% if question.order == 17 %}  <tr>
+                {% if question.order == 17 %}  
                     <td class="sticky-col">{{ question.text }}</td>
         
                 <td>{{ form.student_engagement }}</td>
                 {% endif %}
             </tr>
             <tr>
-                {% if question.order == 18 %}  <tr>
+                {% if question.order == 18 %}
                     <td class="sticky-col">{{ question.text }}</td>
         
                 <td>{{ form.clear_examples }}</td>
                 {% endif %}
             </tr>
             <tr>
-                {% if question.order == 19 %}  <tr>
+                {% if question.order == 19 %} 
                 <td class="sticky-col">{{ question.text }}</td>
         
                 <td>{{ form.focused_on_objectives }}</td>
@@ -234,13 +234,13 @@
             </tr>
             {% for question in questions %}
             <tr>
-                {% if question.order == 20 %}  <tr>
+                {% if question.order == 20 %}  
                 <td class="sticky-col">{{ question.text }}</td>
                 <td>{{ form.starts_with_motivating_activities }}</td>
                 {% endif %}
             </tr>
             <tr>
-                {% if question.order == 21 %}  <tr>
+                {% if question.order == 21 %}  
                 <td class="sticky-col">{{ question.text }}</td>
                 <td>{{ form.speaks_in_clear_and_audible_manner }}</td>
                 {% endif %}

@@ -1,7 +1,7 @@
 from django.forms import ModelForm
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
-from .models import Faculty, Student, Course, Section, SectionSubjectFaculty, Subject, EvaluationStatus, Department, Event, SchoolEventModel, WebinarSeminarModel, FacultyEvaluationQuestions
+from .models import Faculty, Student, Course, Section, SectionSubjectFaculty, Subject, EvaluationStatus, Department, Event, SchoolEventModel, WebinarSeminarModel, FacultyEvaluationQuestions, SchoolEventQuestions, WebinarSeminarQuestions
 from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
@@ -329,10 +329,11 @@ class DateInput(forms.DateInput):
 class EventCreationForm(ModelForm):
     class Meta:
         model = Event
-        fields = ['title', 'date', 'time', 'location', 'event_type','event_picture', 'description', 'course_attendees', 'department_attendees']
+        fields = ['title', 'date', 'time', 'location', 'event_type','event_picture', 'description', 'course_attendees', 'department_attendees', 'evaluation_status']
         labels = {
             'course_attendees': 'Course Attendees',
             'department_attendees': 'Department Attendees',
+            'evaluation_status': 'Start Evaluations',
         }
 
         widgets = {
@@ -345,6 +346,7 @@ class EventCreationForm(ModelForm):
             'event_picture': forms.ClearableFileInput(attrs={'class': 'form-control '}),
             'course_attendees': forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'}),
             'department_attendees': forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'}),
+            'evaluation_status': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
 
 class SchoolEventForm(forms.Form):
@@ -357,10 +359,52 @@ class SchoolEventForm(forms.Form):
     
     suggestions_and_comments = forms.CharField(required=True, widget=forms.TextInput(attrs={'size': 60, 'class': 'form-control'}))  # Adjust size as needed
 
-class WebinarSeminarForm(ModelForm):
-    class Meta:
-        model = WebinarSeminarModel
-        fields = '__all__'
+class WebinarSeminarForm(forms.Form):
+    relevance_of_the_activity = forms.ChoiceField(choices=[(5, ''), (4, ''), (3, ''),
+                                        (2, ''), (1, '')],  widget=forms.RadioSelect(attrs={'class': 'likert-horizontal custom-radio'}))
+    quality_of_the_activity = forms.ChoiceField(choices=[(5, ''), (4, ''), (3, ''),
+                                        (2, ''), (1, '')],  widget=forms.RadioSelect(attrs={'class': 'likert-horizontal custom-radio'}))
+    timeliness = forms.ChoiceField(choices=[(5, ''), (4, ''), (3, ''),
+                                        (2, ''), (1, '')],  widget=forms.RadioSelect(attrs={'class': 'likert-horizontal custom-radio'}))
+    
+    suggestions_and_comments = forms.CharField(required=True, widget=forms.TextInput(attrs={'size': 60, 'class': 'form-control'}))  # Adjust size as needed
+    
+    # Procedure and Content
+    attainment_of_the_objective = forms.ChoiceField(choices=[(5, ''), (4, ''), (3, ''),
+                                        (2, ''), (1, '')],  widget=forms.RadioSelect(attrs={'class': 'likert-horizontal custom-radio'}))
+    appropriateness_of_the_topic_to_attain_the_objective = forms.ChoiceField(choices=[(5, ''), (4, ''), (3, ''),
+                                        (2, ''), (1, '')],  widget=forms.RadioSelect(attrs={'class': 'likert-horizontal custom-radio'}))
+    appropriateness_of_the_searching_methods = forms.ChoiceField(choices=[(5, ''), (4, ''), (3, ''),
+                                        (2, ''), (1, '')],  widget=forms.RadioSelect(attrs={'class': 'likert-horizontal custom-radio'}))
+    
+    topics_to_be_included = forms.CharField(required=True, widget=forms.TextInput(attrs={'size': 60, 'class': 'form-control'}))  # Adjust size as needed
+    
+    # Suitability of the present time
+    appropriateness_of_the_topic_in_the_present_time = forms.ChoiceField(choices=[(5, ''), (4, ''), (3, ''),
+                                        (2, ''), (1, '')],  widget=forms.RadioSelect(attrs={'class': 'likert-horizontal custom-radio'}))
+    usefulness_of_the_topic_discusssed_in_the_activity = forms.ChoiceField(choices=[(5, ''), (4, ''), (3, ''),
+                                        (2, ''), (1, '')],  widget=forms.RadioSelect(attrs={'class': 'likert-horizontal custom-radio'}))
+    appropriateness_of_the_searching_methods_used = forms.ChoiceField(choices=[(5, ''), (4, ''), (3, ''),
+                                        (2, ''), (1, '')],  widget=forms.RadioSelect(attrs={'class': 'likert-horizontal custom-radio'}))
+    
+    #Speaker Evaluation 
+    
+    displayed_a_thorough_knowledge_of_the_topic = forms.ChoiceField(choices=[(5, ''), (4, ''), (3, ''),
+                                        (2, ''), (1, '')],  widget=forms.RadioSelect(attrs={'class': 'likert-horizontal custom-radio'}))
+    thoroughly_explained_and_processed_the_learning_activities_throughout_the_training = forms.ChoiceField(choices=[(5, ''), (4, ''), (3, ''),
+                                        (2, ''), (1, '')],  widget=forms.RadioSelect(attrs={'class': 'likert-horizontal custom-radio'}))
+    able_to_create_a_good_learning_environment = forms.ChoiceField(choices=[(5, ''), (4, ''), (3, ''),
+                                        (2, ''), (1, '')],  widget=forms.RadioSelect(attrs={'class': 'likert-horizontal custom-radio'}))
+    able_to_manage_her_time_well = forms.ChoiceField(choices=[(5, ''), (4, ''), (3, ''),
+                                        (2, ''), (1, '')],  widget=forms.RadioSelect(attrs={'class': 'likert-horizontal custom-radio'}))
+    demonstrated_keenness_to_the_participant_needs = forms.ChoiceField(choices=[(5, ''), (4, ''), (3, ''),
+                                        (2, ''), (1, '')],  widget=forms.RadioSelect(attrs={'class': 'likert-horizontal custom-radio'}))
+    demonstrated_keenness_to_the_participant_needs = forms.ChoiceField(choices=[(5, ''), (4, ''), (3, ''),
+                                        (2, ''), (1, '')],  widget=forms.RadioSelect(attrs={'class': 'likert-horizontal custom-radio'}))
+    timeliness_or_suitability_of_service = forms.ChoiceField(choices=[(5, ''), (4, ''), (3, ''),
+                                        (2, ''), (1, '')],  widget=forms.RadioSelect(attrs={'class': 'likert-horizontal custom-radio'}))
+    overall_satisfaction = forms.ChoiceField(choices=[(5, ''), (4, ''), (3, ''),
+                                        (2, ''), (1, '')],  widget=forms.RadioSelect(attrs={'class': 'likert-horizontal custom-radio'}))
 
 class StudentProfileForm(ModelForm):
     class Meta:
@@ -377,6 +421,23 @@ class StudentProfileForm(ModelForm):
 class EditQuestionForm(ModelForm):
     class Meta:
         model = FacultyEvaluationQuestions
+        fields = ['text'] 
+        widgets = {
+            'text': forms.Textarea(attrs={'class': 'form-control'}),
+        }
+       
+    
+class EditSchoolEventQuestionForm(ModelForm):
+    class Meta:
+        model = SchoolEventQuestions
+        fields = ['text'] 
+        widgets = {
+            'text': forms.Textarea(attrs={'class': 'form-control'}),
+        }
+
+class EditWebinarSeminarQuestionForm(ModelForm):
+    class Meta:
+        model = WebinarSeminarQuestions
         fields = ['text'] 
         widgets = {
             'text': forms.Textarea(attrs={'class': 'form-control'}),

@@ -1,0 +1,26 @@
+{% extends "pages/admin.html" %}
+
+{% block title %}Edit Form{% endblock %}
+
+{% block header %}
+
+    <h1>Edit Form</h1>
+    <hr>
+   
+{% endblock header %}
+<hr>
+{% block feature %}
+
+<table class="table table-responsive " >
+    <tr>
+        <th scope="col"style="color:#fafafa; background: #2a9134">QUESTION </th>
+        <th  scope="col"style="color:#fafafa; background: #2a9134">OPTIONS </th>
+ {% for i in questions %}
+    <tr>
+    <td>{{i.text}}</td>
+    <td><a class="btn btn-warning custom-btn" href="{% url 'edit_faculty_evaluation_form_question'  i.pk  %}"><i class="bi bi-pencil-square"></i> <b>Edit</b></a></td>
+</tr>
+{% endfor %}
+    </table>
+
+{% endblock feature %}

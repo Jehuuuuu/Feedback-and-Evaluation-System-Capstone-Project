@@ -54,7 +54,11 @@ class Faculty(models.Model):
     def __str__(self):
         return f"{self.first_name} {self. last_name}"
 
-    
+    def average_rating(self):
+        evaluations = self.evaluation_set.all()  # Assuming there's an Evaluation model related to Faculty
+        if evaluations.exists():
+            return evaluations.aggregate(average=models.Avg('rating'))['average']
+        return 0
 
 class Subject(models.Model):
     subject_code = models.CharField(max_length=10)
@@ -336,7 +340,7 @@ class TypeOfEvent(models.Model):
     
 class Event(models.Model):
     title = models.CharField(max_length = 200)
-    date = models.CharField(max_length = 100)
+    date = models.DateField()
     time = models.CharField(max_length = 50)
     location = models.CharField(max_length = 200)
     event_picture = models.ImageField(upload_to='event_picture/', null=True, blank = True) 
@@ -344,18 +348,25 @@ class Event(models.Model):
     course_attendees = models.ManyToManyField(Course)
     department_attendees = models.ManyToManyField(Department)
     description = models.TextField(null=True, blank = True)
-    #published_by = models.ForeignKey(Faculty, on_delete=models.CASCADE)
-
+    author = models.ForeignKey(User, on_delete=models.CASCADE) 
+    evaluation_status = models.BooleanField(default=False)
     updated = models.DateTimeField(auto_now = True, null=True, blank = True)
     created = models.DateTimeField(auto_now_add = True, null=True, blank = True)
 
     class Meta:
-        ordering = ['-updated', '-created']
+        ordering = ['-date', '-updated', '-created']
 
     def __str__(self):
-        return self.title
+        return f"{self.title} - {self.evaluation_identifier}"
+
+    @property
+    def evaluation_identifier(self):
+        return "Ongoing" if self.evaluation_status else "Closed"
+    
+   
 
 class SchoolEventModel(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE) 
     event = models.ForeignKey(Event, on_delete=models.CASCADE) 
     # Overall Evaluation
     relevance_of_the_activity = models.IntegerField(choices=[(5, 'Greatly exceeded expectations'), (4, 'Exceeded expectations'), (3, 'Matched expectations'),
@@ -405,6 +416,7 @@ class SchoolEventModel(models.Model):
         return self.event.title
 
 class WebinarSeminarModel(models.Model):  
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     event = models.ForeignKey(Event, on_delete=models.CASCADE) 
     # Overall Evaluation
     relevance_of_the_activity = models.IntegerField(choices=[(5, 'Greatly exceeded expectations'), (4, 'Exceeded expectations'), (3, 'Matched expectations'),
@@ -431,7 +443,7 @@ class WebinarSeminarModel(models.Model):
                                         (2, 'Less than expected'), (1, 'Much less than expected')])
     usefulness_of_the_topic_discusssed_in_the_activity = models.IntegerField(choices=[(5, 'Greatly exceeded expectations'), (4, 'Exceeded expectations'), (3, 'Matched expectations'),
                                         (2, 'Less than expected'), (1, 'Much less than expected')])
-    appropriateness_of_the_searching_methods_used = models.IntegerField(choices=[(5, 'Greatly exceeded expectations'), (4, 'Exceeded expectations'), (3, 'Matched expectations'),
+    appropriateness_of_the_searching_methods = models.IntegerField(choices=[(5, 'Greatly exceeded expectations'), (4, 'Exceeded expectations'), (3, 'Matched expectations'),
                                         (2, 'Less than expected'), (1, 'Much less than expected')])
     #Speaker Evaluation 
     displayed_a_thorough_knowledge_of_the_topic = models.IntegerField(choices=[(5, 'Greatly exceeded expectations'), (4, 'Exceeded expectations'), (3, 'Matched expectations'),
@@ -444,16 +456,49 @@ class WebinarSeminarModel(models.Model):
                                         (2, 'Less than expected'), (1, 'Much less than expected')])
     demonstrated_keenness_to_the_participant_needs = models.IntegerField(choices=[(5, 'Greatly exceeded expectations'), (4, 'Exceeded expectations'), (3, 'Matched expectations'),
                                         (2, 'Less than expected'), (1, 'Much less than expected')])
-    demonstrated_keenness_to_the_participant_needs = models.IntegerField(choices=[(5, 'Greatly exceeded expectations'), (4, 'Exceeded expectations'), (3, 'Matched expectations'),
-                                        (2, 'Less than expected'), (1, 'Much less than expected')])
-    timeliness = models.IntegerField(choices=[(5, 'Greatly exceeded expectations'), (4, 'Exceeded expectations'), (3, 'Matched expectations'),
+
+    timeliness_or_suitability_of_service = models.IntegerField(choices=[(5, 'Greatly exceeded expectations'), (4, 'Exceeded expectations'), (3, 'Matched expectations'),
                                         (2, 'Less than expected'), (1, 'Much less than expected')])
     overall_satisfaction = models.IntegerField(choices=[(5, 'Greatly exceeded expectations'), (4, 'Exceeded expectations'), (3, 'Matched expectations'),
                                         (2, 'Less than expected'), (1, 'Much less than expected')])
     
-    
+    academic_year = models.CharField(max_length=50, null=True, blank=True)
+    semester = models.CharField(max_length=50, null=True, blank=True)
+    average_rating = models.FloatField(null=True, blank=True)
+
+    updated = models.DateTimeField(auto_now = True, null=True, blank = True)
+    created = models.DateTimeField(auto_now_add = True, null=True, blank = True)
+
+    def calculate_average_rating(self):
+        fields_to_average = [
+            'relevance_of_the_activity',
+            'quality_of_the_activity',
+            'timeliness', 
+            'attainment_of_the_objective',
+            'appropriateness_of_the_topic_to_attain_the_objective',
+            'appropriateness_of_the_searching_methods_used',
+            'appropriateness_of_the_topic_in_the_present_time',
+            'usefulness_of_the_topic_discusssed_in_the_activity',
+            'appropriateness_of_the_searching_methods',
+            'displayed_a_thorough_knowledge_of_the_topic',
+            'thoroughly_explained_and_processed_the_learning_activities_throughout_the_training',
+            'able_to_create_a_good_learning_environment',
+            'able_to_manage_her_time_well',
+            'demonstrated_keenness_to_the_participant_needs',
+            'timeliness_or_suitability_of_service',
+            'overall_satisfaction',
+        ]
+         # Filter out None values and calculate average
+        ratings = [getattr(self, field) for field in fields_to_average if getattr(self, field) is not None]
+        
+         # Convert ratings to integers
+        ratings = [int(rating) for rating in ratings]
+
+        average_rating = sum(ratings) / len(ratings) if ratings else None
+        return round(average_rating, 2) 
+
     def __str__(self):
-        return self.event
+        return self.event.title
 
 class FacultyEvaluationQuestions(models.Model):
     text = models.CharField(max_length=255)
@@ -465,5 +510,33 @@ class FacultyEvaluationQuestions(models.Model):
         if not self.pk:  # Check if it's a new question
             # Calculate the next order number
             last_question = FacultyEvaluationQuestions.objects.last()
+            self.order = 1 if not last_question else last_question.order + 1
+        super().save(*args, **kwargs)
+
+class SchoolEventQuestions(models.Model):
+    text = models.CharField(max_length=255)
+    order = models.IntegerField(default=0) 
+
+    def __str__(self):
+        return self.text
+    
+    def save(self, *args, **kwargs):
+        if not self.pk:  # Check if it's a new question
+            # Calculate the next order number
+            last_question = SchoolEventQuestions.objects.last()
+            self.order = 1 if not last_question else last_question.order + 1
+        super().save(*args, **kwargs)
+
+class WebinarSeminarQuestions(models.Model):
+    text = models.CharField(max_length=255)
+    order = models.IntegerField(default=0) 
+
+    def __str__(self):
+        return self.text
+    
+    def save(self, *args, **kwargs):
+        if not self.pk:  # Check if it's a new question
+            # Calculate the next order number
+            last_question = WebinarSeminarQuestions.objects.last()
             self.order = 1 if not last_question else last_question.order + 1
         super().save(*args, **kwargs)

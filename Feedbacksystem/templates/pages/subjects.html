@@ -10,7 +10,7 @@
 {% endblock header %}
 <hr>
 {% block feature %}
-<a class="btn btn-warning custom-btn" data-bs-toggle="modal" data-bs-target="#exampleModal" style = "color: black; text-decoration: none;" href="{% url 'addsubject' %}"><i class="bi bi-plus-square-fill"></i> <b>Add Subject</b></a>
+<a class="btn btn-warning custom-btn" data-bs-toggle="modal" data-bs-target="#exampleModal" style = "color: black; text-decoration: none;"><i class="bi bi-plus-square-fill"></i> <b>Add Subject</b></a>
 <!-- Modal -->
 <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -42,7 +42,7 @@
           <th  scope="col">SUBJECT NAME </th>
           <th  scope="col">OPTIONS </th>
       </tr>
-      {% for i in subject %}
+      {% for i in page_obj %}
       <tr>
           <td>{{ i.subject_code }}</td>
           <td>{{ i.subject_name }}</td>
@@ -55,4 +55,30 @@
   
   </table>
 </div>
+
+<nav aria-label="Page navigation">
+  <ul class="pagination justify-content-center">
+      {% if page_obj.has_previous %}
+      <li class="page-item">
+          <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous">
+              <span aria-hidden="true">&laquo;</span>
+          </a>
+      </li>
+      {% endif %}
+
+      {% for num in page_obj.paginator.page_range %}
+      <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+          <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+      </li>
+      {% endfor %}
+
+      {% if page_obj.has_next %}
+      <li class="page-item">
+          <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Next">
+              <span aria-hidden="true">&raquo;</span>
+          </a>
+      </li>
+      {% endif %}
+  </ul>
+</nav>
 {% endblock feature %}

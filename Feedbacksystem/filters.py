@@ -1,8 +1,10 @@
+from tokenize import group
 import django_filters
 from .models import *
 from django_filters import CharFilter
 from django import forms
 from django.db.models import Q
+from django.contrib.auth.models import Group
 
 class EvaluationFilter(django_filters.FilterSet):
      # Foreign key field filter
@@ -25,6 +27,7 @@ class EvaluationFilter(django_filters.FilterSet):
         ('Positive', 'Positive'),
         ('Negative', 'Negative'),
     ]
+
     predicted_sentiment = django_filters.ChoiceFilter(
          choices=PREDICTED_SENTIMENT_CHOICES, 
          label='Polarity', 
@@ -82,4 +85,88 @@ class EvaluationFilter(django_filters.FilterSet):
 class Meta: 
         model = LikertEvaluation
         fields =  ('section_subject_faculty', 'subject',  'predicted_sentiment' , 'academic_year', 'semester', 'search')
-  
+
+
+class FacultyFilter(django_filters.FilterSet):
+    search = django_filters.CharFilter(
+    method='filter_search',
+    label='',
+    widget=forms.TextInput(attrs={
+        'class': 'form-control',
+        'placeholder': 'Search...'
+    })
+    )
+
+    def filter_search(self, queryset, name, value):
+        return queryset.filter(
+            Q(first_name__icontains=value) |
+            Q(last_name__icontains=value) |
+            Q(email__icontains=value) |
+            Q(contact_number__icontains=value) |     
+            Q(department__name__icontains=value)     
+        )
+
+    class Meta: 
+        model = Faculty
+        fields =  ('department', 'gender', 'search')
+
+
+class StudentFilter(django_filters.FilterSet):
+    Section = django_filters.ModelChoiceFilter(
+    queryset=Section.objects.all(),
+    label='Section',
+    widget=forms.Select(attrs={'class': 'form-control'})) # Add Bootstrap class for styling
+    
+    status = django_filters.ChoiceFilter(
+            field_name='status',
+            choices=[(status, status) for status in Student.objects.values_list('status', flat=True).distinct()],
+            label='Status',
+            widget=forms.Select(attrs={'class': 'form-control'})
+        )
+    
+    search = django_filters.CharFilter(
+        method='filter_search',
+        label='',
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Search...'
+        })
+    )
+    def filter_search(self, queryset, name, value):
+        return queryset.filter(
+            Q(student_number__icontains=value) |   
+            Q(first_name__icontains=value) |  
+            Q(last_name__icontains=value) | 
+            Q(email__icontains=value) |   
+            Q(contact_no__icontains=value) |   
+            Q(age__icontains=value) | 
+            Q(status__icontains=value)   
+        )
+
+    class Meta: 
+        model = Student
+        fields = ['Section', 'status', 'search']  # Ensure this is a list of valid model fields
+
+class UserFilter(django_filters.FilterSet):
+    groups = django_filters.ModelChoiceFilter(
+    queryset=Group.objects.all(),
+    label='Role',
+    widget=forms.Select(attrs={'class': 'form-control'})) # Add Bootstrap class for styling
+
+    search = django_filters.CharFilter(
+        method='filter_search',
+        label='',
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Search...'
+        })
+    )
+    def filter_search(self, queryset, name, value):
+        return queryset.filter(
+            Q(username__icontains=value)   
+        )
+
+
+    class Meta: 
+        model = User
+        fields = ['groups', 'search']  # Ensure this is a list of valid model fields
