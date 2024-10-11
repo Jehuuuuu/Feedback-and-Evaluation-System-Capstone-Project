@@ -10,11 +10,20 @@
 {% endblock header %}
 <hr>
 {% block feature %}
+{% if messages %}
+ 
+{% for message in messages %}
+    <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+{% endfor %}
 
+{% endif %}
 <table class="table table-responsive " >
     <tr>
-        <th scope="col"style="color:#fafafa; background: #2a9134">QUESTION </th>
-        <th  scope="col"style="color:#fafafa; background: #2a9134">OPTIONS </th>
+        <th scope="col"style="color:#fafafa; background: #2a9134">Question</th>
+        <th  scope="col"style="color:#fafafa; background: #2a9134">Options</th>
  {% for i in questions %}
     <tr>
     <td>{{i.text}}</td>

@@ -3,27 +3,39 @@
 {% block title %}Users{% endblock %}
 
 {% block header %}
- 
-    <h2> Manage Users</h2>
-  
-<hr>
-{% endblock header %}
+<div class="row">
+    <div class="col-md-5">
+      <h2> Manage Users</h2>
+    </div>
+    <div class="col-lg-6 col-md-7 mt-1" style="margin-left: auto;">
+      <form method="get" action="" class="d-flex" style="gap: 1em;">
+          {{user_filter.form.search.label_tag}}
+          {{user_filter.form.search}}
+      <button type="submit" class="btn custom-btn"><i class="bi bi-search"></i></button>
+        </form>
+      </div>
+  </div>
+  <hr>
 
+{% endblock header %}
 {% block feature %}
+{% if messages %}
+ 
+        {% for message in messages %}
+            <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+
+{% endif %}
 <div class="row">
     <div class="col-lg-5 col-md-3">
         <button type="button" class="btn btn-warning custom-btn mb-2" data-bs-toggle="modal" data-bs-target="#filterModal">
             <i class="bi bi-pencil-square"></i> <b>Filter Options</b>
         </button>
     </div>
-    <div class="col-lg-6 col-md-7 mb-2" style="margin-left: auto;">
-        <form method="get" action="" class="d-flex" style="gap: 1em;">
-            {{user_filter.form.search.label_tag}}
-            {{user_filter.form.search}}
-        <button type="submit" class="btn custom-btn"><i class="bi bi-search"></i></button>
-          </form>
-        </div>
-    </div>
+
 
 <div class="modal fade" id="filterModal" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -50,9 +62,9 @@
 <div class="table-responsive">
     <table class="table table-bordered table-responsive">
         <tr>
-            <th  scope="col">USER</th>
-            <th  scope="col">ROLE</th>
-            <th  scope="col">OPTIONS</th>
+            <th  scope="col">User</th>
+            <th  scope="col">Role</th>
+            <th  scope="col">Options</th>
         </tr>
         {% for user in page_obj %}
             <tr>
@@ -64,11 +76,14 @@
                     {% endfor %}
                     {% endwith %}
                 </td>
-            <td>
-                <div class="d-flex" style="gap: 1em; align-items: center; margin: auto;">
-                <a href="{% url 'edit_user_group' user.username %}"><button class="btn btn-warning" style=" padding:3px 5px 3px 5px"><i class="bi bi-pencil-square" style="font-size:20px"></i></button>
-                <a href="{% url 'delete_user' user.username %}"><button class="btn btn-danger" style=" padding:3px 5px 3px 5px;" ><i style="font-size:23px" class='bx bxs-trash' ></i></button></a></td>
-                </div>
+                <td style="display: flex; flex-direction: row; align-items: center;"> 
+
+                    <a style="margin-right: 10px; text-decoration: none;" href="{% url 'edit_user_group'  user.username  %}"><button class="btn btn-warning d-flex align-items-center" style=" padding:1px 7px 1px 7px"><i class="bi bi-pencil-square" style="font-size:20px; margin-right: 5px;"></i>Edit</button></a>
+                    
+                    <a style="margin-right: 10px; text-decoration: none;" href="{% url 'delete_user'  user.username  %}"><button class="btn btn-danger d-flex align-items-center" style="padding:4px 7px 4px 7px"  ><i style="font-size:20px; margin-right: 5px;" class='bx bxs-trash' ></i>Delete</button></a>
+        
+                  </td>
+             
         </tr>
         {% endfor %}
     </table>

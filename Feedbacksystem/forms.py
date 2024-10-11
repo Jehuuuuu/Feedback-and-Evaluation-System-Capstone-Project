@@ -34,7 +34,7 @@ class StudentForm(ModelForm):
             'age': forms.TextInput(attrs={'class': 'form-control'}),
             'sex': forms.TextInput(attrs={'class': 'form-control'}),
             'contact_no': forms.TextInput(attrs={'class': 'form-control'}),
-            'status': forms.TextInput(attrs={'class': 'form-control'}),
+            'status': forms.Select(attrs={'class': 'form-control'}),
             'Course': forms.Select(attrs={'class': 'form-control'}),
             'Section': forms.Select(attrs={'class': 'form-control'}),
         }
@@ -92,7 +92,7 @@ class EvaluationStatusForm(ModelForm):
         widgets = {
             'academic_year': forms.TextInput(attrs={'class': 'form-control'}),
             'semester': forms.Select(attrs={'class': 'form-control'}),
-            'evaluation_status': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'evaluation_status': forms.Select(attrs={'class': 'form-control'}),
 
         }
 
@@ -350,11 +350,19 @@ class EventCreationForm(ModelForm):
         }
 
 class SchoolEventForm(forms.Form):
-    relevance_of_the_activity = forms.ChoiceField(choices=[(5, ''), (4, ''), (3, ''),
+    meeting_expectation = forms.ChoiceField(choices=[(5, ''), (4, ''), (3, ''),
                                         (2, ''), (1, '')],  widget=forms.RadioSelect(attrs={'class': 'likert-horizontal custom-radio'}))
-    quality_of_the_activity = forms.ChoiceField(choices=[(5, ''), (4, ''), (3, ''),
+    attainment_of_the_objectives = forms.ChoiceField(choices=[(5, ''), (4, ''), (3, ''),
                                         (2, ''), (1, '')],  widget=forms.RadioSelect(attrs={'class': 'likert-horizontal custom-radio'}))
-    timeliness = forms.ChoiceField(choices=[(5, ''), (4, ''), (3, ''),
+    topics_discussed = forms.ChoiceField(choices=[(5, ''), (4, ''), (3, ''),
+                                        (2, ''), (1, '')],  widget=forms.RadioSelect(attrs={'class': 'likert-horizontal custom-radio'}))
+    input_presentation = forms.ChoiceField(choices=[(5, ''), (4, ''), (3, ''),
+                                        (2, ''), (1, '')],  widget=forms.RadioSelect(attrs={'class': 'likert-horizontal custom-radio'}))
+    management_team = forms.ChoiceField(choices=[(5, ''), (4, ''), (3, ''),
+                                        (2, ''), (1, '')],  widget=forms.RadioSelect(attrs={'class': 'likert-horizontal custom-radio'}))
+    venue_and_physical_arrangement = forms.ChoiceField(choices=[(5, ''), (4, ''), (3, ''),
+                                        (2, ''), (1, '')],  widget=forms.RadioSelect(attrs={'class': 'likert-horizontal custom-radio'}))
+    overall_assessment = forms.ChoiceField(choices=[(5, ''), (4, ''), (3, ''),
                                         (2, ''), (1, '')],  widget=forms.RadioSelect(attrs={'class': 'likert-horizontal custom-radio'}))
     
     suggestions_and_comments = forms.CharField(required=True, widget=forms.TextInput(attrs={'size': 60, 'class': 'form-control'}))  # Adjust size as needed
@@ -406,6 +414,35 @@ class WebinarSeminarForm(forms.Form):
     overall_satisfaction = forms.ChoiceField(choices=[(5, ''), (4, ''), (3, ''),
                                         (2, ''), (1, '')],  widget=forms.RadioSelect(attrs={'class': 'likert-horizontal custom-radio'}))
 
+class StakeholderFeedbackForm(forms.Form):
+    name = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs={'class': 'form-control'}))
+    agency = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs={'class': 'form-control'}))
+    email = forms.EmailField(max_length=100, required=False, widget=forms.TextInput(attrs={'class': 'form-control'}))
+    purpose = forms.CharField(max_length=100, widget=forms.TextInput(attrs={'class': 'form-control'}))
+    date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}))
+    staff = forms.CharField(max_length=100, widget=forms.TextInput(attrs={'class': 'form-control'}))
+
+    courtesy = forms.ChoiceField(choices=[(5, ''), (4, ''), (3, ''),
+                                        (2, ''), (1, '')],  widget=forms.RadioSelect(attrs={'class': 'likert-horizontal custom-radio'}))
+    quality = forms.ChoiceField(choices=[(5, ''), (4, ''), (3, ''),
+                                        (2, ''), (1, '')],  widget=forms.RadioSelect(attrs={'class': 'likert-horizontal custom-radio'}))
+    timeliness = forms.ChoiceField(choices=[(5, ''), (4, ''), (3, ''),
+                                        (2, ''), (1, '')],  widget=forms.RadioSelect(attrs={'class': 'likert-horizontal custom-radio'}))
+    efficiency = forms.ChoiceField(choices=[(5, ''), (4, ''), (3, ''),
+                                        (2, ''), (1, '')],  widget=forms.RadioSelect(attrs={'class': 'likert-horizontal custom-radio'}))
+    cleanliness = forms.ChoiceField(choices=[(5, ''), (4, ''), (3, ''),
+                                        (2, ''), (1, '')],  widget=forms.RadioSelect(attrs={'class': 'likert-horizontal custom-radio'}))
+    comfort = forms.ChoiceField(choices=[(5, ''), (4, ''), (3, ''),
+                                        (2, ''), (1, '')],  widget=forms.RadioSelect(attrs={'class': 'likert-horizontal custom-radio'}))
+
+    suggestions_and_comments = forms.CharField(
+        required=True,
+        widget=forms.Textarea(attrs={
+            'rows': 4,  # Adjust the number of rows (height) as needed
+            'cols': 60,  # Adjust the number of columns (width) as needed
+            'class': 'form-control'
+        })
+    )
 class StudentProfileForm(ModelForm):
     class Meta:
         model = Student
@@ -430,9 +467,11 @@ class EditQuestionForm(ModelForm):
 class EditSchoolEventQuestionForm(ModelForm):
     class Meta:
         model = SchoolEventQuestions
-        fields = ['text'] 
+        fields = ['text', 'order'] 
         widgets = {
             'text': forms.Textarea(attrs={'class': 'form-control'}),
+            'order': forms.NumberInput(attrs={'class': 'form-control', 
+                                              'min': 1, 'max': 10 }),
         }
 
 class EditWebinarSeminarQuestionForm(ModelForm):

@@ -35,7 +35,6 @@ urlpatterns = [
     path('editcourse/<int:pk>/', views.editcourse, name='editcourse'),
     path('editsection/<int:pk>/', views.editsection, name='editsection'),
     path('deleteSection/<int:pk>/', views.deleteSection, name='deleteSection'),
-    path('sectiondetails/<int:pk>/addsub_section/', views.addsub_section, name='addsub_section'),
     path('subjects', views.subjects, name='subjects'),
     path('editsubject/<int:pk>/', views.editsubject, name='editsubject'),
     path('deleteSubject/<int:pk>/', views.deleteSubject, name='deleteSubject'),
@@ -43,7 +42,7 @@ urlpatterns = [
     path('adminlogout', views.adminlogout, name='adminlogout'),
     path('adminregister', views.adminregister, name='adminregister'),
     path('evaluate/<int:pk>/', views.evaluate_subject_faculty, name='evaluate_subject_faculty'),
-    path('evaluations', views.evaluations, name='evaluations'),
+    path('facultyevaluations', views.evaluations, name='facultyevaluations'),
     path('facultyevaluations/<int:pk>/', views.facultyevaluations, name='facultyevaluations'),
     path('deleteEvaluation/<int:pk>/', views.deleteEvaluation, name='deleteEvaluation'),
     path('deleteSub_Section/<int:pk>/', views.deleteSub_Section, name='deleteSub_Section'),
@@ -73,10 +72,18 @@ urlpatterns = [
     path('edit_user_group/<str:user_id>/', views.edit_user_group, name='edit_user_group'),
     path('delete_user/<str:user_id>/', views.delete_user, name='delete_user'),
     path('evaluations_csv', views.evaluations_csv, name='evaluations_csv'),
-    path('admin_event_list', views.admin_event_list, name='admin_event_list'),
+    path('admin_event_evaluations', views.admin_event_list, name='admin_event_evaluations'),
     path('view_admin_schoolevent_evaluations/<int:pk>/', views.view_admin_schoolevent_evaluations, name='view_admin_schoolevent_evaluations'),
     path('admin_event_evaluations/<int:pk>/', views.admin_event_evaluations, name='admin_event_evaluations'),
-]   
+    path('stakeholder_feedback_form', views.stakeholder_feedback_form, name='stakeholder_feedback_form'),
+    path('stakeholderevaluations', views.stakeholderevaluations, name='stakeholderevaluations'),
+    path('admin_view_stakeholder_form/<int:pk>', views.admin_view_stakeholder_form, name='admin_view_stakeholder_form'),
+    path('get_code', views.get_code, name='get_code'),
+    path('society_president_events', views.society_president_events, name='society_president_events'),
+    path('president_view_event_evaluations/<int:pk>', views.president_view_event_evaluations, name='president_view_event_evaluations'),
+    path('president_edit_event_evaluations/<int:pk>', views.president_edit_event_evaluations, name='president_edit_event_evaluations'),
+    path('president_delete_event_evaluations/<int:pk>', views.president_delete_event_evaluations, name='president_delete_event_evaluations'),
+]
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

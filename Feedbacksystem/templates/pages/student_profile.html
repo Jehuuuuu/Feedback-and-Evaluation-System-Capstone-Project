@@ -6,11 +6,16 @@
     {% endblock header %}
     {% block feature %}
     {% if messages %}
-    <ul class="messages">
+    {% if messages %}
+    <div class="container">
         {% for message in messages %}
-        <li>{{ message }}</li>
+            <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
         {% endfor %}
-    </ul>
+    </div>
+    {% endif %}
     {% endif %}
     <div class="container">
         <div class="row">
@@ -31,6 +36,7 @@
               <li class="list-group-item"><b>Contact Number: </b>{{ student.contact_no }}</li>
               <li class="list-group-item"><b>Status: </b>{{ student.status }}</li>
               <li class="list-group-item"><b>Year & Section: </b>{{ student.Section }}</li>
+              <li class="list-group-item"><b>Role: </b>{% if is_society_president %} Society President {% else %} Student {% endif %}</li>
               
             </ul>
           </div>

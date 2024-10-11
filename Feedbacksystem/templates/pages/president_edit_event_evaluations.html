@@ -1,0 +1,72 @@
+{% extends "pages/home.html" %}
+{% load static %}
+{% block title %}Edit Event{% endblock %}
+
+{% block header %}
+
+    <h2> Edit Event</h2>
+    <hr>
+   
+{% endblock header %}
+<hr>
+{% block feature %}
+<div class="row">
+    <div class="container col-md-6">
+        <form method="post" action="" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="form-group">
+            {{ form.title.label_tag }}
+            {{ form.title }}
+            </div>
+            <div class="form-group">
+            {{ form.date.label_tag }}
+            {{ form.date }}
+            </div>
+            <div class="form-group">
+            {{ form.time.label_tag }}
+            {{ form.time }}
+            </div>
+            <div class="form-group">
+            {{ form.location.label_tag }}
+            {{ form.location }}
+            </div>
+            <div class="form-group">
+            {{ form.event_type.label_tag }}
+            {{ form.event_type }}
+            </div>
+            <div class="form-group">
+            {{ form.event_picture.label_tag }}
+            {{ form.event_picture }}
+            </div>
+            <div class="form-group">
+            {{ form.description.label_tag }}
+            {{ form.description }}
+            </div>
+        
+            
+            <div class="form-group">
+                {{ form.course_attendees.label_tag }}
+                <div class="checkbox-list">
+                    {% for course in form.course_attendees %}
+                        <div class="form-check">
+                            {{ course }}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="form-group">
+                {{ form.department_attendees.label_tag }}
+                <div class="checkbox-list">
+                    {% for department in form.department_attendees %}
+                        <div class="form-check">
+                            {{ department }}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <p>{{ form.evaluation_status.label_tag }} {{ form.evaluation_status }}</p>
+    </div>
+      <button type="submit" class="btn custom-btn">Save Changes</button>
+    </div>
+</div>
+{% endblock feature %}

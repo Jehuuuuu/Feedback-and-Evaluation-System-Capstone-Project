@@ -10,23 +10,46 @@
 {% endblock header %}
 <hr>
 {% block feature %}
+{% if messages %}
+ 
+        {% for message in messages %}
+            <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
 
-<a class="btn btn-warning custom-btn" data-bs-toggle="modal" data-bs-target="#exampleModal" style = "color: black; text-decoration: none;" href="{% url 'addsub_section'  section.pk  %}"><i class="bi bi-plus-square-fill"></i> <b>Add Subject and Teacher</b></a>
-<!-- Modal -->
+{% endif %}
+
+<div class="row g-0">
+  <div class="col-lg-3 col-md-5 col-12 mb-2">
+  <a class="btn btn-warning custom-btn" data-bs-toggle="modal" data-bs-target="#exampleModal" style = "color: black; text-decoration: none;"><i class="bi bi-plus-square-fill"></i> <b>Add Subject and Faculty</b></a>
+</div>
+  <div class="col-lg-6 col-md-5 col-12 mb-2"> 
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+         <!-- Hide the actual file input -->
+    <input id="fileInput" type="file" name="subjectfacultyfile" accept=".xlsx" style="display: none;" onchange="this.form.submit()">
+  
+    <!-- Custom button to trigger file selection -->
+    <button type="button" class="btn btn-primary" onclick="document.getElementById('fileInput').click();">
+        Bulk Import
+    </button>
+  </div>
+  </form>
+</div>
+<!-- Modal --> 
 <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
-          <h1 class="modal-title fs-5" id="exampleModalLabel">Modal title</h1>
+          <h1 class="modal-title fs-5" id="exampleModalLabel">Add Subject and Faculty</h1>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
             <form method="POST" action="">
                 {% csrf_token %}
-                {{ form.as_p }}
-            
-            
-            
+                {{ form.as_p }}  
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -36,8 +59,7 @@
       </div>
     </div>
   </div>
-<br>
-<br>
+
     <table class="table table-bordered table-responsive  ">
         <tr>
         <th  scope="col">Subject</th>
@@ -50,7 +72,11 @@
             <td>{{ i.subjects.subject_code }}</td>
             <td>{{ i.subjects.subject_name }}</td>
             <td>{{ i.faculty.first_name }} {{ i.faculty.last_name }}</td>
-            <td> <a style="margin-right: 10px;" href="{% url 'deleteSub_Section'  i.pk  %}"><button class="btn btn-danger" ><i style="font-size:20px" class='bx bxs-trash' ></</td>
+            <td style="display: flex; flex-direction: row; gap:1em; align-items: center;"> 
+  
+              <a href="{% url 'deleteSub_Section'  i.pk  %}" style="text-decoration: none;"><button class="btn btn-danger d-flex align-items-center" style="padding:4px 7px 4px 7px" ><i style="font-size:20px; margin-right: 5px;" class='bx bxs-trash' ></i>Delete</button></a>
+  
+              </td>
     </tr>
 
     {% endfor %}

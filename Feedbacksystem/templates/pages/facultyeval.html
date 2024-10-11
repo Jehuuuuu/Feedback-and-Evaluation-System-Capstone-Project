@@ -8,17 +8,15 @@
         <div class="col-lg-4 col-sm-8 ">
             <h2>Faculty Evaluation</h2>
         </div>
+{% if evaluation_status.evaluation_status == "In Progress" %} 
         <div class="container col-lg-8 col-sm-4 ">
             <div style="padding: 0.2em 0;">
-                {% if evaluation_status.evaluation_status %}
-                <!-- Only show the select if evaluation is ongoing -->
                 <select id="faculty-select" onchange="redirectToEvaluation(this)">
                     <option value="{}">Select Faculty</option> <!-- Placeholder option -->
                     {% for i in section_subjects_faculty %}
                     <option value="{% url 'evaluate_subject_faculty' i.pk %}">{{ i.faculty.first_name }} {{ i.faculty.last_name }}</option>
                     {% endfor %}
                 </select>
-                {% endif %}
             </div>
         </div>
         <script>
@@ -30,17 +28,21 @@
             }
         </script>
     </div>
-    <hr >
+{% endif %}
+    <hr>
 {% endblock header %}
 {% block feature %}
 {% if messages %}
-<ul class="messages">
-    {% for message in messages %}
-    <li>{{ message }}</li>
-    {% endfor %}
-</ul>
+ 
+        {% for message in messages %}
+            <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+
 {% endif %}
-{% if evaluation_status.evaluation_status %}  
+{% if evaluation_status.evaluation_status == "In Progress" %}  
 <div class="pt-1 pb-1 mb-2">
 <h3>General Evaluation of the Faculty</h3>
 </div>

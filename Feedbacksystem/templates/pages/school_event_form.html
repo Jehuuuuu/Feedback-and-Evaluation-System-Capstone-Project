@@ -11,34 +11,59 @@
     <div class="container">
     <form method="POST" action="">
         {% csrf_token %}
-        <div class="table-responsive">
-            <table class="table table-bordered table-responsive  " style="margin-top: 1em;">
+        <div class="table-responsive faculty_evaluation_table">
+            <table class="table table-bordered table-responsive mt-1">
                 <tr>
-                    <th  scope="col" class="sticky-col">I. OVERALL EVALUATION </th>
-                    <th  scope="col"><div style="display: flex; white-space: pre;">
-                        <div style="width: 5em;margin-left: 3.5em;">Outstanding </div>          
-                        <div style="width: 100%; margin-left: 4em;">Very Satisfactory</div>      
-                        <div style="width: 100%; margin-right: 3.5em; margin-left:3em;">Satisfactory</div> 
-                        <div style="width: 100%; margin-right: 5em;">Unsatisfactory</div>        
+                    <th  scope="col"></th>
+                    <th  scope="col">
+                        <div style="display: flex; white-space: pre;">
+                        <div style="width: 5em;margin-left: 4.2em; ">Excellent </div>          
+                        <div style="width: 100%; margin-left: 3em;">Very Satisfactory</div>      
+                        <div style="width: 100%; margin-right: 5em; margin-left:2em;">Satisfactory</div> 
+                        <div style="width: 100%; margin-right: 6.5em;">Fair</div>        
                         <div style="width: 100%; margin-right: 2.4em;">Poor</div> </th>
                 </tr>
                 {% for question in questions %}
                 <tr>
                     {% if question.order == 1 %}
                     <td>{{question.text}}</td>
-                    <td>{{ form.relevance_of_the_activity }}</td>
+                    <td>{{ form.meeting_expectation }}</td>
                     {% endif %}
                 </tr>
                 <tr> 
                     {% if question.order == 2 %}
                     <td>{{question.text}}</td>
-                    <td>{{ form.quality_of_the_activity }}</td>
+                    <td>{{ form.attainment_of_the_objectives }}</td>
                     {% endif %}
                 </tr>
                 <tr>
                     {% if question.order == 3 %}
                     <td>{{question.text}}</td>
-                    <td>{{ form.timeliness }}</td>
+                    <td>{{ form.topics_discussed }}</td>
+                    {% endif %}
+                </tr>
+                <tr>
+                    {% if question.order == 4 %}
+                    <td>{{question.text}}</td>
+                    <td>{{ form.input_presentation }}</td>
+                    {% endif %}
+                </tr>
+                <tr>
+                    {% if question.order == 5 %}
+                    <td>{{question.text}}</td>
+                    <td>{{ form.management_team }}</td>
+                    {% endif %}
+                </tr>
+                <tr>
+                    {% if question.order == 6 %}
+                    <td>{{question.text}}</td>
+                    <td>{{ form.venue_and_physical_arrangement }}</td>
+                    {% endif %}
+                </tr>
+                <tr>
+                    {% if question.order == 7 %}
+                    <td>{{question.text}}</td>
+                    <td>{{ form.overall_assessment }}</td>
                     {% endif %}
                 </tr>
                 {% endfor %}
@@ -46,7 +71,7 @@
         </div>
     {% for question in questions %}
     <div style="margin-top: 2em;">
-        {% if question.order == 4 %}
+        {% if question.order == 8 %}
         <label for="comments">{{question.text}}</label>
         {{ form.suggestions_and_comments }}
         {% endif %}

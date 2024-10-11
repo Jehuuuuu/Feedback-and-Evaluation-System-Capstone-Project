@@ -11,7 +11,7 @@
   
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
   <link rel="icon" href="static/images/cvsulogo.png" type="image/png">
-  <link rel="stylesheet" href="{% static 'css/admin.css'%}">
+  <link rel="stylesheet" href="{% static 'css/admin_page.css'%}">
   <link href="https://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
   <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
@@ -59,8 +59,9 @@
           <i class="bi bi-chat-left-fill nav-icon"></i> <b>EVALUATIONS</b>
         </button>
         <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-            <a class="dropdown-item" href="{% url 'evaluations' %}">Faculty Evaluations</a>
-            <a class="dropdown-item" href="{% url 'admin_event_list' %}">Events</a>
+            <a class="dropdown-item" href="{% url 'facultyevaluations' %}">Faculty Evaluations</a>
+            <a class="dropdown-item" href="{% url 'admin_event_evaluations' %}">Event Evaluations</a>
+            <a class="dropdown-item" href="{% url 'stakeholderevaluations' %}">Stakeholder Evaluations</a>
           </div>
         </li>
         <li class="nav-item">
@@ -108,16 +109,26 @@
   <div class="container">
       {% block header %}
         <!-- Main content area -->
+        {% if messages %}
+ 
+        {% for message in messages %}
+            <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+
+        {% endif %}
             <div class="row">
               <div class="col-md-4">
                 <h5 style="font-weight: bold">Academic Year: {{evaluation_status.academic_year}}</h5>
                 <h5 style="font-weight: bold;">{{ evaluation_status.semester }} Semester</h5>
-                <h5>Student Evaluation for Teachers Status: {% if evaluation_status.evaluation_status %} In Progress {% else %} Closed {% endif %}</h5>
-                <button type="button" class="btn btn-warning custom-btn"  style = "color: black; text-decoration: none; "data-bs-toggle="modal" data-bs-target="#exampleModal"><i class="bi bi-pencil-square"></i>
+                <h5>Student Evaluation for Teachers Status: {{evaluation_status.evaluation_status}}</h5>
+                <button type="button" class="btn btn-warning custom-btn mt-2"  style = "color: black; text-decoration: none; "data-bs-toggle="modal" data-bs-target="#exampleModal"><i class="bi bi-pencil-square"></i>
                   <b>Edit</b>
               
                 </button>
-                <a class="btn btn-warning custom-btn"  style = "color: black; text-decoration: none; " href="{% url 'adminregister' %}"><i class="bi bi-person-plus-fill"></i> <b>Add New Admin</b></a>
+                <a class="btn btn-warning custom-btn mt-2"  style = "color: black; text-decoration: none; " href="{% url 'adminregister' %}"><i class="bi bi-person-plus-fill"></i> <b>Add New Admin</b></a>
               </div>
                <div class="col-md-2 mt-2">
                 <div class="card">

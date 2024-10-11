@@ -3,13 +3,43 @@
 {% block title %}Sections{% endblock %}
 
 {% block header %}
-    <h2> Manage Sections</h2>
-    <hr>
-   
+<div class="row">
+    <div class="col-md-5">
+      <h2> Manage Sections</h2>
+    </div>
+    <div class="col-lg-6 col-md-7 col-12 mt-1 " style="margin-left: auto;">
+      <form method="get" action="" class="d-flex" style="gap: 1em;">
+          {{section_filter.form.search.label_tag}}
+          {{section_filter.form.search}}
+      <button type="submit" class="btn custom-btn"><i class="bi bi-search"></i></button>
+        </form>
+    </div>
+  </div>
+  <hr>
 {% endblock header %}
-<hr>
 {% block feature %}
-<a class="btn btn-warning custom-btn" data-bs-toggle="modal" data-bs-target="#exampleModal" style = "color: black; text-decoration: none;"><i class="bi bi-plus-square-fill"></i> <b>Add Section</b></a>
+{% if messages %}
+ 
+        {% for message in messages %}
+            <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+
+{% endif %}
+<div class="row">
+    <div class="col-md-3 col-sm-5 col-12 mb-1"><a class="btn btn-warning custom-btn" data-bs-toggle="modal" data-bs-target="#exampleModal" style = "color: black; text-decoration: none;"><i class="bi bi-plus-square-fill"></i> <b>Add Section</b></a></div>
+    <div class="col-lg-4 col-md-5 col-sm-7 col-12">
+        <select class="form-select" name="sort" id="sort-list" onchange="location = finalurl();">
+        <option value="" id="placeholder" disabled selected hidden>Sort</option>
+        <option id="name" value="name">Alphabetical: Ascending</option>
+        <option id="-name" value="-name">Alphabetical: Descending</option>
+        <option id="student_count" value="student_count">Student Count: Ascending</option>
+        <option id="-student_count" value="-student_count">Student Count: Descending</option>
+        </select>
+    </div>
+</div>
 <!-- Modal -->
 <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -46,23 +76,24 @@
       </div>
     </div>
   </div>
-<br>
-<br>
-<table class="table table-bordered table-responsive  ">
+
+<table class="table table-bordered table-responsive mt-2">
     <tr>
-        <th  scope="col">SECTION </th>
-        <th  scope="col">OPTIONS </th>    
+        <th  scope="col">Section</th>
+        <th  scope="col">Student Count</th>
+        <th  scope="col">Options</th>    
     </tr>
     {% for i in page_obj %}
     <tr>
-        <td>{{ i.name }}</td>   
+        <td>{{ i.section.name }}</td>   
+        <td>{{ i.student_count }}</td> 
+        <td style="display: flex; flex-direction: row; gap:1em; align-items: center;"> <a href="{% url 'section_details' i.section.pk %}" style="text-decoration: none;"><button class="btn btn-primary d-flex align-items-center" style=" padding:1px 7px 1px 7px"><i class="bi bi-eye-fill" style="font-size:20px; margin-right: 5px;"></i>View</button></a>
 
-        <td style="display: flex; flex-direction: row;">
-          <a href="{% url 'section_details' i.pk %}">
-          <button class="btn btn-primary" style=" padding:3px 5px 3px 5px; margin-right: 10px;">
-            <i class="bi bi-eye-fill" style="font-size:20px"></i></button></a> <a style="margin-right: 10px;" href="{% url 'editsection'  i.pk  %}"><button class="btn btn-warning" style=" padding:3px 5px 3px 5px"><i class="bi bi-pencil-square" style="font-size:20px"></i></button></a>
-          <a style="margin-right: 10px;" href="{% url 'deleteSection'  i.pk  %}"><button class="btn btn-danger" ><i style="font-size:20px" class='bx bxs-trash' ></i></button></a>
-        </td>
+            <a href="{% url 'editsection'  i.section.pk  %}" style="text-decoration: none;"><button class="btn btn-warning d-flex align-items-center" style=" padding:1px 7px 1px 7px"><i class="bi bi-pencil-square" style="font-size:20px; margin-right: 5px;"></i>Edit</button></a>
+
+            <a href="{% url 'deleteSection'  i.section.pk  %}" style="text-decoration: none;"><button class="btn btn-danger d-flex align-items-center" style="padding:4px 7px 4px 7px" ><i style="font-size:20px; margin-right: 5px;" class='bx bxs-trash' ></i>Delete</button></a>
+
+            </td>
     </tr>
 
     {% endfor %}
@@ -94,4 +125,38 @@
       {% endif %}
   </ul>
 </nav>
+<script>
+    // for getting the sorting status to be displayed in sorting dropdown placeholder
+    function get(name) {
+        if (name = (new RegExp('[?&]' + encodeURIComponent(name) + '=([^&]*)')).exec(location.search))  //location.search give query sling part
+            return decodeURIComponent(name[1]);
+        }
+        if(get('ordering'))
+        document.getElementById('placeholder').innerHTML = "Sort: " + document.getElementById(get('ordering')).innerHTML;
+
+    // for getting url after applying ordering
+    function finalurl() {
+        var url = new URL(window.location.href);
+        var search_params = url.searchParams;
+        search_params.set('ordering', document.getElementById("sort-list").value);
+        url.search = search_params.toString();
+        var new_url = url.toString();
+        return new_url
+    }
+    function clearFilters() {
+// Get all filter inputs within the form
+        var filterInputs = document.querySelectorAll('#exampleModal form select, #exampleModal form input[type="text"]');
+        
+        // Loop through each input and clear its value
+        filterInputs.forEach(function(input) {
+        if (input.tagName === 'SELECT') {
+            // For select elements, set the selected index to the default (first) option
+            input.selectedIndex = 0;
+        } else {
+            // For text inputs, clear the value
+            input.value = '';
+        }
+        });
+}
+</script>
 {% endblock feature %}

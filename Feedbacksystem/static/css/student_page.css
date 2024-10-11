@@ -14,7 +14,7 @@ th{
 
 .table-responsive td, th {
   vertical-align: middle; /* Center content vertically */
-  padding: 10px;
+  padding: 0.5rem;
 }
 .custom-btn{
   background-color: #ff9400;
@@ -125,7 +125,7 @@ main {
   z-index:-1;
 }
 .nav-item {/* Add padding to the items */
-    margin: 1.4em; /* Add margin to create space between items */
+    margin: 1.1em; /* Add margin to create space between items */
   }
 .nav-link{
     color: #333;
@@ -190,12 +190,7 @@ main {
   align-self: center;
 }
 
-.form-check {
-  display: block;
-  padding-left: 0 !important;
-  margin-bottom: .125rem;
-  margin-left: -20px !important;
-}
+
 .form-check-input{
   -webkit-appearance: none !important;
   -moz-appearance: none !important;
@@ -206,6 +201,9 @@ main {
   border: 2px solid #2a9134 !important; /* Add a border */
   outline: none !important;
   cursor: pointer !important;
+}
+.form-check-input:checked{
+  background-color: #2a9134;/* Change background color when radio button is checked */
 }
 
 .custom-radio input[type="radio"] {
@@ -281,6 +279,22 @@ main {
 .rating_scale{
   align-self: center;
 }
+@media (max-width:1200px) {
+  #sidebar {
+    margin-left: -250px; /* Adjust based on sidebar width */
+    z-index: 2; 
+  }
+  
+  .content {
+    margin-left: 0;
+  }
+  
+  .sidebar-collapsed #sidebar {
+    margin-left: 0;
+    z-index: 2;
+  }
+}
+
 @media (max-width:900px) {
 .header-title{
   font-size: 0.9rem;
@@ -291,19 +305,7 @@ main {
   .table th, .table td {
   font-size: 0.75rem;
 }
-#sidebar {
-  margin-left: -250px; /* Adjust based on sidebar width */
-  z-index: 2; 
-}
 
-.content {
-  margin-left: 0;
-}
-
-.sidebar-collapsed #sidebar {
-  margin-left: 0;
-  z-index: 2;
-}
 
 }
 @media (max-width: 768px) {

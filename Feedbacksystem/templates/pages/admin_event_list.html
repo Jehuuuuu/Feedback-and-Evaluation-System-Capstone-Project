@@ -2,26 +2,100 @@
 
 {% block title %}Event Feedback and Evaluations{% endblock %}
 
-{% block header %}
-        <h2> Event Feedback and Evaluations </h2>
-        <hr>    
+{% block header %}       
+    <div class="row">
+    <div class="col-md-6">
+        <h2>Event Feedback and Evaluations</h2>
+    </div>
+    <div class="col-lg-4 col-md-5 mt-1 evaluations_search" style="margin-left: auto;">
+        <form method="get" action="" class="d-flex" style="gap: 1em;">
+            {{event_filter.form.search.label_tag}}
+            {{event_filter.form.search}}
+        <button type="submit" class="btn custom-btn"><i class="bi bi-search"></i></button>
+        </form>
+        </div>
+    </div>
+    <hr>    
     {% endblock header %}
-    <hr>
     {% block feature %}
-    
-    <div class="table-responsive">
+    <!-- filter modal -->
+    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+        <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="exampleModalLabel">Filter Options</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form method="get" action="">
+            <!-- Course Attendees Filter -->
+            <div class="form-group mb-3">
+                {{ event_filter.form.course_attendees.label_tag }}
+                <div>
+                    {% for course in event_filter.form.course_attendees %}
+                        <div class="form-check">
+                            {{course}}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <!-- Department Attendees Filter -->
+            <div class="form-group mb-3">
+                {{ event_filter.form.department_attendees.label_tag }}
+                <div>
+                    {% for department in event_filter.form.department_attendees %}
+                        <div class="form-check">
+                            {{department}}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {{event_filter.form.academic_year.label_tag}}
+            {{event_filter.form.academic_year}}
+            {{event_filter.form.semester.label_tag}}
+            {{event_filter.form.semester}}
+            <button type="button" class="btn btn-secondary" onclick="clearFilters()" style="margin-top: 1em;">Clear All</button>
+        </div>
+      <div class="modal-footer">
+      <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+      <input type = "submit" value="Save Changes" class="btn btn-success">
+      </form>
+      </div>
+      </div>
+      </div>
+      </div>
+      
+    <div class="row g-0">
+        <div class="col-lg-2 col-sm-4 col-12 mb-1">
+            <button type="button" class="btn btn-warning custom-btn" style="color: black; text-decoration: none;" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                <i class="bi bi-pencil-square"></i> <b>Filter Options</b>
+            </button>
+        </div>
+         <!-- Sort Dropdown -->
+        <div class="col-md-4 col-sm-7 col-12">
+            <select class="form-select" name="sort" id="sort-list" onchange="location = finalurl();">
+            <option value="" id="placeholder" disabled selected hidden>Sort</option>
+            <option id="date" value="date">Date: Ascending</option>
+            <option id="-date" value="-date">Date: Descending</option>
+            <option id="title" value="title">Alphabetical: Ascending</option>
+            <option id="-title" value="-title">Alphabetical: Descending</option>
+            </select>
+        </div>
+    </div>
+    <div class="table-responsive mt-2">
         <table class="table table-bordered">
             <tr>
-                <th  scope="col">EVENT</th>
-                <th  scope="col">DATE </th>
-                <th  scope="col">OPTIONS </th>
+                <th  scope="col">Event</th>
+                <th  scope="col">Date </th>
+                <th  scope="col">Options </th>
             </tr>
 
             {% for i in page_obj %}
             <tr>
                 <td>{{ i.title }} </td>
                 <td>{{ i.date }} </td>
-                <td style="display: flex; flex-direction: row; gap:1em;"> <a href="{% url 'admin_event_evaluations' i.pk %}"><button class="btn btn-primary" style=" padding:3px 5px 3px 5px"><i class="bi bi-eye-fill" style="font-size:20px"></i> </button></a> 
+                <td style="display: flex; flex-direction: row; align-items: center; "> 
+                 <a href="{% url 'admin_event_evaluations' i.pk %}"><button class="btn btn-primary d-flex align-items-center" style="  padding:1px 7px 1px 7px"><i class="bi bi-eye-fill" style="font-size:20px; margin-right: 5px;"></i>View</button></a> 
                   </td>
             </tr>
     
@@ -55,4 +129,42 @@
             {% endif %}
         </ul>
     </nav>
+    <script>
+        // for getting the sorting status to be displayed in sorting dropdown placeholder
+        function get(name) {
+            if (name = (new RegExp('[?&]' + encodeURIComponent(name) + '=([^&]*)')).exec(location.search))  //location.search give query sling part
+                return decodeURIComponent(name[1]);
+            }
+            if(get('ordering'))
+            document.getElementById('placeholder').innerHTML = "Sort: " + document.getElementById(get('ordering')).innerHTML;
+
+        // for getting url after applying ordering
+        function finalurl() {
+            var url = new URL(window.location.href);
+            var search_params = url.searchParams;
+            search_params.set('ordering', document.getElementById("sort-list").value);
+            url.search = search_params.toString();
+            var new_url = url.toString();
+            return new_url
+        }
+        function clearFilters() {
+    // Get all filter inputs within the form (select, text, and checkboxes)
+    var filterInputs = document.querySelectorAll('#exampleModal form select, #exampleModal form input[type="text"], #exampleModal form input[type="checkbox"]');
+    
+    // Loop through each input and clear its value
+    filterInputs.forEach(function(input) {
+        if (input.tagName === 'SELECT') {
+            // For select elements, set the selected index to the default (first) option
+            input.selectedIndex = 0;
+        } else if (input.type === 'text') {
+            // For text inputs, clear the value
+            input.value = '';
+        } else if (input.type === 'checkbox') {
+            // For checkboxes, uncheck them
+            input.checked = false;
+        }
+    });
+}
+
+    </script>
 {% endblock feature %}

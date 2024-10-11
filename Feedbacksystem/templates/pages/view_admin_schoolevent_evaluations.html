@@ -1,5 +1,5 @@
 {% extends "pages/admin.html" %}
-
+{% load static %}
 {% block title %}Event Evaluation Details{% endblock %}
 
 {% block header %}
@@ -8,36 +8,58 @@
     <hr>
    
 {% endblock header %}
-<hr>
 {% block feature %}
-
 <table class="table table-responsive table-bordered " >
         <tr>
-         <th  scope="col" style="color:#fafafa;  background: #2a9134">I.  OVERALL EVALUATION </th>
-         <th  scope="col" style="color:#fafafa;  background: #2a9134">RATING</th>
+         <th  scope="col" style="color:#fafafa;  background: #2a9134">I.  Overall Evaluation</th>
+         <th  scope="col" style="color:#fafafa;  background: #2a9134">Rating</th>
     </tr>
     </thead>
     {% for question in questions %}
     <tr>
         {% if question.order == 1 %}
         <td>{{question.text}}</td>
-        <td> {{ event_form_details.relevance_of_the_activity }}</td>
+        <td> {{ event_form_details.meeting_expectation }}</td>
         {% endif %} 
     </tr>
     <tr>
         {% if question.order == 2 %}
         <td>{{question.text}}</td>
-        <td> {{ event_form_details.quality_of_the_activity }}</td>
+        <td> {{ event_form_details.attainment_of_the_objectives }}</td>
         {% endif %} 
     </tr>
     <tr>
         {% if question.order == 3 %}
         <td>{{question.text}}</td>
-        <td> {{ event_form_details.timeliness }}</td>
+        <td> {{ event_form_details.topics_discussed }}</td>
         {% endif %} 
     </tr>
     <tr>
         {% if question.order == 4 %}
+        <td>{{question.text}}</td>
+        <td> {{ event_form_details.input_presentation }}</td> 
+        {% endif %}
+    </tr>
+    <tr>
+        {% if question.order == 5 %}
+        <td>{{question.text}}</td>
+        <td> {{ event_form_details.management_team }}</td> 
+        {% endif %}
+    </tr>
+    <tr>
+        {% if question.order == 6 %}
+        <td>{{question.text}}</td>
+        <td> {{ event_form_details.venue_and_physical_arrangement }}</td> 
+        {% endif %}
+    </tr>
+    <tr>
+        {% if question.order == 7 %}
+        <td>{{question.text}}</td>
+        <td> {{ event_form_details.overall_assessment }}</td> 
+        {% endif %}
+    </tr>
+    <tr>
+        {% if question.order == 8 %}
         <td>{{question.text}}</td>
         <td> {{ event_form_details.suggestions_and_comments }}</td> 
         {% endif %}

@@ -13,8 +13,8 @@
 
 <table class="table table-responsive " >
         <tr>
-         <th  scope="col">I. SUBJECT MATTER CONTENT </th>
-         <th  scope="col">RATING</th>
+         <th  scope="col">I. Subject Matter Content </th>
+         <th  scope="col">Rating</th>
     </tr>
     </thead>
     {% for question in questions %}
@@ -50,8 +50,8 @@
     </tr>
     {% endfor %}
     <tr>       
-        <th  scope="col">II. ORGANIZATION  </th>
-        <th  scope="col">RATING</th>
+        <th  scope="col">II. Organization  </th>
+        <th  scope="col">Rating</th>
     </tr>
     {% for question in questions %}
     <tr>
@@ -86,8 +86,8 @@
     </tr>
     {% endfor %}
     <tr>      
-        <th  scope="col">III. TEACHER-STUDENT RAPPORT </th>
-        <th  scope="col">RATING</th> 
+        <th  scope="col">III. Teacher-Student Rapport </th>
+        <th  scope="col">Rating</th> 
     </tr>
     {% for question in questions %}
     <tr>
@@ -122,8 +122,8 @@
     </tr>
     {% endfor %}
     <tr>
-        <th  scope="col">IV. TEACHING METHODS</th>
-        <th  scope="col">RATING</th>
+        <th  scope="col">IV. Teaching Methods</th>
+        <th  scope="col">Rating</th>
       
         
        
@@ -147,7 +147,7 @@
         <td>{{ question.text }}</td>        
         <td>{{ faculty_evaluation_form.student_engagement }}</td>
         {% endif %}
-    </tr>
+    </tr> 
     <tr>
         {% if question.order == 18 %}
         <td>{{ question.text }}</td>        
@@ -162,8 +162,8 @@
     </tr>
     {% endfor %}
     <tr>
-        <th  scope="col">V. PRESENTATION</th>
-        <th  scope="col">RATING</th>
+        <th  scope="col">V. Presentation</th>
+        <th  scope="col">Rating</th>
          
     </tr>
     {% for question in questions %}
@@ -199,8 +199,8 @@
     </tr>
     {% endfor %}
     <tr>
-        <th  scope="col">VI. CLASSROOM MANAGEMENT</th>
-        <th  scope="col">RATING</th>
+        <th  scope="col">VI. Classroom Management</th>
+        <th  scope="col">Rating</th>
 
     </tr>
     {% for question in questions %}
@@ -236,8 +236,8 @@
     </tr>
     {% endfor %}
     <tr>
-        <th  scope="col">VII. SENSITIVITY and SUPPORT to STUDENTS</th>
-        <th  scope="col">RATING</th>
+        <th  scope="col">VII. Sensitivity and Support to Students</th>
+        <th  scope="col">Rating</th>
     
     </tr>
     {% for question in questions %}

@@ -1,0 +1,299 @@
+{% load static %}   
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stakeholders' Feedback Form - CvSU Bacoor Campus</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="icon" href="static/images/cvsulogo.png" type="image/png">
+    <link rel="stylesheet" href="{% static 'css/stakeholderform.css' %}">
+</head>
+<body>
+    <div class="container">
+        <a href="{% url 'signin' %}">
+            <img src="{% static 'images/Back.svg' %}" alt="back button" height="35px" width="35px">
+        </a>
+        
+            <div class="row justify-content-center align-items-center pt-4 g-0">
+                    <div class="col-xl-1 col-lg-2 col-md-2 col-sm-2 col-3 "><img src="{% static 'images/cvsulogo.png'%}" alt="Cavite State Univeristy Logo"  id="cvsulogo" class="cvsulogo"></div>
+                    <div class="col-xl-5 col-lg-5 col-md-6 col-sm-8 col-9">
+                        <h4 class="header-secondary">Republic of the Philippines</h4>
+                        <h2 class="header-primary">CAVITE STATE UNIVERSITY</h2>
+                        <h4 class="header-secondary"><b>Bacoor City Campus</b></h4>
+                        <h5 class="header-bottom">Soldiers Hills IV, Molino VI, Bacoor City, Cavite</h5>
+                    </div>
+            </div>
+
+        <h2 class="text-center mt-2 mb-2">STAKEHOLDERS' FEEDBACK FORM</h2>
+        <p >Please let us know how we can improve our service by giving your honest feedback. We value our stakeholders, hence, your comments and suggestions will be highly appreciated.</p>
+        <form method="post">
+            {% csrf_token %}
+            <div class="flex-input">
+            <div class="flex-input-label">
+            <label>Name: </label></div><div class="flex-input-col">{{ form.name }}</div>
+            <div class="flex-input-label"><label>Date of Visit: </label></div><div class="flex-input-col">{{ form.date }}</div>
+            </div>
+
+
+
+            
+            <div class="flex-input">
+                <div class="flex-input-label"><label>Agency: </label></div><div class="flex-input-col">{{ form.agency }}</div>
+                <div class="flex-input-label"><label>Attending Staff: </label></div><div class="flex-input-col">{{ form.staff }}</div>
+            </div>
+            
+            <div class="flex-input">
+                <div class="flex-input-label"><label>Email Address: </label></div><div class="flex-input-col">{{ form.email }}</div>
+                <div class="flex-input-label"><label>Purpose of Visit: </label></div><div class="flex-input-col">{{ form.purpose }}</div>
+            </div>
+             
+           
+            
+            <hr>
+        <div class="row">
+            <div class="col-lg-2 col-12">
+                <p>Rating Scale:</p>
+            </div>
+            <div class="col-lg-2 col-12">
+                <p>5 - Highly Satisfied</p>
+            </div>
+            <div class="col-lg-2 col-12">
+                <p>4 - Very Satisfied</p>
+            </div>
+            <div class="col-lg-2 col-12">
+                <p>3 - Moderately Satisfied</p>
+            </div>
+            <div class="col-lg-2 col-12">
+                <p>2 - Barely Satisfied</p>
+            </div>
+            <div class="col-lg-2 col-12">
+                <p>1 - Not Satisfied</p>
+            </div>
+        </div>
+
+      <div class="table-responsive"> 
+     <table class="table table-bordered">
+        <tr>
+            <th>Area of Concern</th>
+            <th class="table-rating">5</th>
+            <th class="table-rating">4</th>
+            <th class="table-rating">3</th>
+            <th class="table-rating">2</th>
+            <th class="table-rating">1</th>
+        </tr>
+
+
+         {% for question in questions %}
+             <tr>
+                 {% if question.order == 1 %}
+                     <td>A. {{question.text}}</td>
+                     <td>
+                        <div class="radio-group">
+                            {{ form.courtesy.0 }} <!-- Radio button for "5" -->
+                        </div>
+                    </td>
+                    <td>
+                        <div class="radio-group">
+                            {{ form.courtesy.1 }} <!-- Radio button for "4" -->
+                        </div>
+                    </td>
+                    <td>
+                        <div class="radio-group">
+                            {{ form.courtesy.2 }} <!-- Radio button for "3" -->
+                        </div>
+                    </td>
+                    <td>
+                        <div class="radio-group">
+                            {{ form.courtesy.3 }} <!-- Radio button for "2" -->
+                        </div>
+                    </td>
+                    <td>
+                        <div class="radio-group">
+                            {{ form.courtesy.4 }} <!-- Radio button for "1" -->
+                        </div>
+                    </td>
+
+                 {% endif %}
+                {% endfor %}
+             </tr>
+             <tr>
+                <th>B. Service</th>
+            </tr>
+            {% for question in questions %}
+             <tr>
+                 {% if question.order == 2 %}
+                     <td>{{question.text}}</td>
+                     <td>
+                        <div class="radio-group">
+                            {{ form.quality.0 }} <!-- Radio button for "5" -->
+                        </div>
+                    </td>
+                    <td>
+                        <div class="radio-group">
+                            {{ form.quality.1 }} <!-- Radio button for "4" -->
+                        </div>
+                    </td>
+                    <td>
+                        <div class="radio-group">
+                            {{ form.quality.2 }} <!-- Radio button for "3" -->
+                        </div>
+                    </td>
+                    <td>
+                        <div class="radio-group">
+                            {{ form.quality.3 }} <!-- Radio button for "2" -->
+                        </div>
+                    </td>
+                    <td>
+                        <div class="radio-group">
+                            {{ form.quality.4 }} <!-- Radio button for "1" -->
+                        </div>
+                    </td>
+
+                 {% endif %}
+             </tr>
+             <tr>
+                 {% if question.order == 3 %}
+                     <td>{{question.text}}</td>
+                     <td>
+                        <div class="radio-group">
+                            {{ form.timeliness.0 }} <!-- Radio button for "5" -->
+                        </div>
+                    </td>
+                    <td>
+                        <div class="radio-group">
+                            {{ form.timeliness.1 }} <!-- Radio button for "4" -->
+                        </div>
+                    </td>
+                    <td>
+                        <div class="radio-group">
+                            {{ form.timeliness.2 }} <!-- Radio button for "3" -->
+                        </div>
+                    </td>
+                    <td>
+                        <div class="radio-group">
+                            {{ form.timeliness.3 }} <!-- Radio button for "2" -->
+                        </div>
+                    </td>
+                    <td>
+                        <div class="radio-group">
+                            {{ form.timeliness.4 }} <!-- Radio button for "1" -->
+                        </div>
+                    </td>
+
+                 {% endif %}
+             </tr>
+             <tr>
+                 {% if question.order == 4 %}
+                     <td>{{question.text}}</td>
+                     <td>
+                        <div class="radio-group">
+                            {{ form.efficiency.0 }} <!-- Radio button for "5" -->
+                        </div>
+                    </td>
+                    <td>
+                        <div class="radio-group">
+                            {{ form.efficiency.1 }} <!-- Radio button for "4" -->
+                        </div>
+                    </td>
+                    <td>
+                        <div class="radio-group">
+                            {{ form.efficiency.2 }} <!-- Radio button for "3" -->
+                        </div>
+                    </td>
+                    <td>
+                        <div class="radio-group">
+                            {{ form.efficiency.3 }} <!-- Radio button for "2" -->
+                        </div>
+                    </td>
+                    <td>
+                        <div class="radio-group">
+                            {{ form.efficiency.4 }} <!-- Radio button for "1" -->
+                        </div>
+                    </td>
+
+                 {% endif %}
+                {% endfor %}
+             </tr>
+             <tr>
+                <th>C. Physical condition of office/workspace</th>
+            </tr>
+             <tr>
+                {% for question in questions %}
+                 {% if question.order == 5 %}
+                     <td>{{question.text}}</td>
+                     <td>
+                        <div class="radio-group">
+                            {{ form.cleanliness.0 }} <!-- Radio button for "5" -->
+                        </div>
+                    </td>
+                    <td>
+                        <div class="radio-group">
+                            {{ form.cleanliness.1 }} <!-- Radio button for "4" -->
+                        </div>
+                    </td>
+                    <td>
+                        <div class="radio-group">
+                            {{ form.cleanliness.2 }} <!-- Radio button for "3" -->
+                        </div>
+                    </td>
+                    <td>
+                        <div class="radio-group">
+                            {{ form.cleanliness.3 }} <!-- Radio button for "2" -->
+                        </div>
+                    </td>
+                    <td>
+                        <div class="radio-group">
+                            {{ form.cleanliness.4 }} <!-- Radio button for "1" -->
+                        </div>
+                    </td>
+
+                 {% endif %}
+
+             </tr>
+             <tr>
+                 {% if question.order == 6 %}
+                     <td>{{question.text}}</td>
+                     <td>
+                        <div class="radio-group">
+                            {{ form.comfort.0 }} <!-- Radio button for "5" -->
+                        </div>
+                    </td>
+                    <td>
+                        <div class="radio-group">
+                            {{ form.comfort.1 }} <!-- Radio button for "4" -->
+                        </div>
+                    </td>
+                    <td>
+                        <div class="radio-group">
+                            {{ form.comfort.2 }} <!-- Radio button for "3" -->
+                        </div>
+                    </td>
+                    <td>
+                        <div class="radio-group">
+                            {{ form.comfort.3 }} <!-- Radio button for "2" -->
+                        </div>
+                    </td>
+                    <td>
+                        <div class="radio-group">
+                            {{ form.comfort.4 }} <!-- Radio button for "1" -->
+                        </div>
+                    </td>
+
+                 {% endif %}
+                {% endfor %}
+             </tr>
+  
+     </table>
+
+</div>
+    <label for="comments">Comments/Suggestions: </label>
+    {{form.suggestions_and_comments}}
+
+            <div class="mt-3 pb-2"><button type="submit" class="btn btn-success w-100 d-block">Submit</button></div>
+        </form>
+        
+    </div>
+</body>
+</html>

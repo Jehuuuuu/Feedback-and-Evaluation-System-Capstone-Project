@@ -14,7 +14,6 @@ body{
     flex-direction: column;
     height: 100vh;
     background-color:  #faf5fF;
-
 }
 body, h1, h5, a {
     font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif !important;
@@ -50,7 +49,7 @@ h5{
     font-size: 0.7em;
 }
 
-.container{
+.container-body{
     background-color: #2a9134;
     border-radius: 30px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.35);
@@ -62,7 +61,7 @@ h5{
     color: #ffffff;
 }
 
-.container p{
+.container-body p{
     font-size: 1em;
     line-height: 1.2em;
     letter-spacing: 0.1em;
@@ -72,7 +71,7 @@ h5{
     margin-left: 2em;
 }
 
-.container a{
+.container-body a{
     color: #ffffff;
     font-size: 0.8125em;
     text-decoration: none;
@@ -81,7 +80,7 @@ h5{
   
 }
 
-.container button{
+.container-body button{
     background-color: #f7b205;
     color: #000000;
     font-size: 0.75em;
@@ -95,12 +94,12 @@ h5{
     cursor: pointer;
 }
 
-.container button.hidden{
+.container-body button.hidden{
     background-color: #2a9134;
     
 }
 
-.container form{
+.container-body form{
     background-color: #2a9134;
     display: flex;
     align-items: center;
@@ -111,7 +110,7 @@ h5{
     
 }
 
-.container input{
+.container-body input{
     background-color: #eeeeee;
     border: none;
     margin: 0.5em 0;
@@ -136,7 +135,7 @@ h5{
     z-index: 2;
 }
 
-.container.active .sign-in{
+.container-body.active .sign-in{
     transform: translateX(100%);
 }
 
@@ -147,7 +146,7 @@ h5{
     z-index: 1;
 }
 
-.container.active .sign-up{
+.container-body.active .sign-up{
     transform: translateX(100%);
     opacity: 1;
     z-index: 5;
@@ -177,7 +176,7 @@ h5{
     z-index: 99;
 }
 
-.container.active .toggle-container{
+.container-body.active .toggle-container{
     transform: translateX(-100%);
     border-radius: 0  9.375em 6.25em 0;
 }
@@ -194,7 +193,7 @@ h5{
     transition: all 0.6s ease-in-out;
 }
 
-.container.active .toggle{
+.container-body.active .toggle{
     transform: translateX(50%);
 }
 
@@ -234,7 +233,7 @@ h5{
     margin-bottom: 0; 
 }
 
-.container.active .toggle-left{
+.container-body.active .toggle-left{
     transform: translateX(0);
 }
 
@@ -243,7 +242,7 @@ h5{
     transform: translateX(0);
 }
 
-.container.active .toggle-right{
+.container-body.active .toggle-right{
     transform: translateX(200%);
 }
 li{
@@ -260,23 +259,30 @@ li{
     color:#ffffff
 }
 
+.feedback-note{
+    padding-inline: 1rem;
+    padding-left: 3rem;
+    padding-top: 0.5rem;
+    max-width: 50rem;
+    text-align: center;
 
+}
 @media only screen and (max-width:850px) { 
     
-    .container{
+    .container-body{
         width: 47em;
         min-height: 31em;
     }
 
-.container button{
+.container-body button{
     font-size: 0.70em;
 }
-.container input{
+.container-body input{
 width: 20em;
 font-size: 0.9em;
 
 }
-.container p{
+.container-body p{
     margin-left: 1.5em;
 }
 h1{
@@ -295,21 +301,21 @@ h5{
 
 }
 @media only screen and (max-width:744px) { 
-    .container{
+    .container-body{
         width: 37em;
         min-height: 27em;
     }
-    .container p{
+    .container-body p{
         font-size: 0.85em;
         line-height: 1em;
         margin: 1.3em 0;
         margin-left: 1.2em;
     }
     
-.container button{
+.container-body button{
     font-size: 0.70em;
 }
-.container input{
+.container-body input{
     padding: 0.6em 0.85em;
     font-size: 0.85em;
     width: 19em;
@@ -335,29 +341,33 @@ h5{
 .dropdown-menu {
     min-width: 130px !important;
 }
+.feedback-note{
+    font-size: 0.85rem;
+
+}
 }
 @media only screen and (max-width:590px) { 
     .center{
         margin-left: 1.3em;
     }
-    .container{
+    .container-body{
         width: 29em;
         min-height: 20em;
     }
-   .container p{
+   .container-body p{
         font-size: 0.70em;
         line-height: 0.8em;
         margin: 1em 0;
         margin-left: 2em;
     }
-    .container button{
+    .container-body button{
       
         font-size: 0.5em;
         padding: 0.4rem 2rem;
         margin-top: 0.625rem;
         cursor: pointer;
     }
-.container input{
+.container-body input{
     padding: 0.5em 0.75em;
     font-size: 0.85em;
     width: 18em;
@@ -374,7 +384,7 @@ li{
 h5{
     font-size:  0.75rem;
 }
-.container a{
+.container-body a{
     font-size: 0.6em;
     margin: 0.7em 0 0.5px;
   
@@ -390,7 +400,7 @@ h5{
    
 }
 
-.container form{
+.container-body form{
     padding: 0 1em;
     height: 100%;
     
@@ -408,23 +418,25 @@ h5{
 .dropdown-menu {
     min-width: 100px !important;
 }
+.feedback-note{
+    font-size: 0.7rem;
+}
 @media only screen and (max-width:461px) {
-    
-    .container{
+    .container-body{
         width: 23em;
         min-height: 17em;
     }
-    .container p{
+    .container-body p{
         font-size: 0.60em;
         line-height: 0.8em;
         margin: 1.1em 0;
         margin-left: 1.5em;
     }
-    .container input{
+    .container-body input{
         font-size: 0.8em;
         width: 18em;
     }
-    .container button{
+    .container-body button{
         font-size: 0.4em;
         padding: 0.3rem 1.7rem;
         margin-top: 0.5rem;
@@ -441,7 +453,7 @@ h5{
     h5{
         font-size:  0.6rem;
     }
-    .container a{
+    .container-body a{
         font-size: 0.5em;
         margin: 0.7em 0 0.5px;
       
@@ -470,24 +482,28 @@ h5{
     .dropdown-menu {
         min-width: 100px !important;
     }
+    .feedback-note{
+        font-size: 0.75rem;
+        padding-inline: 1.7rem;
+    }
 }
 @media only screen and (max-width:368px) {
 
-    .container{
+    .container-body{
         width: 21em;
         min-height: 15em;
     }
-    .container p{
+    .container-body p{
         font-size: 0.55em;
         line-height: 0.8em;
         margin: 1em 0;
         margin-left: 1.7em;
     }
-    .container input{
+    .container-body input{
         font-size: 0.75em;
         width: 18em;
     }
-    .container button{
+    .container-body button{
         font-size: 0.35em;
         padding: 0.25rem 1.5rem;
         margin-top: 0.5rem;
@@ -505,7 +521,7 @@ h5{
     h5{
         font-size:  0.52rem;
     }
-    .container a{
+    .container-body a{
         font-size: 0.4em;
         margin: 0.5em 0 0.5px;
     }
@@ -532,6 +548,9 @@ h5{
     .admininput{
         font-size: 0.4rem !important;
     }
-    
+    .feedback-note{
+        font-size: 0.70rem;
+        padding: 0.5rem;
+    }
 }
 }

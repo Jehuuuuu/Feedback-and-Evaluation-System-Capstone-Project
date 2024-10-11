@@ -3,17 +3,19 @@
 {% block title %}Evaluations{% endblock %}
 
 {% block header %}
-<div class="container">
-    <div class="row">
-      <div class="col-md-6">
-        <h2> Faculty Evaluations </h2>
-      </div>
-      <div class="col-md-6">
-        <h2> Total Responses: {{ total_evaluations }}</h2>
-      </div>
-    </div>
+<div class="row">
+  <div class="col-md-6">
+    <h2>Faculty Evaluations</h2>
   </div>
-<br>
+  <div class="col-lg-4 col-md-5 mt-1 evaluations_search" style="margin-left: auto;">
+    <form method="get" action="" class="d-flex" style="gap: 1em;">
+        {{faculty_evaluation_filter.form.search.label_tag}}
+        {{faculty_evaluation_filter.form.search}}
+    <button type="submit" class="btn custom-btn"><i class="bi bi-search"></i></button>
+      </form>
+    </div>
+</div>
+<hr>
 {% endblock header %}
 
 {% block feature %}
@@ -47,17 +49,18 @@
 </div>
 </div>
 </div>
+
 <!-- For making sorting functionality -->
-<div class="row g-0 align-items-center evaluations_filter">
+<div class="row g-0 ">
   <!-- Filter Options Button -->
-  <div class="col-lg-2 col-sm-4 col-12">
-    <button type="button" class="btn btn-warning custom-btn" style="color: black; text-decoration: none; margin-left: 0.5em;" data-bs-toggle="modal" data-bs-target="#exampleModal">
+  <div class="col-lg-2 col-md-3 col-sm-4 col-12 mb-1">
+    <button type="button" class="btn btn-warning custom-btn" data-bs-toggle="modal" data-bs-target="#exampleModal">
       <i class="bi bi-pencil-square"></i> <b>Filter Options</b>
     </button>
   </div>
   
   <!-- Sort Dropdown -->
-  <div class="col-lg-3 col-md-6 col-sm-8 col-12 evaluations_sort">
+  <div class="col-lg-4 col-md-5 col-sm-7 col-12 mb-1" style="margin-right: 0.5em;">
     <select class="form-select" name="sort" id="sort-list" onchange="location = finalurl();">
       <option value="" id="placeholder" disabled selected hidden>Sort</option>
       <option id="average_rating" value="average_rating">Average Rating: Ascending</option>
@@ -68,18 +71,71 @@
   </div>
   
   <!-- Search Form and Export Button -->
-  <div class="col-lg-6 evaluations_search" style="margin-left: auto;">
-    <div class="d-flex justify-content-between align-items-center">
-      <form method="get" action="" class="d-flex" style="gap: 1em;">
-        {{faculty_evaluation_filter.form.search.label_tag}}
-        {{faculty_evaluation_filter.form.search}}
-        <button type="submit" class="btn custom-btn"><i class="bi bi-search"></i></button>
-      </form>
-      <a href="{% url 'evaluations_csv' %}" class="btn btn-secondary ms-2" style="margin-right: auto;">Export</a>
-    </div>
+  <div class="col-lg-4 col-md-2">
+      <a href="{% url 'evaluations_csv' %}" class="btn btn-secondary">Export</a>
   </div>
 </div>
-<script>
+
+  <div class="table-responsive mt-2 evaluations_table">
+    <table class="table table-bordered">
+        <tr>
+          <th scope="col">Subject</th>
+          <th scope="col">Faculty</th>
+          <th scope="col">Average Rating</th>
+          <th scope="col">Overall Impression</th>
+          <th scope="col">Polarity</th>
+          <th scope="col">Academic Year</th>
+          <th scope="col">Semester</th>
+          <th scope="col">Options</th>
+          
+        </tr>
+        {% for i in evaluation %}
+        <tr>
+            <td>{{ i.section_subject_faculty.subjects }} </td>
+            <td>{{ i.section_subject_faculty.faculty }}</td>
+            <td>{{ i.average_rating }}</td>
+            <td>{{ i.comments }}</td>
+            <td>{{ i.predicted_sentiment }}</td>
+            <td>{{ i.academic_year }}</td>
+            <td>{{ i.semester }}</td>
+            <td style="display: flex; flex-direction: row; align-items: center; height: 100px;">
+
+              <a href="{% url 'admin_view_evaluation_form' i.pk %}" style="margin-right: 10px; text-decoration: none;">
+                <button class="btn btn-primary d-flex align-items-center" style=" padding:1px 7px 1px 7px">
+                  <i class="bi bi-eye-fill" style="font-size:20px; margin-right: 5px;"></i>View</button></a>
+    
+        </tr>
+        {% endfor %}
+    </table>
+  </div>
+      {% if is_paginated %}
+      <nav class = "pagination justify-content-center" aria-label="...">
+          <ul class="pagination">
+              {% if page_obj.has_previous %}
+            <li class="page-item ">
+              <a class="page-link" tabindex= "-1" aria-disabled = "true" href ="?page={{ page_obj.previous_page_number }}{% if ordering %}&ordering={{ ordering }}{% endif %}">Previous</a>
+            </li>
+              {% endif %}
+              {% for i in paginator.page_range %}
+              {% if i == page_obj.number %}
+  
+            <li class="page-item active" aria-current="page">
+              <a class="page-link" href="?page={{i}}{% if ordering %}&ordering={{ ordering }}{% endif %}">{{i}}</a>
+            </li>
+            {% else %}
+            <li class="page-item"><a class="page-link"  href="?page={{i}}{% if ordering %}&ordering={{ ordering }}{% endif %}">{{i}}</a></li>
+            {% endif %}
+            {% endfor %}
+            {% if page_obj.has_next %}
+            <li class="page-item">
+              <a class="page-link" tabindex= "-1" href ="?page={{ page_obj.next_page_number }}{% if ordering %}&ordering={{ ordering }}{% endif %}">Next</a>
+            </li>
+            {% endif %}
+          </ul>
+        </nav>
+
+    {% endif %}
+ <script>
   // for getting the sorting status to be displayed in sorting dropdown placeholder
   function get(name) {
    if (name = (new RegExp('[?&]' + encodeURIComponent(name) + '=([^&]*)')).exec(location.search))  //location.search give query sling part
@@ -114,71 +170,5 @@
   }
 
 </script>
-<div class="container">
-  <div class="table-responsive evaluations_table">
-    <table class="table table-bordered" style="margin-top: 1em;">
-        <tr>
-            <th  scope="col">SUBJECT</th>
-            <th  scope="col">FACULTY</th>
-            <th  scope="col">AVERAGE RATING </th>
-            <th  scope="col">OVERALL IMPRESSION </th>
-            <th  scope="col">POLARITY </th>
-            <th  scope="col">ACADEMIC YEAR </th>
-            <th  scope="col">SEMESTER </th>
-            <th  scope="col">OPTIONS </th>
-        </tr>
-        {% for i in evaluation %}
-        <tr>
-            <td>{{ i.section_subject_faculty.subjects }} </td>
-            <td>{{ i.section_subject_faculty.faculty }}</td>
-            <td>{{ i.average_rating }}</td>
-            <td>{{ i.comments }}</td>
-            <td>{{ i.predicted_sentiment }}</td>
-            <td>{{ i.academic_year }}</td>
-            <td>{{ i.semester }}</td>
-            <td>
-    
-            <div class="row" style="align-items: center; justify-content: center;">
-              <div class="col-5"><a href="{% url 'admin_view_evaluation_form' i.pk %}">
-                <button class="btn btn-primary" style=" padding:3px 5px 3px 5px">
-                  <i class="bi bi-eye-fill" style="font-size:20px"></i></button></a></div>
-              <div class="col-7">
-                <a href="{% url 'deleteEvaluation'  i.pk  %}"><button class="btn btn-danger" style=" padding:3px 5px 3px 5px; ;" ><i style="font-size:24px" class='bx bxs-trash' ></i></button></a></td>
-                            </div>
-              </div>
-    
-        </tr>
-        {% endfor %}
-    </table>
-  </div>
-      {% if is_paginated %}
-      <nav class = "pagination justify-content-center" aria-label="...">
-          <ul class="pagination">
-              {% if page_obj.has_previous %}
-            <li class="page-item ">
-              <a class="page-link" tabindex= "-1" aria-disabled = "true" href ="?page={{ page_obj.previous_page_number }}{% if ordering %}&ordering={{ ordering }}{% endif %}">Previous</a>
-            </li>
-              {% endif %}
-              {% for i in paginator.page_range %}
-              {% if i == page_obj.number %}
-  
-            <li class="page-item active" aria-current="page">
-              <a class="page-link" href="?page={{i}}{% if ordering %}&ordering={{ ordering }}{% endif %}">{{i}}</a>
-            </li>
-            {% else %}
-            <li class="page-item"><a class="page-link"  href="?page={{i}}{% if ordering %}&ordering={{ ordering }}{% endif %}">{{i}}</a></li>
-            {% endif %}
-            {% endfor %}
-            {% if page_obj.has_next %}
-            <li class="page-item">
-              <a class="page-link" tabindex= "-1" href ="?page={{ page_obj.next_page_number }}{% if ordering %}&ordering={{ ordering }}{% endif %}">Next</a>
-            </li>
-            {% endif %}
-          </ul>
-        </nav>
-</div>
-
-    {% endif %}
- 
 {% endblock feature %}
 

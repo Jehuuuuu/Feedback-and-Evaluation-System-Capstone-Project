@@ -15,14 +15,13 @@
 {% endif %}
 <table class="table table-bordered table-responsive  ">
     <tr>
-        <th  scope="col">SUBJECT</th>
-        <th  scope="col">FACULTY</th>
-        <th  scope="col">AVERAGE RATING </th>
-        <th  scope="col">OVERALL IMPRESSION </th>
-        <th  scope="col">POLARITY </th>
-        <th  scope="col">ACADEMIC YEAR </th>
-        <th  scope="col">SEMESTER </th>
-        <th  scope="col">OPTIONS </th>
+        <th scope="col">First Name</th>
+        <th scope="col">Last Name</th>
+        <th scope="col">Gender</th>
+        <th scope="col">Email</th>
+        <th scope="col">Contact Number</th>
+        <th scope="col">Department</th>
+        <th scope="col">Options</th>        
     </tr>
     {% for i in teacher_evaluations %}
     <tr>
@@ -33,15 +32,13 @@
         <td>{{ i.predicted_sentiment }}</td>
         <td>{{ i.academic_year }}</td>
         <td>{{ i.semester }}</td>
-        <td>
-            <div class="row" style="align-items: center; justify-content: center;">
-            <div class="col-5"><a href="{% url 'admin_view_evaluation_form' i.pk %}">
-            <button class="btn btn-primary" style=" padding:3px 5px 3px 5px">
-                <i class="bi bi-eye-fill" style="font-size:20px"></i></button></a></div>
-            <div class="col-7">
-            <a href="{% url 'deleteEvaluation'  i.pk  %}"><button class="btn btn-danger" style=" padding:3px 5px 3px 5px; ;" ><i style="font-size:24px" class='bx bxs-trash' ></i></button></a></td>
-                        </div>
-            </div>
+        <td style="display: flex; flex-direction: row; align-items: center; height: 100px;"> 
+
+            <a style="margin-right: 10px; text-decoration: none;" href="{% url 'admin_view_evaluation_form'  i.pk  %}"><button class="btn btn-primary d-flex align-items-center" style=" padding:1px 7px 1px 7px"><i class="bi bi-eye-fill" style="font-size:20px; margin-right: 5px;"></i>View</button></a>
+            
+            <a style="margin-right: 10px; text-decoration: none;" href="{% url 'deleteEvaluation'  i.pk  %}"><button class="btn btn-danger d-flex align-items-center" style="padding:4px 7px 4px 7px"  ><i style="font-size:20px; margin-right: 5px;" class='bx bxs-trash' ></i>Delete</button></a>
+
+    </td>
     </tr>
 
     {% endfor %}

@@ -18,51 +18,71 @@
           </div>
       </div>
       <hr>
-  
   {% endblock header %}
-  <hr>
   {% block feature %}
-  <button type="button" class="btn btn-warning custom-btn" style = "color: black; text-decoration: none; " data-bs-toggle="modal" data-bs-target="#exampleModal"></a><i class="bi bi-person-plus-fill"></i> <b>Add Faculty</b></button>
-  
+  {% if messages %}
+ 
+  {% for message in messages %}
+      <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+  {% endfor %}
+
+  {% endif %}
   <!-- Modal -->
   <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-scrollable">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h1 class="modal-title fs-5" id="exampleModalLabel">Add Faculty</h1>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-              <form method="POST" action="">
-                  {% csrf_token %}
-                  {{ form.as_p }}
-  
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            <input type = "submit" class="btn custom-btn" value="Add">
-          </form>
-          </div>
+    <div class="modal-dialog modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="exampleModalLabel">Add Faculty</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <form method="POST" action="">
+                {% csrf_token %}
+                {{ form.as_p }}
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <input type = "submit" class="btn custom-btn" value="Add">
+        </form>
         </div>
       </div>
     </div>
-    <button type="button" class="btn btn-warning custom-btn" style="color: black; text-decoration: none; margin-left: 0.5em;" data-bs-toggle="modal" data-bs-target="#filterModal">
-      <i class="bi bi-pencil-square"></i> <b>Filter Options</b>
-    </button>
   </div>
 
-  <br>
-  <div class="container">
-    <div class="table-responsive">
+  <div class="row">
+    <div class="col-lg-2 col-md-3 col-6 mt-1"><button type="button" class="btn btn-warning custom-btn" style = "color: black; text-decoration: none; " data-bs-toggle="modal" data-bs-target="#exampleModal"></a><i class="bi bi-person-plus-fill"></i> <b>Add Faculty</b></button></div>
+
+    <div class="col-lg-3 col-md-3 col-6 mt-1" >
+      <button type="button" class="btn btn-warning custom-btn" style="color: black; text-decoration: none;" data-bs-toggle="modal" data-bs-target="#filterModal">
+        <i class="bi bi-pencil-square"></i> <b>Filter Options</b>
+      </button>
+    </div>
+    
+    <div class="col-lg-4 col-md-5 col-sm-12 mt-1 ">
+      <select class="form-select" name="sort" id="sort-list" onchange="location = finalurl();">
+      <option value="" id="placeholder" disabled selected hidden>Sort</option>
+      <option id="first_name" value="first_name">Alphabetical: Ascending</option>
+      <option id="-first_name" value="-first_name">Alphabetical: Descending</option>
+      <option id="-created" value="-created">Recently Added</option>
+      </select>
+    </div>
+  </div>
+
+    <div class="table-responsive mt-2 ">
       <table class="table table-bordered table-responsive  ">
           <tr>
-              <th scope="col">FIRST NAME </th>
-              <th  scope="col">LAST NAME </th>
-              <th  scope="col">GENDER </th>
-              <th  scope="col">EMAIL </th>
-              <th  scope="col">CONTACT NUMBER </th>
-              <th  scope="col">DEPARTMENT </th>
-              <th  scope="col">OPTIONS </th>
+            <th scope="col">First Name</th>
+            <th scope="col">Last Name</th>
+            <th scope="col">Gender</th>
+            <th scope="col">Email</th>
+            <th scope="col">Contact Number</th>
+            <th scope="col">Department</th>
+            <th scope="col">Options</th>
+            
           </tr>
           {% for i in page_obj %}
           <tr>
@@ -72,8 +92,12 @@
               <td>{{ i.email }}</td>
               <td>{{ i.contact_number }}</td>
               <td>{{ i.department }}</td>
-              <td style="display: flex; flex-direction: row; gap:1em"> <a href="{% url 'facultyevaluations' i.pk %}"><button class="btn btn-primary" style=" padding:3px 5px 3px 5px"><i class="bi bi-eye-fill" style="font-size:20px"></i> </button></a> <a href="{% url 'editteacher'  i.pk  %}"><button class="btn btn-warning" style=" padding:3px 5px 3px 5px"><i class="bi bi-pencil-square" style="font-size:20px"></i></button></a>
-                <a href="{% url 'deleteTeacher'  i.pk  %}"><button class="btn btn-danger" ><i style="font-size:20px" class='bx bxs-trash' ></i></button></a>
+              <td style="display: flex; flex-direction: row; gap:1em; align-items: center; height: 100px;"> <a href="{% url 'facultyevaluations' i.pk %}" style="text-decoration: none;"><button class="btn btn-primary d-flex align-items-center" style=" padding:1px 7px 1px 7px"><i class="bi bi-eye-fill" style="font-size:20px; margin-right: 5px;"></i> View</button></a>
+
+              <a href="{% url 'editteacher'  i.pk  %}" style="text-decoration: none;"><button class="btn btn-warning d-flex align-items-center" style=" padding:1px 7px 1px 7px"><i class="bi bi-pencil-square" style="font-size:20px; margin-right: 5px;"></i>Edit</button></a>
+
+              <a href="{% url 'deleteTeacher'  i.pk  %}" style="text-decoration: none;"><button class="btn btn-danger d-flex align-items-center" style="padding:4px 7px 4px 7px" ><i style="font-size:20px; margin-right: 5px;" class='bx bxs-trash' ></i>Delete</button></a>
+
               </td>
           </tr>
     
@@ -81,8 +105,7 @@
     
       </table>
     </div>
-  </div>
-  
+
 <!-- Modal -->
 <div class="modal fade" id="filterModal" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
   <div class="modal-dialog">
@@ -95,6 +118,7 @@
         <form method="get" action="">
           {{faculty_filter.form.department.label_tag}}
           {{faculty_filter.form.department}}
+          <button type="button" class="btn btn-secondary" onclick="clearFilters()" style="margin-top: 1em;">Clear All</button>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -128,4 +152,38 @@
         {% endif %}
     </ul>
 </nav>
+<script>
+  // for getting the sorting status to be displayed in sorting dropdown placeholder
+  function get(name) {
+      if (name = (new RegExp('[?&]' + encodeURIComponent(name) + '=([^&]*)')).exec(location.search))  //location.search give query sling part
+          return decodeURIComponent(name[1]);
+      }
+      if(get('ordering'))
+      document.getElementById('placeholder').innerHTML = "Sort: " + document.getElementById(get('ordering')).innerHTML;
+
+  // for getting url after applying ordering
+  function finalurl() {
+      var url = new URL(window.location.href);
+      var search_params = url.searchParams;
+      search_params.set('ordering', document.getElementById("sort-list").value);
+      url.search = search_params.toString();
+      var new_url = url.toString();
+      return new_url
+  }
+  function clearFilters() {
+// Get all filter inputs within the form
+var filterInputs = document.querySelectorAll('#filterModal form select, #filterModal form input[type="text"]');
+
+// Loop through each input and clear its value
+filterInputs.forEach(function(input) {
+if (input.tagName === 'SELECT') {
+  // For select elements, set the selected index to the default (first) option
+  input.selectedIndex = 0;
+} else {
+  // For text inputs, clear the value
+  input.value = '';
+}
+});
+}
+</script>
 {% endblock feature %}

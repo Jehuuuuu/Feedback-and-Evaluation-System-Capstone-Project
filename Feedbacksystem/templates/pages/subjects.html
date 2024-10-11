@@ -3,14 +3,54 @@
 {% block title %}Subjects{% endblock %}
 
 {% block header %}
-
+<div class="row">
+  <div class="col-md-5">
     <h2> Manage Subjects</h2>
-    <hr>
-   
+  </div>
+  <div class="col-lg-6 col-md-7 col-12 mt-1 " style="margin-left: auto;">
+    <form method="get" action="" class="d-flex" style="gap: 1em;">
+        {{subject_filter.form.search.label_tag}}
+        {{subject_filter.form.search}}
+    <button type="submit" class="btn custom-btn"><i class="bi bi-search"></i></button>
+      </form>
+  </div>
+</div>
+<hr> 
 {% endblock header %}
-<hr>
 {% block feature %}
-<a class="btn btn-warning custom-btn" data-bs-toggle="modal" data-bs-target="#exampleModal" style = "color: black; text-decoration: none;"><i class="bi bi-plus-square-fill"></i> <b>Add Subject</b></a>
+{% if messages %}
+ 
+        {% for message in messages %}
+            <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+
+{% endif %}
+<div class="row">
+
+  <div class="col-md-3 col-sm-5 col-12 mb-1">
+    <a class="btn btn-warning custom-btn" data-bs-toggle="modal" data-bs-target="#exampleModal" style = "color: black; text-decoration: none;"><i class="bi bi-plus-square-fill"></i> <b>Add Subject</b></a>
+    
+  </div>
+  <div class="col-lg-4 col-md-5 col-sm-7 col-12">
+    <select class="form-select" name="sort" id="sort-list" onchange="location = finalurl();">
+    <option value="" id="placeholder" disabled selected hidden>Sort</option>
+    <option id="subject_code" value="subject_code">Subject Code: Ascending</option>
+    <option id="-subject_code" value="-subject_code">Subject Code: Descending</option>
+    <option id="subject_name" value="subject_name">Subject Name: Ascending</option>
+    <option id="-subject_name" value="-subject_name">Subject Name: Descending</option>
+    <option id="-created" value="-created">Recently Added</option>
+    </select>
+  </div>
+
+</div>
+
+
+
+
+
 <!-- Modal -->
 <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -30,24 +70,28 @@
           <input class="btn custom-btn" type ="submit" value="Add">
         </form>
         </div>
+        
       </div>
     </div>
   </div>
-<br>
-<br>
-<div class="table-responsive">
+
+ <div class="table-responsive mt-2">
   <table class="table table-bordered table-responsive  ">
       <tr>
-          <th  scope="col">SUBJECT CODE </th>
-          <th  scope="col">SUBJECT NAME </th>
-          <th  scope="col">OPTIONS </th>
+          <th  scope="col">Subject Code</th>
+          <th  scope="col">Subject Name</th>
+          <th  scope="col">Options</th>
       </tr>
       {% for i in page_obj %}
       <tr>
           <td>{{ i.subject_code }}</td>
           <td>{{ i.subject_name }}</td>
-          <td style="display: flex; flex-direction: row;"> <a style="margin-right: 10px;" href="{% url 'editsubject'  i.pk  %}"><button class="btn btn-warning" style=" padding:3px 5px 3px 5px"><i class="bi bi-pencil-square" style="font-size:20px"></i></button></a>
-            <a style="margin-right: 10px;" href="{% url 'deleteSubject'  i.pk  %}"><button class="btn btn-danger" ><i style="font-size:20px" class='bx bxs-trash' ></i></button></a>
+          <td style="display: flex; flex-direction: row; align-items: center;"> 
+
+            <a style="margin-right: 10px; text-decoration: none;" href="{% url 'editsubject'  i.pk  %}"><button class="btn btn-warning d-flex align-items-center" style=" padding:1px 7px 1px 7px"><i class="bi bi-pencil-square" style="font-size:20px; margin-right: 5px;"></i>Edit</button></a>
+            
+            <a style="margin-right: 10px; text-decoration: none;" href="{% url 'deleteSubject'  i.pk  %}"><button class="btn btn-danger d-flex align-items-center" style="padding:4px 7px 4px 7px"  ><i style="font-size:20px; margin-right: 5px;" class='bx bxs-trash' ></i>Delete</button></a>
+
           </td>
       </tr>
   
@@ -81,4 +125,23 @@
       {% endif %}
   </ul>
 </nav>
+<script>
+    // for getting the sorting status to be displayed in sorting dropdown placeholder
+    function get(name) {
+      if (name = (new RegExp('[?&]' + encodeURIComponent(name) + '=([^&]*)')).exec(location.search))  //location.search give query sling part
+          return decodeURIComponent(name[1]);
+      }
+      if(get('ordering'))
+      document.getElementById('placeholder').innerHTML = "Sort: " + document.getElementById(get('ordering')).innerHTML;
+
+  // for getting url after applying ordering
+  function finalurl() {
+      var url = new URL(window.location.href);
+      var search_params = url.searchParams;
+      search_params.set('ordering', document.getElementById("sort-list").value);
+      url.search = search_params.toString();
+      var new_url = url.toString();
+      return new_url
+  }
+</script>
 {% endblock feature %}

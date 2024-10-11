@@ -7,7 +7,7 @@
           <div class="col-md-5">
             <h2> Manage Students</h2>
           </div>
-          <div class="col-lg-6 col-md-7 col-12 mt-1 ">
+          <div class="col-lg-6 col-md-7 col-12 mt-1 "  style="margin-left: auto;">
             <form method="get" action="" class="d-flex" style="gap: 1em;">
                 {{student_filter.form.search.label_tag}}
                 {{student_filter.form.search}}
@@ -21,11 +21,14 @@
 <hr>
 {% block feature %}
 {% if messages %}
-<ul class="messages">
-    {% for message in messages %}
-    <li>{{ message }}</li>
-    {% endfor %}
-</ul>
+ 
+        {% for message in messages %}
+            <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+
 {% endif %}
 
   <div class="row g-0 align-items-center">
@@ -73,6 +76,7 @@
             {{student_filter.form.Section}}
             {{student_filter.form.status.label_tag}}
             {{student_filter.form.status}}
+            <button type="button" class="btn btn-secondary" onclick="clearFilters()" style="margin-top: 1em;">Clear All</button>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -85,26 +89,31 @@
   <div class="col-lg-6 col-md-5 col-12 mb-2">
     <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
-    <input class="mb-2" type="file" name="studentfile" accept=".xlsx">
-    <button type="submit" class="btn btn-primary">Import Excel File</button>
+         <!-- Hide the actual file input -->
+    <input id="fileInput" type="file" name="studentfile" accept=".xlsx" style="display: none;" onchange="this.form.submit()">
+
+    <!-- Custom button to trigger file selection -->
+    <button type="button" class="btn btn-primary" onclick="document.getElementById('fileInput').click();">
+        Bulk Import
+    </button>
   </div>
   </form>
   </div>
-
-<div class="table-responsive">
+<div class="table-responsive mt-2 ">
   <table class="table table-bordered">
       <tr>
-          <th  scope="col">STUDENT NUMBER </th>
-          <th  scope="col">FIRST NAME </th>
-          <th  scope="col">LAST NAME </th>
-          <th  scope="col">EMAIL </th>
-          <th  scope="col">AGE </th>
-          <th  scope="col">SEX </th>
-          <th  scope="col">CONTACT NUMBER </th>
-          <th  scope="col">STATUS</th>
-          <th  scope="col">COURSE </th>
-          <th  scope="col">SECTION </th>
-          <th  scope="col">OPTIONS </th>
+        <th scope="col">Student Number</th>
+        <th scope="col">First Name</th>
+        <th scope="col">Last Name</th>
+        <th scope="col">Email</th>
+        <th scope="col">Age</th>
+        <th scope="col">Sex</th>
+        <th scope="col">Contact Number</th>
+        <th scope="col">Status</th>
+        <th scope="col">Course</th>
+        <th scope="col">Section</th>
+        <th scope="col">Options</th>
+        
   
   
       </tr>
@@ -120,9 +129,13 @@
           <td>{{ i.status }}</td>
           <td>{{ i.Course }}</td>
           <td>{{ i.Section }}</td>
-          <td style="display: flex; flex-direction: row;"> <a style="margin-right: 10px;" href="{% url 'editstudent'  i.pk  %}"><button class="btn btn-warning" style=" padding:3px 5px 3px 5px"><i class="bi bi-pencil-square" style="font-size:20px"></i></button></a>
-              <a style="margin-right: 10px;" href="{% url 'deleteStudent'  i.pk  %}"><button class="btn btn-danger" ><i style="font-size:20px" class='bx bxs-trash' ></i></button></a>
-            </td>
+          <td style="display: flex; flex-direction: row; align-items: center; height: 80px;"> 
+
+            <a style="margin-right: 10px; text-decoration: none;" href="{% url 'editstudent'  i.pk  %}"><button class="btn btn-warning d-flex align-items-center" style=" padding:1px 7px 1px 7px"><i class="bi bi-pencil-square" style="font-size:20px; margin-right: 5px;"></i>Edit</button></a>
+            
+            <a style="margin-right: 10px; text-decoration: none;" href="{% url 'deleteStudent'  i.pk  %}"><button class="btn btn-danger d-flex align-items-center" style="padding:4px 7px 4px 7px"  ><i style="font-size:20px; margin-right: 5px;" class='bx bxs-trash' ></i>Delete</button></a>
+
+          </td>
       </tr>
   
       {% endfor %}
@@ -155,7 +168,23 @@
       {% endif %}
   </ul>
 </nav>
-
+<script>
+  function clearFilters() {
+    // Get all filter inputs within the form
+            var filterInputs = document.querySelectorAll('#filterModal form select, #filterModal form input[type="text"]');
+            
+            // Loop through each input and clear its value
+            filterInputs.forEach(function(input) {
+            if (input.tagName === 'SELECT') {
+                // For select elements, set the selected index to the default (first) option
+                input.selectedIndex = 0;
+            } else {
+                // For text inputs, clear the value
+                input.value = '';
+            }
+            });
+  }
+</script>
 
 
 {% endblock feature %}

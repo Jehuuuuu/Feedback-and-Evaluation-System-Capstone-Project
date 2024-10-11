@@ -9,8 +9,8 @@ from django.contrib.auth.models import Group
 class EvaluationFilter(django_filters.FilterSet):
      # Foreign key field filter
     section_subject_faculty = django_filters.ModelChoiceFilter(
-    field_name='section_subject_faculty',  # Field name of the foreign key
-    queryset=SectionSubjectFaculty.objects.all(),  # Queryset of SectionSubjectFaculty objects
+    field_name='section_subject_faculty__faculty',  # Field name of the foreign key
+    queryset=Faculty.objects.all(),  # Queryset of SectionSubjectFaculty objects
     label='Faculty',  # Label for the filter field
     widget=forms.Select(attrs={'class': 'form-control'})
 
@@ -117,12 +117,17 @@ class StudentFilter(django_filters.FilterSet):
     label='Section',
     widget=forms.Select(attrs={'class': 'form-control'})) # Add Bootstrap class for styling
     
+    STATUS_CHOICES = [
+        ('Regular', 'Regular'),
+        ('Irregular', 'Irregular'),
+    ]
+
     status = django_filters.ChoiceFilter(
-            field_name='status',
-            choices=[(status, status) for status in Student.objects.values_list('status', flat=True).distinct()],
-            label='Status',
-            widget=forms.Select(attrs={'class': 'form-control'})
-        )
+        field_name='status',
+        choices=STATUS_CHOICES,  # Directly specify the two choices
+        label='Status',
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
     
     search = django_filters.CharFilter(
         method='filter_search',
@@ -140,7 +145,8 @@ class StudentFilter(django_filters.FilterSet):
             Q(email__icontains=value) |   
             Q(contact_no__icontains=value) |   
             Q(age__icontains=value) | 
-            Q(status__icontains=value)   
+            Q(status__icontains=value)   |
+            Q(Section__name__icontains=value)   
         )
 
     class Meta: 
@@ -163,10 +169,153 @@ class UserFilter(django_filters.FilterSet):
     )
     def filter_search(self, queryset, name, value):
         return queryset.filter(
-            Q(username__icontains=value)   
+            Q(username__icontains=value) |   
+             Q(groups__name__icontains=value)   
         )
 
 
     class Meta: 
         model = User
         fields = ['groups', 'search']  # Ensure this is a list of valid model fields
+
+class EventFilter(django_filters.FilterSet):
+    course_attendees = django_filters.ModelMultipleChoiceFilter(
+        queryset=Course.objects.all(),  # Dynamically fetch choices
+        label='Course Attendees',
+        widget=forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'})
+    )
+
+    department_attendees = django_filters.ModelMultipleChoiceFilter(
+        queryset=Department.objects.all(),  # Dynamically fetch choices
+        label='Department Attendees',
+        widget=forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'})
+    )
+
+    # Define choices for academic_year field dynamically
+    academic_year = django_filters.ChoiceFilter(choices=[], label='Academic Year',
+    widget=forms.Select(attrs={'class': 'form-control'})
+)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Populate choices for academic_year dynamically from the database
+        academic_years = Event.objects.order_by('academic_year').values_list('academic_year', flat=True).distinct()
+        academic_year_choices = [(year, year) for year in academic_years]
+        self.filters['academic_year'].extra['choices'] = academic_year_choices
+
+    SEMESTER_CHOICES = [
+        ('1st', '1st'),
+        ('2nd', '2nd'),
+    ]
+    semester = django_filters.ChoiceFilter(
+         choices=SEMESTER_CHOICES, 
+         widget=forms.Select(attrs={'class': 'form-control'})
+)
+    search = django_filters.CharFilter(
+        method='filter_search',
+        label='',
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Search...'
+        })
+    )
+
+    # Other filters...
+
+    def filter_search(self, queryset, name, value):
+        return queryset.filter(
+            Q(title__icontains=value)  
+        )
+
+
+
+    class Meta: 
+        model = Event
+        fields =  ('course_attendees', 'department_attendees', 'evaluation_status', 'academic_year', 'semester', 'search')
+
+class SectionFilter(django_filters.FilterSet):
+    search = django_filters.CharFilter(
+        method='filter_search',
+        label='',
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Search...'
+        })
+    )
+
+    # Other filters...
+
+    def filter_search(self, queryset, name, value):
+        return queryset.filter(
+            Q(name__icontains=value)  
+        )
+    
+    class Meta:
+        model = Section
+        fields = ('name','search')
+
+class SubjectFilter(django_filters.FilterSet):
+    search = django_filters.CharFilter(
+        method='filter_search',
+        label='',
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Search...'
+        })
+    )
+
+    # Other filters...
+
+    def filter_search(self, queryset, name, value):
+        return queryset.filter(
+            Q(subject_code__icontains=value)  |
+            Q(subject_name__icontains=value)  
+        )
+    
+    class Meta:
+        model = Subject
+        fields = ('subject_code', 'subject_name', 'search')
+
+class StakeholderFilter(django_filters.FilterSet):
+        # Define choices for academic_year field dynamically
+    academic_year = django_filters.ChoiceFilter(choices=[], label='Academic Year',
+                                                widget=forms.Select(attrs={'class': 'form-control'})
+)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Populate choices for academic_year dynamically from the database
+        academic_years = StakeholderFeedbackModel.objects.order_by('academic_year').values_list('academic_year', flat=True).distinct()
+        academic_year_choices = [(year, year) for year in academic_years]
+        self.filters['academic_year'].extra['choices'] = academic_year_choices
+    SEMESTER_CHOICES = [
+        ('1st', '1st'),
+        ('2nd', '2nd'),
+    ]
+    semester = django_filters.ChoiceFilter(
+         choices=SEMESTER_CHOICES, 
+         widget=forms.Select(attrs={'class': 'form-control'})
+)
+   
+    
+    
+    search = django_filters.CharFilter(
+        method='filter_search',
+        label='',
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Search...'
+        })
+    )
+
+    def filter_search(self, queryset, name, value):
+        return queryset.filter(
+            Q(name=value)  |
+            Q(agency=value)  |
+            Q(email=value)  |
+            Q(purpose=value)  |
+            Q(date=value)  |
+            Q(staff=value)  
+        )
+    
+    class Meta:
+        model = StakeholderFeedbackModel
+        fields = ('academic_year', 'semester', 'search')

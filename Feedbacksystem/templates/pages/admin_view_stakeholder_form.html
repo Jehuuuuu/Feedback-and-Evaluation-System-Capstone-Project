@@ -1,0 +1,74 @@
+{% extends "pages/admin.html" %}
+{% load static %}
+{% block title %}Stake Evaluation Details{% endblock %}
+
+{% block header %}
+
+    <h2> Stakeholders' Feedback Form Details </h2>
+    <hr>
+   
+{% endblock header %}
+{% block feature %}
+<table class="table table-responsive table-bordered " >
+    <tr>
+         <th  scope="col" style="color:#fafafa;  background: #2a9134">Area of Concern</th>
+         <th  scope="col" style="color:#fafafa;  background: #2a9134">RATING</th>
+    </tr>
+    </thead>
+    {% for question in questions %}
+    <tr>
+        {% if question.order == 1 %}
+        <td>A. {{question.text}}</td>
+        <td> {{ stakeholder_feedback_form.courtesy }}</td>
+        {% endif %} 
+    </tr>
+    {% endfor %}
+    <tr>
+        <th>B. Service</th>
+        <th  scope="col" style="color:#fafafa;  background: #2a9134"></th>
+    </tr>
+    {% for question in questions %}
+    <tr>
+        {% if question.order == 2 %}
+        <td>{{question.text}}</td>
+        <td> {{ stakeholder_feedback_form.quality }}</td>
+        {% endif %} 
+    </tr>
+    <tr>
+        {% if question.order == 3 %}
+        <td>{{question.text}}</td>
+        <td> {{ stakeholder_feedback_form.timeliness }}</td>
+        {% endif %} 
+    </tr>
+    <tr>
+        {% if question.order == 4 %}
+        <td>{{question.text}}</td>
+        <td> {{ stakeholder_feedback_form.efficiency }}</td> 
+        {% endif %}
+    </tr>
+    {% endfor %}
+    <tr>
+        <th>C. Physical condition of office/workspace</th>
+        <th  scope="col" style="color:#fafafa;  background: #2a9134"></th>
+    </tr>
+    {% for question in questions %}
+    <tr>
+        {% if question.order == 5 %}
+        <td>{{question.text}}</td>
+        <td> {{ stakeholder_feedback_form.cleanliness }}</td> 
+        {% endif %}
+    </tr>
+    <tr>
+        {% if question.order == 6 %}
+        <td>{{question.text}}</td>
+        <td> {{ stakeholder_feedback_form.comfort }}</td> 
+        {% endif %}
+    </tr>
+    {% endfor %}
+    <tr>
+        <td>Comments/Suggestions: </td>
+        <td> {{ stakeholder_feedback_form.suggestions_and_comments }}</td> 
+    </tr>
+  
+</table>
+{% endblock feature %}

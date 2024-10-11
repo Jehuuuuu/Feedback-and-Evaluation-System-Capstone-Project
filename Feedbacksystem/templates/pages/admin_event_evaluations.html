@@ -14,13 +14,14 @@
 <div class="table-responsive">
     <table class="table table-bordered " >
             <tr>
-             <th  scope="col" style="color:#fafafa;  background: #2a9134">EVENT</th>
-             <th  scope="col" style="color:#fafafa;  background: #2a9134">SUGGESTIONS AND COMMENTS</th>
-             <th  scope="col" style="color:#fafafa;  background: #2a9134">AVERAGE RATING</th>
-             <th  scope="col" style="color:#fafafa;  background: #2a9134">POLARITY</th>
-             <th  scope="col" style="color:#fafafa;  background: #2a9134">ACADEMIC YEAR</th>
-             <th  scope="col" style="color:#fafafa;  background: #2a9134">SEMESTER</th>
-             <th  scope="col" style="color:#fafafa;  background: #2a9134">OPTIONS</th>
+                <th scope="col" style="color:#fafafa; background: #2a9134">Event</th>
+                <th scope="col" style="color:#fafafa; background: #2a9134">Suggestions and Comments</th>
+                <th scope="col" style="color:#fafafa; background: #2a9134">Average Rating</th>
+                <th scope="col" style="color:#fafafa; background: #2a9134">Polarity</th>
+                <th scope="col" style="color:#fafafa; background: #2a9134">Academic Year</th>
+                <th scope="col" style="color:#fafafa; background: #2a9134">Semester</th>
+                <th scope="col" style="color:#fafafa; background: #2a9134">Options</th>
+                
         </tr>
         </thead>
         <tbody>
@@ -43,8 +44,9 @@
     
             <td> {{ i.semester }}</td>
 
-            <td style="display: flex; flex-direction: row; gap:1em;"> <a href="{% url 'view_admin_schoolevent_evaluations' i.pk %}"><button class="btn btn-primary" style=" padding:3px 5px 3px 5px"><i class="bi bi-eye-fill" style="font-size:20px"></i> </button></a> 
-            </td>
+            <td style="display: flex; flex-direction: row; align-items: center; "> 
+                 <a href="{% url 'view_admin_schoolevent_evaluations' i.pk %}"><button class="btn btn-primary d-flex align-items-center" style="  padding:1px 7px 1px 7px"><i class="bi bi-eye-fill" style="font-size:20px; margin-right: 5px;"></i>View</button></a> 
+                  </td>
      </tr>
     
         {% endfor %}

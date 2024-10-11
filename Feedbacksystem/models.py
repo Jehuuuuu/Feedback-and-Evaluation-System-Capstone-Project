@@ -10,7 +10,7 @@ class Course(models.Model):
    created = models.DateTimeField(auto_now_add = True, null=True, blank = True)
 
    class Meta:
-        ordering = ['-updated', '-created']
+        ordering = ['name']
 
    def __str__(self):
         return self.name
@@ -21,7 +21,7 @@ class Course(models.Model):
 
     
 class Department(models.Model):
-    name = models.CharField(max_length=100, null=True, blank = True)
+    name = models.CharField(max_length=100)
 
     updated = models.DateTimeField(auto_now = True, null=True, blank = True)
     created = models.DateTimeField(auto_now_add = True, null=True, blank = True)
@@ -29,7 +29,7 @@ class Department(models.Model):
         return self.name
     
     class Meta:
-        ordering = ['-updated', '-created']
+        ordering = ['name']
 
     def __str__(self):
         return self.name
@@ -37,8 +37,8 @@ class Department(models.Model):
 
 class Faculty(models.Model):
     user = models.OneToOneField(User, null = True, blank=True, on_delete=models.CASCADE)
-    first_name = models.CharField(max_length=100, null=True, blank = True)
-    last_name = models.CharField(max_length=100, null=True, blank = True)
+    first_name = models.CharField(max_length=100)
+    last_name = models.CharField(max_length=100)
     gender = models.CharField(max_length=9)
     email = models.EmailField(max_length=100)
     contact_number = models.IntegerField(null=True, blank = True)
@@ -60,6 +60,9 @@ class Faculty(models.Model):
             return evaluations.aggregate(average=models.Avg('rating'))['average']
         return 0
 
+    def full_name(self):
+        return f"{self.first_name} {self.last_name}"
+    
 class Subject(models.Model):
     subject_code = models.CharField(max_length=10)
     subject_name = models.CharField(max_length=100)  
@@ -68,7 +71,7 @@ class Subject(models.Model):
     created = models.DateTimeField(auto_now_add = True, null=True, blank = True)
 
     class Meta:
-        ordering = ['-updated', '-created']
+        ordering = ['subject_code', 'subject_name']
 
     def __str__(self):
         return f"{self.subject_code} {self. subject_name}"
@@ -83,7 +86,7 @@ class Section(models.Model):
     created = models.DateTimeField(auto_now_add = True, null=True, blank = True)
 
     class Meta:
-        ordering = ['-updated', '-created']
+        ordering = ['name']
     def __str__(self):
         return self.name 
 
@@ -105,25 +108,29 @@ class SectionSubjectFaculty(models.Model):
 
 
 class Student(models.Model):
+    STUDENT_STATUS_CHOICES = [
+        ('regular', 'Regular'),  
+        ('irregular', 'Irregular'), 
+    ]
     user = models.OneToOneField(User, null = True, blank=True, on_delete=models.CASCADE)
     student_number = models.CharField(max_length=9, primary_key=True)
-    first_name = models.CharField(max_length=100, null=True, blank = True)
+    first_name = models.CharField(max_length=100)
     middle_name = models.CharField(max_length=100, null=True, blank = True)
-    last_name = models.CharField(max_length=100, null=True, blank = True)
+    last_name = models.CharField(max_length=100)
     email = models.EmailField(max_length = 64)  
-    age = models.IntegerField(null=True, blank = True)
-    sex = models.CharField(max_length=6, null=True, blank = True)
+    age = models.IntegerField()
+    sex = models.CharField(max_length=6)
     contact_no = models.CharField(max_length  = 15)
-    status = models.CharField(max_length  = 15)
+    status = models.CharField(max_length=20, choices=STUDENT_STATUS_CHOICES, default='Regular')
     profile_picture = models.ImageField(upload_to='profile_picture/', null=True, blank = True)
-    Course = models.ForeignKey(Course, on_delete=models.CASCADE, null=True, blank = True) 
-    Section = models.ForeignKey(Section, on_delete=models.CASCADE, null=True, blank = True) 
+    Course = models.ForeignKey(Course, on_delete=models.CASCADE) 
+    Section = models.ForeignKey(Section, on_delete=models.CASCADE) 
 
     updated = models.DateTimeField(auto_now = True, null=True, blank = True)
     created = models.DateTimeField(auto_now_add = True, null=True, blank = True)
   
     class Meta:
-        ordering = ['-updated', '-created']
+        ordering = ['-updated', '-created'] 
     
     def delete(self, *args, **kwargs):
         # Delete the associated user before deleting the student
@@ -141,8 +148,15 @@ class EvaluationStatus(models.Model):
         ('2nd', '2nd'),
     )
     semester = models.CharField(max_length=5, choices=SEMESTER_CHOICES)
-    evaluation_status = models.BooleanField(default=False)
-    
+    EVALUATION_STATUS_CHOICES = [
+        ('In Progress', 'In Progress'),
+        ('Closed', 'Closed'),
+    ]
+    evaluation_status = models.CharField(
+        max_length=12,
+        choices=EVALUATION_STATUS_CHOICES,
+        default='in_progress'
+    )   
     def __str__(self):
         return f"{self.academic_year} - {self.semester}"
 
@@ -350,6 +364,8 @@ class Event(models.Model):
     description = models.TextField(null=True, blank = True)
     author = models.ForeignKey(User, on_delete=models.CASCADE) 
     evaluation_status = models.BooleanField(default=False)
+    academic_year = models.CharField(max_length=50, null=True, blank=True)
+    semester = models.CharField(max_length=50, null=True, blank=True)
     updated = models.DateTimeField(auto_now = True, null=True, blank = True)
     created = models.DateTimeField(auto_now_add = True, null=True, blank = True)
 
@@ -358,6 +374,14 @@ class Event(models.Model):
 
     def __str__(self):
         return f"{self.title} - {self.evaluation_identifier}"
+    
+    def save(self, *args, **kwargs):
+        # Get the current evaluation status
+        evaluation_status = EvaluationStatus.objects.first()
+        if evaluation_status:
+            self.academic_year = evaluation_status.academic_year
+            self.semester = evaluation_status.semester
+        super().save(*args, **kwargs)
 
     @property
     def evaluation_identifier(self):
@@ -369,12 +393,20 @@ class SchoolEventModel(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE) 
     event = models.ForeignKey(Event, on_delete=models.CASCADE) 
     # Overall Evaluation
-    relevance_of_the_activity = models.IntegerField(choices=[(5, 'Greatly exceeded expectations'), (4, 'Exceeded expectations'), (3, 'Matched expectations'),
-                                        (2, 'Less than expected'), (1, 'Much less than expected')])
-    quality_of_the_activity = models.IntegerField(choices=[(5, 'Greatly exceeded expectations'), (4, 'Exceeded expectations'), (3, 'Matched expectations'),
-                                        (2, 'Less than expected'), (1, 'Much less than expected')])
-    timeliness = models.IntegerField(choices=[(5, 'Greatly exceeded expectations'), (4, 'Exceeded expectations'), (3, 'Matched expectations'),
-                                        (2, 'Less than expected'), (1, 'Much less than expected')])
+    meeting_expectation = models.IntegerField(choices=[(5, 'Excellent'), (4, 'Very Satisfactory'), (3, 'Satisfactory'),
+                                        (2, 'Fair'), (1, 'Poor')])
+    attainment_of_the_objectives = models.IntegerField(choices=[(5, 'Excellent'), (4, 'Very Satisfactory'), (3, 'Satisfactory'),
+                                        (2, 'Fair'), (1, 'Poor')])
+    topics_discussed = models.IntegerField(choices=[(5, 'Excellent'), (4, 'Very Satisfactory'), (3, 'Satisfactory'),
+                                        (2, 'Fair'), (1, 'Poor')])
+    input_presentation = models.IntegerField(choices=[(5, 'Excellent'), (4, 'Very Satisfactory'), (3, 'Satisfactory'),
+                                        (2, 'Fair'), (1, 'Poor')])
+    management_team = models.IntegerField(choices=[(5, 'Excellent'), (4, 'Very Satisfactory'), (3, 'Satisfactory'),
+                                        (2, 'Fair'), (1, 'Poor')])
+    venue_and_physical_arrangement = models.IntegerField(choices=[(5, 'Excellent'), (4, 'Very Satisfactory'), (3, 'Satisfactory'),
+                                        (2, 'Fair'), (1, 'Poor')])
+    overall_assessment = models.IntegerField(choices=[(5, 'Excellent'), (4, 'Very Satisfactory'), (3, 'Satisfactory'),
+                                        (2, 'Fair'), (1, 'Poor')])
     
     suggestions_and_comments = models.TextField()
 
@@ -387,9 +419,13 @@ class SchoolEventModel(models.Model):
 
     def calculate_average_rating(self):
         fields_to_average = [
-            'relevance_of_the_activity',
-            'quality_of_the_activity',
-            'timeliness'
+            'meeting_expectation',
+            'attainment_of_the_objectives',
+            'topics_discussed',
+            'input_presentation',
+            'management_team',
+            'venue_and_physical_arrangement',
+            'overall_assessment'
         ]
          # Filter out None values and calculate average
         ratings = [getattr(self, field) for field in fields_to_average if getattr(self, field) is not None]
@@ -496,7 +532,14 @@ class WebinarSeminarModel(models.Model):
 
         average_rating = sum(ratings) / len(ratings) if ratings else None
         return round(average_rating, 2) 
-
+    def save(self, *args, **kwargs):
+        # Get the current evaluation status
+        evaluation_status = EvaluationStatus.objects.first()
+        if evaluation_status:
+            self.academic_year = evaluation_status.academic_year
+            self.semester = evaluation_status.semester
+            self.average_rating = self.calculate_average_rating()
+        super().save(*args, **kwargs)
     def __str__(self):
         return self.event.title
 
@@ -538,5 +581,83 @@ class WebinarSeminarQuestions(models.Model):
         if not self.pk:  # Check if it's a new question
             # Calculate the next order number
             last_question = WebinarSeminarQuestions.objects.last()
+            self.order = 1 if not last_question else last_question.order + 1
+        super().save(*args, **kwargs)
+
+class StakeholderFeedbackModel(models.Model):
+    name = models.CharField(max_length=100, null=True, blank=True) 
+    agency = models.CharField(max_length=100, null=True, blank=True) 
+    email = models.EmailField(max_length=100, null=True, blank=True) 
+    purpose = models.CharField(max_length=100, null=True, blank=True) 
+    date = models.DateField(null=True, blank=True) 
+    staff = models.CharField(max_length=100, null=True, blank=True) 
+    
+    # Overall Evaluation
+    courtesy = models.IntegerField(choices=[(5, 'Highly satisfied'), (4, 'Very satisfied'), (3, 'Moderately satisfied'),
+                                        (2, 'Barely Satisfied'), (1, 'Not satisfied')])
+    quality = models.IntegerField(choices=[(5, 'Highly satisfied'), (4, 'Very satisfied'), (3, 'Moderately satisfied'),
+                                        (2, 'Barely Satisfied'), (1, 'Not satisfied')])
+    timeliness = models.IntegerField(choices=[(5, 'Highly satisfied'), (4, 'Very satisfied'), (3, 'Moderately satisfied'),
+                                        (2, 'Barely Satisfied'), (1, 'Not satisfied')])
+    efficiency = models.IntegerField(choices=[(5, 'Highly satisfied'), (4, 'Very satisfied'), (3, 'Moderately satisfied'),
+                                        (2, 'Barely Satisfied'), (1, 'Not satisfied')])
+    cleanliness = models.IntegerField(choices=[(5, 'Highly satisfied'), (4, 'Very satisfied'), (3, 'Moderately satisfied'),
+                                        (2, 'Barely Satisfied'), (1, 'Not satisfied')])
+    comfort = models.IntegerField(choices=[(5, 'Highly satisfied'), (4, 'Very satisfied'), (3, 'Moderately satisfied'),
+                                        (2, 'Barely Satisfied'), (1, 'Not satisfied')])
+    
+    suggestions_and_comments = models.TextField()
+
+    academic_year = models.CharField(max_length=50, null=True, blank=True)
+    semester = models.CharField(max_length=50, null=True, blank=True)
+    average_rating = models.FloatField(null=True, blank=True)
+
+    updated = models.DateTimeField(auto_now = True, null=True, blank = True)
+    created = models.DateTimeField(auto_now_add = True, null=True, blank = True)
+
+    def calculate_average_rating(self):
+        fields_to_average = [
+            'courtesy',
+            'quality',
+            'timeliness',
+            'efficiency',
+            'cleanliness',
+            'comfort',
+        ]
+         # Filter out None values and calculate average
+        ratings = [getattr(self, field) for field in fields_to_average if getattr(self, field) is not None]
+        
+         # Convert ratings to integers
+        ratings = [int(rating) for rating in ratings]
+
+        average_rating = sum(ratings) / len(ratings) if ratings else None
+        return round(average_rating, 2) 
+
+
+    def save(self, *args, **kwargs):
+        # Get the current evaluation status
+        evaluation_status = EvaluationStatus.objects.first()
+        if evaluation_status:
+            self.academic_year = evaluation_status.academic_year
+            self.semester = evaluation_status.semester
+            self.average_rating = self.calculate_average_rating()
+        super().save(*args, **kwargs)
+
+    class Meta:
+        ordering = ['-updated', '-created']
+    def __str__(self):
+        return self.name
+    
+class StakeholderFeedbackQuestions(models.Model):
+    text = models.CharField(max_length=255)
+    order = models.IntegerField(default=0) 
+
+    def __str__(self):
+        return self.text
+    
+    def save(self, *args, **kwargs):
+        if not self.pk:  # Check if it's a new question
+            # Calculate the next order number
+            last_question = StakeholderFeedbackQuestions.objects.last()
             self.order = 1 if not last_question else last_question.order + 1
         super().save(*args, **kwargs)
