@@ -53,7 +53,7 @@
       <ul class="nav flex-column nav-pills nav-container">
         <li class="nav-item">
           <a class="nav-link {% if request.path == '/facultydashboard' %} active {% endif %}" href="/facultydashboard">
-          <i class="bi bi-house-fill nav-icon"></i> <b>HOME</b>    
+          <i class="bi bi-house-fill nav-icon"></i> <b>Home</b>    
         
         
         </a>
@@ -61,27 +61,26 @@
        
         <li class="nav-item">
           <a class="nav-link {% if request.path == '/facultyprofile' %} active {% endif %}" href="{% url 'facultyprofile' %}">
-            <i class="bi bi-person-lines-fill nav-icon nav-icon"> </i> <b>PROFILE</b>
+            <i class="bi bi-person-lines-fill nav-icon nav-icon"> </i> <b>Profile</b>
               </a>
         </li>
                
         <li class="nav-item dropdown">
           <button class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-            <i class="bi bi-chat-left-fill nav-icon"></i> EVALUATIONS
+            <i class="bi bi-chat-left-fill nav-icon"></i> Evaluations
           </button>
           <div class="dropdown-menu" aria-labelledby="navbarDropdown">
               <a class="dropdown-item" href="{% url 'facultyfeedbackandevaluations' %}">SET</a>
-              <a class="dropdown-item" href="{% url 'faculty_event_evaluations' %}">Events</a>
       </li>
       <li class="nav-item">
         <a class="nav-link {% if request.path == '/faculty_events' %} active {% endif %}" href="/faculty_events">
-          <i class="bi bi-calendar2-event-fill nav-icon"></i></i> <b>EVENTS</b>    
+          <i class="bi bi-calendar2-event-fill nav-icon"></i></i> <b>Events</b>    
       </a>
     </li>
 
         <li class="nav-item">
           <a class="nav-link" href="{% url 'studentlogout' %}">
-            <i class="bi bi-box-arrow-in-left nav-icon"></i> <b>LOG OUT</b>
+            <i class="bi bi-box-arrow-in-left nav-icon"></i> <b>Logout</b>
           </a>
       </li>
     </ul>
@@ -90,22 +89,187 @@
     <!-- Main content area -->
     
       {% block header %}
-    <div id="eval" class = "container">
-      <h3>Academic Year: 2024-2025</h3>
-      <h4>Semester: 1st</h4>
-      <h4>Student Evaluation for Teachers: {% if evaluation_status.evaluation_status %} In Progress {% else %} Closed {% endif %}  </h4>
-     </div>
+
+    <div class="row ">
+      <div class="col-lg-6">
+        <div class = "header_status">
+          <h5>Academic Year: 2024-2025</h5>
+          <h5>Semester: 1st</h5>
+          <h5>Student Evaluation for Teachers: {% if evaluation_status.evaluation_status %} In Progress {% else %} Closed {% endif %} </h5>
+         </div>
+      </div>
+      <div class="col-lg-2">
+        <div class="card" style="width: 10rem;">
+         <div class="card-body" style="text-align: center;">
+           <h1 class="card-title mb-2">
+               {{ total_evaluations }}
+           </h1>
+           <h6 class="card-subtitle">Total Evaluations</h6>
+         </div>
+              </div>
+      </div>
+
+       <div class="col-lg-2">
+         <div class="card" style="width: 10rem;">
+          <div class="card-body" style="text-align: center;">
+            {% if avg_rating >= 5 %}
+            <h1 class="card-title mb-2" style="color: #339933;">
+                {{ avg_rating }}
+            </h1>
+            {% elif avg_rating >= 4 %}
+                <h1 class="card-title mb-2" style="color: #66CC66">
+                    {{ avg_rating }}
+                </h1>
+            {% elif avg_rating >= 3 %}
+                <h1 class="card-title mb-2" style="color: #FFD700;">
+                    {{ avg_rating }}
+                </h1>
+            {% elif avg_rating >= 2 %}
+                <h1 class="card-title mb-2" style="color: #FF9900;">
+                    {{ avg_rating }}
+                </h1>
+            {% elif avg_rating >= 1 %}
+                <h1 class="card-title mb-2" style="color: #FF4C4C;">
+                    {{ avg_rating }}
+                </h1>
+            {% endif %}
+            <h6 class="card-subtitle">Average Rating</h6>
+          </div>
+               </div>
+       </div>
+      </div>
+
+    </div>
+
+    <div class="row mt-2">
+      <div class=" col-lg-8">
+        <div class="chart-container">
+          <h5>Rating Distribution:</h5>
+          <!-- Canvas for the Chart.js chart -->
+          <canvas id="evaluationChart" height="200px"></canvas>
+        </div>
+      </div>
+      <div class="col-lg-4">
+        <div class="chart-container">
+          <table class="table table-bordered">
+              <h5>Recent feedback</h5>
+              {% for i in recent_comments %}
+              <tr>
+                {% if i.predicted_sentiment == 'Positive' %}
+                <td class="text-success">
+                    {{ i.comments }}
+                </td>
+                {% endif %}
+                {% if i.predicted_sentiment == 'Negative' %}
+                <td class="text-danger">
+                    {{ i.comments }}
+                </td>
+                {% endif %}
+              </tr>
+              {% endfor %}
+          </table>
+          <a href="{% url 'facultyfeedbackandevaluations' %}">View all</a>
+        </div>
+    </div>
+
+
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+      // Pass the categorized data from Django to JavaScript
+      const categorizedData = {{ categorized_data|safe }};
+
+      // Prepare data for Chart.js
+      const labels = Object.keys(categorizedData); // Category names
+      const dataPoints = labels.map(label => {
+          const fields = Object.values(categorizedData[label]);
+          return fields.reduce((a, b) => a + b, 0) / fields.length;  // Calculate category average
+      });
+
+      // Chart.js configuration
+      const ctx = document.getElementById('evaluationChart').getContext('2d');
+      const evaluationChart = new Chart(ctx, {
+          type: 'bar',
+          data: {
+              labels: labels,
+              datasets: [{
+                  label: 'Average Ratings',
+                  data: dataPoints,
+                  backgroundColor: [
+                      'rgba(75, 192, 192, 0.2)',
+                      'rgba(54, 162, 235, 0.2)',
+                      'rgba(255, 206, 86, 0.2)',
+                      'rgba(153, 102, 255, 0.2)',
+                      'rgba(255, 159, 64, 0.2)',
+                      'rgba(255, 99, 132, 0.2)'
+                  ],
+                  borderColor: [
+                      'rgba(75, 192, 192, 1)',
+                      'rgba(54, 162, 235, 1)',
+                      'rgba(255, 206, 86, 1)',
+                      'rgba(153, 102, 255, 1)',
+                      'rgba(255, 159, 64, 1)',
+                      'rgba(255, 99, 132, 1)'
+                  ],
+                  borderWidth: 1
+              }]
+          },
+          options: {
+              scales: {
+                  y: {
+                      beginAtZero: true,
+                      max: 5
+                  }
+              }
+          }
+      });
+  </script>
+
+<script>
+  var ctx = document.getElementById('sentimentChart').getContext('2d');
+  var periods = {{ periods|safe }};
+  var positiveCounts = {{ positive_counts|safe }};
+  var negativeCounts = {{ negative_counts|safe }};
+  
+  var sentimentChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+          labels: periods,
+          datasets: [
+              {
+                  label: 'Positive Comments',
+                  data: positiveCounts,
+                  borderColor: 'rgba(75, 192, 192, 1)',
+                  backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                  fill: false
+              },
+              {
+                  label: 'Negative Comments',
+                  data: negativeCounts,
+                  borderColor: 'rgba(255, 99, 132, 1)',
+                  backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                  fill: false
+              }
+          ]
+      },
+      options: {
+          scales: {
+              y: {
+                  beginAtZero: true,
+                  ticks: {
+                      stepSize: 1
+                  }
+              }
+          }
+      }
+  });
+</script>
     {% endblock header %}
    
     {% block feature %}
     
     {% endblock feature %}
  
- 
-
-
-
-
   <footer>
     <!-- place footer here -->
   </footer>

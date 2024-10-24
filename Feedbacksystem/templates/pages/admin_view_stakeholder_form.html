@@ -9,66 +9,161 @@
    
 {% endblock header %}
 {% block feature %}
-<table class="table table-responsive table-bordered " >
-    <tr>
-         <th  scope="col" style="color:#fafafa;  background: #2a9134">Area of Concern</th>
-         <th  scope="col" style="color:#fafafa;  background: #2a9134">RATING</th>
-    </tr>
-    </thead>
-    {% for question in questions %}
-    <tr>
-        {% if question.order == 1 %}
-        <td>A. {{question.text}}</td>
-        <td> {{ stakeholder_feedback_form.courtesy }}</td>
-        {% endif %} 
-    </tr>
-    {% endfor %}
-    <tr>
-        <th>B. Service</th>
-        <th  scope="col" style="color:#fafafa;  background: #2a9134"></th>
-    </tr>
-    {% for question in questions %}
-    <tr>
-        {% if question.order == 2 %}
-        <td>{{question.text}}</td>
-        <td> {{ stakeholder_feedback_form.quality }}</td>
-        {% endif %} 
-    </tr>
-    <tr>
-        {% if question.order == 3 %}
-        <td>{{question.text}}</td>
-        <td> {{ stakeholder_feedback_form.timeliness }}</td>
-        {% endif %} 
-    </tr>
-    <tr>
-        {% if question.order == 4 %}
-        <td>{{question.text}}</td>
-        <td> {{ stakeholder_feedback_form.efficiency }}</td> 
-        {% endif %}
-    </tr>
-    {% endfor %}
-    <tr>
-        <th>C. Physical condition of office/workspace</th>
-        <th  scope="col" style="color:#fafafa;  background: #2a9134"></th>
-    </tr>
-    {% for question in questions %}
-    <tr>
-        {% if question.order == 5 %}
-        <td>{{question.text}}</td>
-        <td> {{ stakeholder_feedback_form.cleanliness }}</td> 
-        {% endif %}
-    </tr>
-    <tr>
-        {% if question.order == 6 %}
-        <td>{{question.text}}</td>
-        <td> {{ stakeholder_feedback_form.comfort }}</td> 
-        {% endif %}
-    </tr>
-    {% endfor %}
-    <tr>
-        <td>Comments/Suggestions: </td>
-        <td> {{ stakeholder_feedback_form.suggestions_and_comments }}</td> 
-    </tr>
-  
-</table>
+<div class="row">
+    <div class="col-xl-6"  style="max-height: 400px; overflow-y: auto;">
+        <table class="table table-responsive table-bordered"  >
+            <tr>
+                <td>Name</td>
+                <td>{{ stakeholder_feedback_form.name }}</td>
+           </tr>
+            <tr>
+                <td>Agency</td>
+                <td>{{ stakeholder_feedback_form.agency }}</td>
+           </tr>
+            <tr>
+                <td>Email Address</td>
+                <td>{{ stakeholder_feedback_form.email }}</td>
+           </tr>
+            <tr>
+                <td>Purpose of Visit</td>
+                <td>{{ stakeholder_feedback_form.purpose }}</td>
+           </tr>
+            <tr>
+                <td>Attending Staff</td>
+                <td>{{ stakeholder_feedback_form.staff }}</td>
+           </tr>
+           </thead>
+            <tr>
+                 <th>Area of Concern</th>
+                 <th>Rating</th>
+            </tr>
+            </thead>
+            {% for question in questions %}
+            <tr>
+                {% if question.order == 1 %}
+                <td>A. {{question.text}}</td>
+                <td> {{ stakeholder_feedback_form.courtesy }}</td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+            <tr>
+                <th>B. Service</th>
+                <th></th>
+            </tr>
+            {% for question in questions %}
+            <tr>
+                {% if question.order == 2 %}
+                <td>{{question.text}}</td>
+                <td> {{ stakeholder_feedback_form.quality }}</td>
+                {% endif %}
+            </tr>
+            <tr>
+                {% if question.order == 3 %}
+                <td>{{question.text}}</td>
+                <td> {{ stakeholder_feedback_form.timeliness }}</td>
+                {% endif %}
+            </tr>
+            <tr>
+                {% if question.order == 4 %}
+                <td>{{question.text}}</td>
+                <td> {{ stakeholder_feedback_form.efficiency }}</td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+            <tr>
+                <th>C. Physical condition of office/workspace</th>
+                <th></th>
+            </tr>
+            {% for question in questions %}
+            <tr>
+                {% if question.order == 5 %}
+                <td>{{question.text}}</td>
+                <td> {{ stakeholder_feedback_form.cleanliness }}</td>
+                {% endif %}
+            </tr>
+            <tr>
+                {% if question.order == 6 %}
+                <td>{{question.text}}</td>
+                <td> {{ stakeholder_feedback_form.comfort }}</td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+            <tr>
+                <td>Comments/Suggestions: </td>
+                <td> {{ stakeholder_feedback_form.suggestions_and_comments }}</td>
+            </tr>
+        
+        </table>
+        
+    </div>
+    <div class="col-xl-6">
+        <table class="table table-bordered form-info">
+            <tr>
+                <td>Average</td>
+                <td>{{ stakeholder_feedback_form.average_rating }}</td>
+            </tr>
+            <tr>
+                <td>Rating</td>
+                <td>{{ stakeholder_feedback_form.get_rating_category }}</td>
+            </tr>
+            <tr>
+                <td>Academic Year</td>
+                <td>{{ stakeholder_feedback_form.academic_year }}</td>
+            </tr>
+            <tr>
+                <td>Semester</td>
+                <td>{{ stakeholder_feedback_form.semester }}</td>
+            </tr>
+            <tr>
+                <td>Date of Visit</td>
+                <td>{{ stakeholder_feedback_form.date }}</td>
+            </tr>
+        </table>
+        <canvas id="myChart" width="400" height="200"></canvas>
+        
+                <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+                <script>
+                    var ctx = document.getElementById('myChart').getContext('2d');
+                    var myChart = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: ['Highly Satisfied', 'Very Satisfied', 'Moderately Satisfied', 'Barely Satisfied', 'Not Satisfied'],  // Add more labels if needed
+                            datasets: [{
+                                label: '# of Responses',
+                                data: [
+                                    {{ highly_satisfied_count }},
+                                    {{ very_satisfied_count }},
+                                    {{ moderately_satisfied_count }},
+                                    {{ barely_satisfied_count }},
+                                    {{ not_satisfied_count }},
+                                    // Add other counts here
+                                ],
+                                backgroundColor: [
+                                    'rgba(75, 192, 192, 0.2)',
+                                    'rgba(54, 162, 235, 0.2)',
+                                    'rgba(255, 206, 86, 0.2)',
+                                    // Add colors for other ratings if needed
+                                ],
+                                borderColor: [
+                                    'rgba(75, 192, 192, 1)',
+                                    'rgba(54, 162, 235, 1)',
+                                    'rgba(255, 206, 86, 1)',
+                                    // Add border colors for other ratings if needed
+                                ],
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            scales: {
+                               
+                                y: {
+                                    beginAtZero: true
+                                }
+                            }
+                        }
+                    });
+        </script>
+    </div>
+</div>
+
 {% endblock feature %}

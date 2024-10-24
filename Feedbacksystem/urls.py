@@ -60,7 +60,8 @@ urlpatterns = [
     path('faculty_event_evaluations', views.faculty_event_evaluations, name='faculty_event_evaluations'),
     path('view_schoolevent_evaluations/<int:pk>/', views.view_schoolevent_evaluations, name='view_schoolevent_evaluations'),
     path('evaluation_response_chart_data', views.evaluation_response_chart_data, name='evaluation_response_chart_data'),
-    path('faculty_evaluations_chart_data', views.faculty_evaluations_chart_data, name='faculty_evaluations_chart_data'),
+    path('department_response_chart_data', views.department_response_chart_data, name='department_response_chart_data'),
+    path('faculty-response-chart-data/<int:department_id>/', views.faculty_response_chart_data, name='faculty_response_chart_data'),
     path('forms', views.forms, name='forms'),
     path('edit_faculty_evaluation_form', views.edit_faculty_evaluation_form, name='edit_faculty_evaluation_form'),
     path('edit_faculty_evaluation_form_question/<int:pk>/', views.edit_faculty_evaluation_form_question, name='edit_faculty_evaluation_form_question'),
@@ -83,6 +84,8 @@ urlpatterns = [
     path('president_view_event_evaluations/<int:pk>', views.president_view_event_evaluations, name='president_view_event_evaluations'),
     path('president_edit_event_evaluations/<int:pk>', views.president_edit_event_evaluations, name='president_edit_event_evaluations'),
     path('president_delete_event_evaluations/<int:pk>', views.president_delete_event_evaluations, name='president_delete_event_evaluations'),
+    path('stakeholderevaluations_csv', views.stakeholderevaluations_csv, name='stakeholderevaluations_csv'),
+    path('eventevaluations_csv', views.eventevaluations_csv, name='eventevaluations_csv')
 ]
 
 if settings.DEBUG:

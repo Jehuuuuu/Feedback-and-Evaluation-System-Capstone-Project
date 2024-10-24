@@ -10,7 +10,7 @@ th{
 }
 .table-responsive td, th {
   vertical-align: middle; /* Center content vertically */
-  padding: 0.8em;
+  padding: 0.5em;
 }
 hr{
   border: none;
@@ -175,6 +175,20 @@ background-color: #ff9400;
   width: 12%;
   border-radius: 20px;
   margin-left: 1em;
+}
+.form-info {
+  font-size: 1rem; /* Adjust font size */
+}
+.form-info td {
+  padding: 5px; /* Reduce cell padding */
+}
+#chart-container{
+  background-color: #ffffff;
+  padding: 1em;
+  border-radius:  0.25rem;
+}
+.card{
+  border: none;
 }
 @media (min-width:1200px){
 .evaluations_table {

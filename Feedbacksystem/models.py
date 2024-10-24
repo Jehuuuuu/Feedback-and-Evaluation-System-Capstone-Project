@@ -170,6 +170,7 @@ class LikertEvaluation(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE) 
     section_subject_faculty = models.ForeignKey(SectionSubjectFaculty, on_delete=models.CASCADE)
 
+    #SUBJECT MATTER CONTENT
     command_and_knowledge_of_the_subject = models.IntegerField(choices=[(5, 'Outstanding'), (4, 'Very Satisfactory'), (3, 'Satisfactory'),
                                         (2, 'Unsatisfactory'), (1, 'Poor')])
     
@@ -185,6 +186,7 @@ class LikertEvaluation(models.Model):
     integrates_subject_to_practical_circumstances = models.IntegerField(choices=[(5, 'Outstanding'), (4, 'Very Satisfactory'), (3, 'Satisfactory'),
                                         (2, 'Unsatisfactory'), (1, 'Poor')])
     
+    #ORGANIZATION
     organizes_the_subject_matter = models.IntegerField(choices=[(5, 'Outstanding'), (4, 'Very Satisfactory'), (3, 'Satisfactory'),
                                         (2, 'Unsatisfactory'), (1, 'Poor')])
     provides_orientation_on_course_content = models.IntegerField(choices=[(5, 'Outstanding'), (4, 'Very Satisfactory'), (3, 'Satisfactory'),
@@ -195,7 +197,8 @@ class LikertEvaluation(models.Model):
                                         (2, 'Unsatisfactory'), (1, 'Poor')])
     monitors_online_class = models.IntegerField(choices=[(5, 'Outstanding'), (4, 'Very Satisfactory'), (3, 'Satisfactory'),
                                         (2, 'Unsatisfactory'), (1, 'Poor')])
-
+    
+    #TEACHER-STUDENT RAPPORT
     holds_interest_of_students =models.IntegerField(choices=[(5, 'Outstanding'), (4, 'Very Satisfactory'), (3, 'Satisfactory'),
                                         (2, 'Unsatisfactory'), (1, 'Poor')])
     provides_relevant_feedback = models.IntegerField(choices=[(5, 'Outstanding'), (4, 'Very Satisfactory'), (3, 'Satisfactory'),
@@ -207,6 +210,7 @@ class LikertEvaluation(models.Model):
     shows_sense_of_humor = models.IntegerField(choices=[(5, 'Outstanding'), (4, 'Very Satisfactory'), (3, 'Satisfactory'),
                                         (2, 'Unsatisfactory'), (1, 'Poor')])
 
+    #TEACHING METHODS
     teaching_methods = models.IntegerField(choices=[(5, 'Outstanding'), (4, 'Very Satisfactory'), (3, 'Satisfactory'),
                                         (2, 'Unsatisfactory'), (1, 'Poor')])
     flexible_learning_strategies = models.IntegerField(choices=[(5, 'Outstanding'), (4, 'Very Satisfactory'), (3, 'Satisfactory'),
@@ -218,6 +222,7 @@ class LikertEvaluation(models.Model):
     focused_on_objectives = models.IntegerField(choices=[(5, 'Outstanding'), (4, 'Very Satisfactory'), (3, 'Satisfactory'),
                                         (2, 'Unsatisfactory'), (1, 'Poor')])
     
+    #PRESENTATION
     starts_with_motivating_activities = models.IntegerField(choices=[(5, 'Outstanding'), (4, 'Very Satisfactory'), (3, 'Satisfactory'),
                                         (2, 'Unsatisfactory'), (1, 'Poor')])
     speaks_in_clear_and_audible_manner = models.IntegerField(choices=[(5, 'Outstanding'), (4, 'Very Satisfactory'), (3, 'Satisfactory'),
@@ -229,6 +234,7 @@ class LikertEvaluation(models.Model):
     observes_proper_classroom_etiquette = models.IntegerField(choices=[(5, 'Outstanding'), (4, 'Very Satisfactory'), (3, 'Satisfactory'),
                                         (2, 'Unsatisfactory'), (1, 'Poor')])
     
+    # CLASSROOM MANAGEMENT
     uses_time_wisely = models.IntegerField(choices=[(5, 'Outstanding'), (4, 'Very Satisfactory'), (3, 'Satisfactory'),
                                         (2, 'Unsatisfactory'), (1, 'Poor')])
     gives_ample_time_for_students_to_prepare = models.IntegerField(choices=[(5, 'Outstanding'), (4, 'Very Satisfactory'), (3, 'Satisfactory'),
@@ -240,6 +246,7 @@ class LikertEvaluation(models.Model):
     understands_possible_distractions = models.IntegerField(choices=[(5, 'Outstanding'), (4, 'Very Satisfactory'), (3, 'Satisfactory'),
                                         (2, 'Unsatisfactory'), (1, 'Poor')])
 
+    #SENSITIVITY and SUPPORT to STUDENTS
     sensitivity_to_student_culture = models.IntegerField(choices=[(5, 'Outstanding'), (4, 'Very Satisfactory'), (3, 'Satisfactory'),
                                         (2, 'Unsatisfactory'), (1, 'Poor')])
     responds_appropriately = models.IntegerField(choices=[(5, 'Outstanding'), (4, 'Very Satisfactory'), (3, 'Satisfactory'),
@@ -250,6 +257,7 @@ class LikertEvaluation(models.Model):
                                         (2, 'Unsatisfactory'), (1, 'Poor')])
     extends_consideration_to_students = models.IntegerField(choices=[(5, 'Outstanding'), (4, 'Very Satisfactory'), (3, 'Satisfactory'),
                                         (2, 'Unsatisfactory'), (1, 'Poor')])
+    
 
     requires_less_task_for_credit = models.BooleanField()
     strengths_of_the_faculty = models.TextField()
@@ -312,7 +320,7 @@ class LikertEvaluation(models.Model):
         ratings = [int(rating) for rating in ratings]
 
         average_rating = sum(ratings) / len(ratings) if ratings else None
-        return round(average_rating, 2) 
+        return round(average_rating, 1) 
 
 
 
@@ -328,7 +336,9 @@ class LikertEvaluation(models.Model):
         # Check for existing evaluation for the same faculty
         if not LikertEvaluation.objects.filter(
             user=self.user,
-            section_subject_faculty=self.section_subject_faculty  # Assuming 'faculty' field exists
+            section_subject_faculty=self.section_subject_faculty, # Assuming 'faculty' field exists
+            academic_year=evaluation_status.academic_year,  # Add academic year condition
+            semester=evaluation_status.semester  # Add semester condition
         ).exists():
             self.status = "evaluated"  # Set status only if no prior evaluation exists
         if evaluation_status:
@@ -337,6 +347,21 @@ class LikertEvaluation(models.Model):
             self.average_rating = self.calculate_average_rating()
         super().save(*args, **kwargs)
 
+    def get_rating_category(self):
+        if self.average_rating is not None:
+            if 1.0 <= self.average_rating <= 1.49:
+                return "Poor"
+            elif 1.5 <= self.average_rating <= 2.49:
+                return "Fair"
+            elif 2.5 <= self.average_rating <= 3.49:
+                return "Good"
+            elif 3.5 <= self.average_rating <= 4.49:
+                return "Very Good"
+            elif 4.5 <= self.average_rating <= 5.0:
+                return "Outstanding"
+        return "No Rating"
+
+    
     class Meta:
         ordering = ['-updated', '-created']
     
@@ -434,8 +459,21 @@ class SchoolEventModel(models.Model):
         ratings = [int(rating) for rating in ratings]
 
         average_rating = sum(ratings) / len(ratings) if ratings else None
-        return round(average_rating, 2) 
+        return round(average_rating, 1) 
 
+    def get_rating_category(self):
+            if self.average_rating is not None:
+                if 1.0 <= self.average_rating <= 1.49:
+                    return "Poor"
+                elif 1.5 <= self.average_rating <= 2.49:
+                    return "Fair"
+                elif 2.5 <= self.average_rating <= 3.49:
+                    return "Good"
+                elif 3.5 <= self.average_rating <= 4.49:
+                    return "Very Good"
+                elif 4.5 <= self.average_rating <= 5.0:
+                    return "Outstanding"
+            return "No Rating"
 
     def save(self, *args, **kwargs):
         # Get the current evaluation status
@@ -531,7 +569,22 @@ class WebinarSeminarModel(models.Model):
         ratings = [int(rating) for rating in ratings]
 
         average_rating = sum(ratings) / len(ratings) if ratings else None
-        return round(average_rating, 2) 
+        return round(average_rating, 1) 
+    
+    def get_rating_category(self):
+            if self.average_rating is not None:
+                if 1.0 <= self.average_rating <= 1.49:
+                    return "Poor"
+                elif 1.5 <= self.average_rating <= 2.49:
+                    return "Fair"
+                elif 2.5 <= self.average_rating <= 3.49:
+                    return "Good"
+                elif 3.5 <= self.average_rating <= 4.49:
+                    return "Very Good"
+                elif 4.5 <= self.average_rating <= 5.0:
+                    return "Outstanding"
+            return "No Rating"
+
     def save(self, *args, **kwargs):
         # Get the current evaluation status
         evaluation_status = EvaluationStatus.objects.first()
@@ -631,8 +684,21 @@ class StakeholderFeedbackModel(models.Model):
         ratings = [int(rating) for rating in ratings]
 
         average_rating = sum(ratings) / len(ratings) if ratings else None
-        return round(average_rating, 2) 
+        return round(average_rating, 1) 
 
+    def get_rating_category(self):
+            if self.average_rating is not None:
+                if 1.0 <= self.average_rating <= 1.49:
+                    return "Poor"
+                elif 1.5 <= self.average_rating <= 2.49:
+                    return "Fair"
+                elif 2.5 <= self.average_rating <= 3.49:
+                    return "Good"
+                elif 3.5 <= self.average_rating <= 4.49:
+                    return "Very Good"
+                elif 4.5 <= self.average_rating <= 5.0:
+                    return "Outstanding"
+            return "No Rating"
 
     def save(self, *args, **kwargs):
         # Get the current evaluation status

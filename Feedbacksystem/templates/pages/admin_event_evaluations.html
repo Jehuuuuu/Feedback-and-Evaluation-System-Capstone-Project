@@ -11,12 +11,18 @@
 <hr>
 {% block feature %}
 
-<div class="table-responsive">
+<form action="{% url 'eventevaluations_csv' %}" method="get">
+    <input type="hidden" name="event_id" value="{{ event.id }}">
+    <input type="hidden" name="{{ request.GET.urlencode }}">
+    <button type="submit" class="btn btn-primary">Export CSV</button>
+</form>
+<div class="table-responsive mt-2">
     <table class="table table-bordered " >
             <tr>
                 <th scope="col" style="color:#fafafa; background: #2a9134">Event</th>
                 <th scope="col" style="color:#fafafa; background: #2a9134">Suggestions and Comments</th>
-                <th scope="col" style="color:#fafafa; background: #2a9134">Average Rating</th>
+                <th scope="col" style="color:#fafafa; background: #2a9134">Average</th>
+                <th scope="col" style="color:#fafafa; background: #2a9134">Rating</th>
                 <th scope="col" style="color:#fafafa; background: #2a9134">Polarity</th>
                 <th scope="col" style="color:#fafafa; background: #2a9134">Academic Year</th>
                 <th scope="col" style="color:#fafafa; background: #2a9134">Semester</th>
@@ -29,11 +35,12 @@
         <tr>
             <td> {{ i.event.title }}</td>
     
-    
             <td> {{ i.suggestions_and_comments }}</td>
     
     
             <td> {{ i.average_rating }}</td>
+
+            <td> {{ i.get_rating_category }}</td>
     
     
             <td>...</td>

@@ -7,7 +7,7 @@
   <div class="col-md-6">
     <h2>Faculty Evaluations</h2>
   </div>
-  <div class="col-lg-4 col-md-5 mt-1 evaluations_search" style="margin-left: auto;">
+  <div class="col-lg-5 col-md-5 mt-1 evaluations_search" style="margin-left: auto;">
     <form method="get" action="" class="d-flex" style="gap: 1em;">
         {{faculty_evaluation_filter.form.search.label_tag}}
         {{faculty_evaluation_filter.form.search}}
@@ -72,7 +72,7 @@
   
   <!-- Search Form and Export Button -->
   <div class="col-lg-4 col-md-2">
-      <a href="{% url 'evaluations_csv' %}" class="btn btn-secondary">Export</a>
+    <a href="{% url 'evaluations_csv' %}?{{ request.GET.urlencode }}" class="btn btn-primary">Export to CSV</a>
   </div>
 </div>
 
@@ -81,7 +81,8 @@
         <tr>
           <th scope="col">Subject</th>
           <th scope="col">Faculty</th>
-          <th scope="col">Average Rating</th>
+          <th scope="col">Average</th>
+          <th scope="col">Rating</th>
           <th scope="col">Overall Impression</th>
           <th scope="col">Polarity</th>
           <th scope="col">Academic Year</th>
@@ -94,6 +95,7 @@
             <td>{{ i.section_subject_faculty.subjects }} </td>
             <td>{{ i.section_subject_faculty.faculty }}</td>
             <td>{{ i.average_rating }}</td>
+            <td>{{ i.get_rating_category }}</td>
             <td>{{ i.comments }}</td>
             <td>{{ i.predicted_sentiment }}</td>
             <td>{{ i.academic_year }}</td>
@@ -109,31 +111,33 @@
     </table>
   </div>
       {% if is_paginated %}
-      <nav class = "pagination justify-content-center" aria-label="...">
-          <ul class="pagination">
-              {% if page_obj.has_previous %}
-            <li class="page-item ">
-              <a class="page-link" tabindex= "-1" aria-disabled = "true" href ="?page={{ page_obj.previous_page_number }}{% if ordering %}&ordering={{ ordering }}{% endif %}">Previous</a>
+      <nav class="pagination justify-content-center" aria-label="...">
+        <ul class="pagination">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}&{{ request.GET.urlencode|cut:'page=' }}">Previous</a>
             </li>
-              {% endif %}
-              {% for i in paginator.page_range %}
-              {% if i == page_obj.number %}
-  
+            {% endif %}
+    
+            {% for i in paginator.page_range %}
+            {% if i == page_obj.number %}
             <li class="page-item active" aria-current="page">
-              <a class="page-link" href="?page={{i}}{% if ordering %}&ordering={{ ordering }}{% endif %}">{{i}}</a>
+                <a class="page-link" href="?page={{ i }}&{{ request.GET.urlencode|cut:'page=' }}">{{ i }}</a>
             </li>
             {% else %}
-            <li class="page-item"><a class="page-link"  href="?page={{i}}{% if ordering %}&ordering={{ ordering }}{% endif %}">{{i}}</a></li>
-            {% endif %}
-            {% endfor %}
-            {% if page_obj.has_next %}
             <li class="page-item">
-              <a class="page-link" tabindex= "-1" href ="?page={{ page_obj.next_page_number }}{% if ordering %}&ordering={{ ordering }}{% endif %}">Next</a>
+                <a class="page-link" href="?page={{ i }}&{{ request.GET.urlencode|cut:'page=' }}">{{ i }}</a>
             </li>
             {% endif %}
-          </ul>
-        </nav>
-
+            {% endfor %}
+    
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}&{{ request.GET.urlencode|cut:'page=' }}">Next</a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
     {% endif %}
  <script>
   // for getting the sorting status to be displayed in sorting dropdown placeholder

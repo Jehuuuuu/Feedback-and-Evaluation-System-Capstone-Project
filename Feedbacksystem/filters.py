@@ -319,3 +319,25 @@ class StakeholderFilter(django_filters.FilterSet):
     class Meta:
         model = StakeholderFeedbackModel
         fields = ('academic_year', 'semester', 'search')
+
+class LikertEvaluationFilter(django_filters.FilterSet):
+    SEMESTER_CHOICES = [
+        ('1st', '1st'),
+        ('2nd', '2nd'),
+    ]
+
+    academic_year = django_filters.ChoiceFilter(choices=[], label='Academic Year', empty_label='All',  # Set 'All' as the default
+                                                widget=forms.Select(attrs={'class': 'form-control'}))
+    semester = django_filters.ChoiceFilter(choices=SEMESTER_CHOICES, label='Semester', empty_label='All',
+                                           widget=forms.Select(attrs={'class': 'form-control'}))
+
+    class Meta:
+        model = LikertEvaluation
+        fields = ['academic_year', 'semester']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Populate choices for academic_year dynamically from the database
+        academic_years = LikertEvaluation.objects.order_by('academic_year').values_list('academic_year', flat=True).distinct()
+        academic_year_choices = [(year, year) for year in academic_years]
+        self.filters['academic_year'].extra['choices'] = academic_year_choices

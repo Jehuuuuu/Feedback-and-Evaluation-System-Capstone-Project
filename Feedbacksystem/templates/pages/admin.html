@@ -11,7 +11,7 @@
   
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
   <link rel="icon" href="static/images/cvsulogo.png" type="image/png">
-  <link rel="stylesheet" href="{% static 'css/admin_page.css'%}">
+  <link rel="stylesheet" href="{% static 'css/adminpage.css'%}">
   <link href="https://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
   <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
@@ -40,7 +40,7 @@
           {% else %}
           <img src="{% static 'images/Default_avatar.webp' %}" alt="Default Profile Picture" width="60" style="margin-right: 1em; border-radius: 50%;" >
           {% endif %}
-            <a href="{% url 'student_profile' %}" style="font-weight: 500;"> <p id="profile_name" style="color: #fafafa; display: inline-block;">{{ request.user }}</p> </a>
+            <a style="font-weight: 500;"> <p id="profile_name" style="color: #fafafa; display: inline-block;">{{ request.user }}</p> </a>
         </div>
     </div>
 </div>
@@ -190,69 +190,72 @@
     {% endblock header %}
     
     {% block feature %}
-    <br>
-    <br>
-    <div class="row">
-
+    <div class="container">
+      <form method="GET" id="filterForm">
+        <div class="row mt-2">
+          <div class="col-md-4" id="chart-container" style="margin-right: 1em;">
+            {{filterset.form.academic_year.label_tag}}
+            {{filterset.form.academic_year}}
+          </div>
+          <div class="col-md-4" id="chart-container">
+            {{filterset.form.semester.label_tag}}
+            {{filterset.form.semester}}
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="row mt-2">
       <div class="col-md-6">
         <div id="chart-container">
-        <h4>Sentiment Analysis of Faculty Members</h4>
+        <h5>Sentiment Analysis of Faculty Members</h5>
         <canvas id="myChart"></canvas>
         </div>
       </div>
   
       <div class="col-md-6">
         <div id="chart-container">
-        <h4>Total Responses per Year/Semester</h4>
+        <h5>Total Responses per Year/Semester</h5>
              <canvas id="evaluationChart"></canvas>
              </div>
-            
             </div>
       </div>
-   
-    <div style="margin-top: 1em;">
-      <h4>Faculty Evaluations</h4>
-      <canvas id="facultyChart"></canvas>
-    </div>
 
-    
-   
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
-    <script>
-       // Get chart data from Django view
-      var chartData = {{ chart_data|safe }};
-         // Render Chart.js chart
-      const ctx = document.getElementById('myChart');
-    
-      new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: chartData.labels,
-          datasets: [{
-            label: 'Sentiment Analysis',
-            data: chartData.data,
-            backgroundColor: [
-            'rgba(80, 180, 120, 1)', // Positive
-            'rgba(255, 0, 0, 1)'  // Negative
-          ],
-          borderColor: [
-          'rgba(80, 180, 120, 1)',
-          'rgba(255, 0, 0, 1)'
-          ],
-          borderWidth: 1
-          }]
-        },
-        options: {
-          scales: {
-            y: {
-              beginAtZero: true
+      <script>
+         // Get chart data from Django view
+        var chartData = {{ chart_data|safe }};
+           // Render Chart.js chart
+        const ctx = document.getElementById('myChart');
+      
+        new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: chartData.labels,
+            datasets: [{
+              label: 'Sentiment Analysis',
+              data: chartData.data,
+              backgroundColor: [
+              'rgba(80, 180, 120, 1)', // Positive
+              'rgba(255, 0, 0, 1)'  // Negative
+            ],
+            borderColor: [
+            'rgba(80, 180, 120, 1)',
+            'rgba(255, 0, 0, 1)'
+            ],
+            borderWidth: 1
+            }]
+          },
+          options: {
+            scales: {
+              y: {
+                beginAtZero: true
+              }
             }
           }
-        }
-      });
-    </script>
+        });
+      </script>
 
 
     <script>
@@ -284,40 +287,150 @@
               });
           });
   </script>
+  
+  <div style="margin-top: 1em;">
+    <div id="chart-container">
+      <h5>Department Evaluation Chart</h5>
+      <select class="form-select" id="departmentSelect" style="margin-top: 1em;">
+        <option value="">Select a department</option>
+        {% for department in departments %}
+            <option value="{{ department.id }}">{{ department.name }}</option>
+        {% endfor %}
+      </select>
+      <canvas id="departmentChart" height="100px"></canvas>
+    </div>
+  </div>
+  
+  <div style="margin-top: 1em; display: none;" id="facultyChartContainer">
+<div id="chart-container">
+  
+        <h5 id="facultyChartTitle">Faculty Evaluations for <span id="departmentName"></span></h5>
+        <select class="form-select" id="facultyDepartmentSelect" style="margin-top: 1em;">
+          <option value="">Select a department</option>
+          {% for department in departments %}
+              <option value="{{ department.id }}">{{ department.name }}</option>
+          {% endfor %}
+        </select>
+  
+  
+      <canvas id="facultyChart" height="100px"></canvas>
+</div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
-    // Retrieve data from the server
-    fetch('{% url "faculty_evaluations_chart_data" %}')
+    let facultyChart = null; // To store the faculty chart instance
+  
+    // Function to fetch department chart data
+    function loadDepartmentChart() {
+      fetch('{% url "department_response_chart_data" %}')
         .then(response => response.json())
         .then(data => {
-            // Render chart
-            const chart = new Chart(facultyChart, {
-      type: 'bar',
-      data: {
-        labels: data.labels,
-        datasets: [{
-          label: 'Positive Evaluations',
-          backgroundColor: 'rgba(80, 180, 120, 1)',
-          borderColor: 'rgba(80, 180, 120, 1)',
-          data: data.data.map(row => row[0]),
-        }, {
-          label: 'Negative Evaluations',
-          backgroundColor: 'rgba(255, 0, 0, 1)',
-          borderColor: 'rgba(255, 0, 0, 1)',
-          data: data.data.map(row => row[1]),
-        }]
-      },
-      options: {
-        scales: {
-          yAxes: [{
-            ticks: {
-              beginAtZero: true
+          const ctx = document.getElementById('departmentChart').getContext('2d');
+          const departmentChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+              labels: data.labels,
+              datasets: [{
+                label: 'Positive Evaluations',
+                backgroundColor: 'rgba(80, 180, 120, 1)',
+                data: data.data.map(row => row[0]),
+              }, {
+                label: 'Negative Evaluations',
+                backgroundColor: 'rgba(255, 0, 0, 1)',
+                data: data.data.map(row => row[1]),
+              }]
+            },
+            options: {
+              scales: {
+                y: {
+                  beginAtZero: true
+                }
+              }
             }
-          }]
-        }
+          });
+        });
+    }
+  
+    // Function to fetch faculty chart data based on selected department
+    function loadFacultyChart(departmentId) {
+      fetch(`/faculty-response-chart-data/${departmentId}/`)
+        .then(response => response.json())
+        .then(data => {
+          const ctx = document.getElementById('facultyChart').getContext('2d');
+          
+          // If a chart already exists, destroy it before creating a new one
+          if (facultyChart) {
+            facultyChart.destroy();
+          }
+          
+          // Create a new chart with the fetched data
+          facultyChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+              labels: data.labels,
+              datasets: [{
+                label: 'Positive Evaluations',
+                backgroundColor: 'rgba(80, 180, 120, 1)',
+                data: data.data.map(row => row[0]),
+              }, {
+                label: 'Negative Evaluations',
+                backgroundColor: 'rgba(255, 0, 0, 1)',
+                data: data.data.map(row => row[1]),
+              }]
+            },
+            options: {
+              scales: {
+                y: {
+                  beginAtZero: true
+                }
+              }
+            }
+          });
+        });
+    }
+  
+    // Load department chart on page load
+    loadDepartmentChart();
+  
+    // Handle department selection in the first dropdown
+    document.getElementById('departmentSelect').addEventListener('change', function() {
+      const departmentId = this.value;
+      const selectedDepartment = this.options[this.selectedIndex].text; // Get the selected department name
+      
+      // Hide the department chart when a department is selected
+      const departmentChartContainer = document.getElementById('departmentChart').parentNode;
+      if (departmentId) {
+        departmentChartContainer.style.display = 'none'; // Hide department chart
+        document.getElementById('facultyChartContainer').style.display = 'block'; // Show faculty chart container
+        
+        // Change the title to the selected department name
+        document.getElementById('facultyChartTitle').innerText = `${selectedDepartment} Evaluations`;
+  
+        loadFacultyChart(departmentId);  // Load the faculty chart
+      } else {
+        document.getElementById('facultyChartContainer').style.display = 'none'; // Hide faculty chart container if no department is selected
+        departmentChartContainer.style.display = 'block'; // Show department chart if selection is cleared
       }
     });
-  });
-</script>
+  
+    // Handle department selection in the second (faculty) dropdown
+    document.getElementById('facultyDepartmentSelect').addEventListener('change', function() {
+      const departmentId = this.value;
+      const selectedDepartment = this.options[this.selectedIndex].text; // Get the selected department name
+  
+      if (departmentId) {
+        // Update the faculty evaluations chart based on this department selection
+        loadFacultyChart(departmentId); // Reload faculty chart with new department
+        document.getElementById('facultyChartTitle').innerText = `${selectedDepartment} Evaluations`;
+      }
+      if (departmentId) {
+        // Update the faculty evaluations chart based on this department selection
+        loadFacultyChart(departmentId); // Reload faculty chart with new department
+        document.getElementById('facultyChartTitle').innerText = `${selectedDepartment} Evaluations`;
+      } 
+    });
+
+  </script>
  {% endblock feature %}
 
  
@@ -330,6 +443,7 @@
     <!-- place footer here -->
   </footer>
   <!-- Bootstrap JavaScript Libraries -->
+
  
   <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"
     integrity="sha384-oBqDVmMz9ATKxIep9tiCxS/Z9fNfEXiDAYTujMAeBAsjFuCZSmKbSSUnQlmh/jp3" crossorigin="anonymous">
@@ -353,6 +467,19 @@
         });
     });
 </script>
+<script>
+  // Get all select elements in the form
+  const filterForm = document.getElementById('filterForm');
+  const selects = filterForm.querySelectorAll('select');
+
+  // Add an event listener to each select element
+  selects.forEach(select => {
+    select.addEventListener('change', function() {
+      // Automatically submit the form when a selection changes
+      filterForm.submit();
+    });
+  });
+</script> 
 </body>
 
 </html>

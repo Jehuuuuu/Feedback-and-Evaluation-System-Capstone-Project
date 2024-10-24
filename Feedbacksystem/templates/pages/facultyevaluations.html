@@ -15,19 +15,20 @@
 {% endif %}
 <table class="table table-bordered table-responsive  ">
     <tr>
-        <th scope="col">First Name</th>
-        <th scope="col">Last Name</th>
-        <th scope="col">Gender</th>
-        <th scope="col">Email</th>
-        <th scope="col">Contact Number</th>
-        <th scope="col">Department</th>
+        <th scope="col">Subject</th>
+        <th scope="col">Average</th>
+        <th scope="col">Rating</th>
+        <th scope="col">Overall Impression</th>
+        <th scope="col">Polarity</th>
+        <th scope="col">Academic Year</th>
+        <th scope="col">Semester</th>
         <th scope="col">Options</th>        
     </tr>
     {% for i in teacher_evaluations %}
     <tr>
         <td>{{ i.section_subject_faculty.subjects }} </td>
-        <td>{{ i.section_subject_faculty.faculty }}</td>
         <td>{{ i.average_rating }}</td>
+        <td>{{ i.get_rating_category }}</td>
         <td>{{ i.comments }}</td>
         <td>{{ i.predicted_sentiment }}</td>
         <td>{{ i.academic_year }}</td>

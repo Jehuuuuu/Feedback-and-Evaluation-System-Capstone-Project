@@ -11,9 +11,6 @@
     {% endblock header %}
     <hr>
     {% block feature %}
-    {% if avg_rating %}
-      <p><strong>Total Average Rating: {{ avg_rating|floatformat:1 }} </strong></p>
-    {% endif %}
     <div class="table-responsive">
         <table class="table table-bordered ">
             <tr>
@@ -33,7 +30,12 @@
                 <td>{{ i.predicted_sentiment }}</td>
                 <td>{{ i.academic_year }}</td>
                 <td>{{ i.semester }}</td>
-                <td><a href="{% url 'view_evaluation_form' i.pk %}"><button class="btn btn-primary" style=" padding:3px 5px 3px 5px"><i class="bi bi-eye-fill" style="font-size:20px"></i></button></td>
+                <td>
+                    <a href="{% url 'view_evaluation_form' i.pk %}" style=" text-decoration: none;">
+                        <button class="btn btn-primary d-flex align-items-center" style=" padding:1px 7px 1px 7px">
+                          <i class="bi bi-eye-fill" style="font-size:20px; margin-right: 5px;"></i>View</button></a>
+            
+                    </td>
             </tr>
         
             {% endfor %}

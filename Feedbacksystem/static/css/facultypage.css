@@ -6,6 +6,8 @@
 body{
   overflow-y: hidden; /* Hide scrollbar for sidebar */
   scroll-behavior: smooth;
+  background-color:  #faf5fF;
+  color: #333;
 }
 th{
   color: #ffffff !important; 
@@ -163,11 +165,10 @@ hr{
     border: none;
     border-bottom: 2px solid #ff9400;
   }
-#eval{
-  padding: 1em ;
-  box-shadow: 2px 2px 5px 3px rgba(0,0,0,0.2);
-  height: 9em;
-    max-width: 550px;
+.header_status{
+  background-color: #ffffff;
+  padding: 1em;
+  border-radius:  0.25rem;
   }
 .button-container button{
   width: 100%;
@@ -187,11 +188,15 @@ hr{
   background-color: #2a9134 !important;
   border-color: #2a9134
 }
-th{
-  color: #ffffff !important; 
-  background-color: #2a9134 !important;
-}
 
+.card{
+  border: none !important;
+}
+.chart-container{
+  background-color: #ffffff;
+  padding: 1em;
+  border-radius:  0.25rem;
+}
 @media (max-width:900px) {
 .header-title{
   font-size: 0.9rem;

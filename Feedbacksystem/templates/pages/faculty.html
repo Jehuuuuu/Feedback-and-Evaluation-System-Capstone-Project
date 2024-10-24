@@ -70,7 +70,19 @@
       <option id="-created" value="-created">Recently Added</option>
       </select>
     </div>
-  </div>
+    <div class="col-lg-2 col-md-5 col-12 mt-1">
+      <form method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+           <!-- Hide the actual file input -->
+      <input id="fileInput" type="file" name="facultyfile" accept=".xlsx" style="display: none;" onchange="this.form.submit()">
+  
+      <!-- Custom button to trigger file selection -->
+      <button type="button" class="btn btn-primary" onclick="document.getElementById('fileInput').click();">
+          Bulk Import
+      </button>
+    </div>
+    </form>
+    </div>
 
     <div class="table-responsive mt-2 ">
       <table class="table table-bordered table-responsive  ">
@@ -131,7 +143,7 @@
     <ul class="pagination justify-content-center">
         {% if page_obj.has_previous %}
         <li class="page-item">
-            <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous">
+            <a class="page-link" href="?page={{ page_obj.previous_page_number }}&{{ request.GET.urlencode|cut:'page=' }}" aria-label="Previous">
                 <span aria-hidden="true">&laquo;</span>
             </a>
         </li>
@@ -139,13 +151,13 @@
 
         {% for num in page_obj.paginator.page_range %}
         <li class="page-item {% if page_obj.number == num %}active{% endif %}">
-            <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+            <a class="page-link" href="?page={{ num }}&{{ request.GET.urlencode|cut:'page=' }}">{{ num }}</a>
         </li>
         {% endfor %}
 
         {% if page_obj.has_next %}
         <li class="page-item">
-            <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Next">
+            <a class="page-link" href="?page={{ page_obj.next_page_number }}&{{ request.GET.urlencode|cut:'page=' }}" aria-label="Next">
                 <span aria-hidden="true">&raquo;</span>
             </a>
         </li>
