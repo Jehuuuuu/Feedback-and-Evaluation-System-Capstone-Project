@@ -349,6 +349,16 @@ class EventCreationForm(ModelForm):
             'evaluation_status': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
 
+    def clean(self):
+        cleaned_data = super().clean()
+        course_attendees = cleaned_data.get('course_attendees')
+        department_attendees = cleaned_data.get('department_attendees')
+
+        if not course_attendees and not department_attendees:
+            raise ValidationError("You must select at least one Course or Department attendee.")
+
+        return cleaned_data
+
 class SchoolEventForm(forms.Form):
     meeting_expectation = forms.ChoiceField(choices=[(5, ''), (4, ''), (3, ''),
                                         (2, ''), (1, '')],  widget=forms.RadioSelect(attrs={'class': 'likert-horizontal custom-radio'}))

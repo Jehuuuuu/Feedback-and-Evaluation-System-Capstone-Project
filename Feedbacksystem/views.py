@@ -267,7 +267,7 @@ def home(request):
             pass 
       
     #pagination
-    paginator = Paginator(unevaluated_events, 4)  # Show 4 events per page
+    paginator = Paginator(unevaluated_events, 4) 
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     context = {'evaluation_status': evaluation_status, 'student': student, 'unevaluated_events': unevaluated_events, 'page_obj': page_obj, 'completed_count': completed_count, 'total_faculty': total_faculty, 'is_president': is_president}
@@ -745,7 +745,7 @@ def president_view_event_evaluations(request, pk):
     # Combine the results into one list
     evaluations = school_event_evaluations + webinar_seminar_evaluations
     
-    paginator = Paginator(evaluations, 5)  # Show 4 events per page
+    paginator = Paginator(evaluations, 5) 
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
@@ -758,6 +758,288 @@ def president_view_event_evaluations(request, pk):
     }
 
     return render(request, 'pages/president_view_event_evaluations.html', context)
+
+@login_required(login_url='signin')
+@allowed_users(allowed_roles=['society president'])
+def view_society_president_event_evaluations(request, pk):
+    # Try to get the event from SchoolEventModel or WebinarSeminarModel
+    try:
+        event_form_details = SchoolEventModel.objects.get(pk=pk)
+        event_type = 'school_event'
+    except SchoolEventModel.DoesNotExist:
+        try:
+            event_form_details = WebinarSeminarModel.objects.get(pk=pk)
+            event_type = 'webinar_event'
+        except WebinarSeminarModel.DoesNotExist:
+            # If no event is found in either model, handle the error
+            return HttpResponse("Event not found.")
+
+    # Render different templates based on the event type
+    if event_type == 'school_event':
+        questions = SchoolEventQuestions.objects.all().order_by('order')
+
+        excellent_count = SchoolEventModel.objects.filter(pk=pk).filter(
+            meeting_expectation=5
+        ).count() + SchoolEventModel.objects.filter(pk=pk).filter(
+            attainment_of_the_objectives=5
+        ).count() + SchoolEventModel.objects.filter(pk=pk).filter(pk=pk).filter(
+            topics_discussed=5
+        ).count() + SchoolEventModel.objects.filter(pk=pk).filter(
+            input_presentation=5
+        ).count()  + SchoolEventModel.objects.filter(pk=pk).filter(
+            management_team=5
+        ).count()  + SchoolEventModel.objects.filter(pk=pk).filter(
+            venue_and_physical_arrangement=5
+        ).count() + SchoolEventModel.objects.filter(pk=pk).filter(
+            overall_assessment=5
+        ).count()
+
+        very_satisfactory_count = SchoolEventModel.objects.filter(pk=pk).filter(
+            meeting_expectation=4
+        ).count() + SchoolEventModel.objects.filter(pk=pk).filter(
+            attainment_of_the_objectives=4
+        ).count() + SchoolEventModel.objects.filter(pk=pk).filter(pk=pk).filter(
+            topics_discussed=4
+        ).count() + SchoolEventModel.objects.filter(pk=pk).filter(
+            input_presentation=4
+        ).count()  + SchoolEventModel.objects.filter(pk=pk).filter(
+            management_team=4
+        ).count()  + SchoolEventModel.objects.filter(pk=pk).filter(
+            venue_and_physical_arrangement=4
+        ).count() + SchoolEventModel.objects.filter(pk=pk).filter(
+            overall_assessment=4
+        ).count()
+
+        satisfactory_count = SchoolEventModel.objects.filter(pk=pk).filter(
+            meeting_expectation=3
+        ).count() + SchoolEventModel.objects.filter(pk=pk).filter(
+            attainment_of_the_objectives=3
+        ).count() + SchoolEventModel.objects.filter(pk=pk).filter(pk=pk).filter(
+            topics_discussed=3
+        ).count() + SchoolEventModel.objects.filter(pk=pk).filter(
+            input_presentation=3
+        ).count()  + SchoolEventModel.objects.filter(pk=pk).filter(
+            management_team=3
+        ).count()  + SchoolEventModel.objects.filter(pk=pk).filter(
+            venue_and_physical_arrangement=3
+        ).count() + SchoolEventModel.objects.filter(pk=pk).filter(
+            overall_assessment=3
+        ).count()
+
+        fair_count = SchoolEventModel.objects.filter(pk=pk).filter(
+            meeting_expectation=2
+        ).count() + SchoolEventModel.objects.filter(pk=pk).filter(
+            attainment_of_the_objectives=2
+        ).count() + SchoolEventModel.objects.filter(pk=pk).filter(pk=pk).filter(
+            topics_discussed=2
+        ).count() + SchoolEventModel.objects.filter(pk=pk).filter(
+            input_presentation=2
+        ).count()  + SchoolEventModel.objects.filter(pk=pk).filter(
+            management_team=2
+        ).count()  + SchoolEventModel.objects.filter(pk=pk).filter(
+            venue_and_physical_arrangement=2
+        ).count() + SchoolEventModel.objects.filter(pk=pk).filter(
+            overall_assessment=2
+        ).count()
+
+        poor_count = SchoolEventModel.objects.filter(pk=pk).filter(
+            meeting_expectation=1
+        ).count() + SchoolEventModel.objects.filter(pk=pk).filter(
+            attainment_of_the_objectives=1
+        ).count() + SchoolEventModel.objects.filter(pk=pk).filter(pk=pk).filter(
+            topics_discussed=1
+        ).count() + SchoolEventModel.objects.filter(pk=pk).filter(
+            input_presentation=1
+        ).count()  + SchoolEventModel.objects.filter(pk=pk).filter(
+            management_team=1
+        ).count()  + SchoolEventModel.objects.filter(pk=pk).filter(
+            venue_and_physical_arrangement=1
+        ).count() + SchoolEventModel.objects.filter(pk=pk).filter(
+            overall_assessment=1
+        ).count()
+
+        template_name = 'pages/view_society_president_schoolevent_evaluations.html'
+        
+    elif event_type == 'webinar_event':
+        questions = WebinarSeminarQuestions.objects.all().order_by('order')
+
+        excellent_count = WebinarSeminarModel.objects.filter(pk=pk).filter(
+            relevance_of_the_activity=5
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(pk=pk).filter(
+            quality_of_the_activity=5
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            timeliness=5
+        ).count()  + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            attainment_of_the_objective=5
+        ).count()  + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            appropriateness_of_the_topic_to_attain_the_objective=5
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            appropriateness_of_the_searching_methods_used=5
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            appropriateness_of_the_topic_in_the_present_time=5
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            usefulness_of_the_topic_discusssed_in_the_activity=5
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            appropriateness_of_the_searching_methods=5
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            displayed_a_thorough_knowledge_of_the_topic=5
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            thoroughly_explained_and_processed_the_learning_activities_throughout_the_training=5
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            able_to_create_a_good_learning_environment=5
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            able_to_manage_her_time_well=5
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            demonstrated_keenness_to_the_participant_needs=5
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            timeliness_or_suitability_of_service=5
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            overall_satisfaction=5
+        ).count()
+
+        very_satisfactory_count = WebinarSeminarModel.objects.filter(pk=pk).filter(
+            relevance_of_the_activity=4
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(pk=pk).filter(
+            quality_of_the_activity=4
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            timeliness=4
+        ).count()  + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            attainment_of_the_objective=4
+        ).count()  + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            appropriateness_of_the_topic_to_attain_the_objective=4
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            appropriateness_of_the_searching_methods_used=4
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            appropriateness_of_the_topic_in_the_present_time=4
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            usefulness_of_the_topic_discusssed_in_the_activity=4
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            appropriateness_of_the_searching_methods=4
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            displayed_a_thorough_knowledge_of_the_topic=4
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            thoroughly_explained_and_processed_the_learning_activities_throughout_the_training=4
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            able_to_create_a_good_learning_environment=4
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            able_to_manage_her_time_well=4
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            demonstrated_keenness_to_the_participant_needs=4
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            timeliness_or_suitability_of_service=4
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            overall_satisfaction=4
+        ).count()
+
+        satisfactory_count = WebinarSeminarModel.objects.filter(pk=pk).filter(
+            relevance_of_the_activity=3
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(pk=pk).filter(
+            quality_of_the_activity=3
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            timeliness=3
+        ).count()  + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            attainment_of_the_objective=3
+        ).count()  + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            appropriateness_of_the_topic_to_attain_the_objective=3
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            appropriateness_of_the_searching_methods_used=3
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            appropriateness_of_the_topic_in_the_present_time=3
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            usefulness_of_the_topic_discusssed_in_the_activity=3
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            appropriateness_of_the_searching_methods=3
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            displayed_a_thorough_knowledge_of_the_topic=3
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            thoroughly_explained_and_processed_the_learning_activities_throughout_the_training=3
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            able_to_create_a_good_learning_environment=3
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            able_to_manage_her_time_well=3
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            demonstrated_keenness_to_the_participant_needs=3
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            timeliness_or_suitability_of_service=3
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            overall_satisfaction=3
+        ).count()
+
+        fair_count = WebinarSeminarModel.objects.filter(pk=pk).filter(
+            relevance_of_the_activity=2
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(pk=pk).filter(
+            quality_of_the_activity=2
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            timeliness=2
+        ).count()  + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            attainment_of_the_objective=2
+        ).count()  + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            appropriateness_of_the_topic_to_attain_the_objective=2
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            appropriateness_of_the_searching_methods_used=2
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            appropriateness_of_the_topic_in_the_present_time=2
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            usefulness_of_the_topic_discusssed_in_the_activity=2
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            appropriateness_of_the_searching_methods=2
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            displayed_a_thorough_knowledge_of_the_topic=2
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            thoroughly_explained_and_processed_the_learning_activities_throughout_the_training=2
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            able_to_create_a_good_learning_environment=2
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            able_to_manage_her_time_well=2
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            demonstrated_keenness_to_the_participant_needs=2
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            timeliness_or_suitability_of_service=2
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            overall_satisfaction=2
+        ).count()
+
+        poor_count = WebinarSeminarModel.objects.filter(pk=pk).filter(
+            relevance_of_the_activity=1
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(pk=pk).filter(
+            quality_of_the_activity=1
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            timeliness=1
+        ).count()  + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            attainment_of_the_objective=1
+        ).count()  + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            appropriateness_of_the_topic_to_attain_the_objective=1
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            appropriateness_of_the_searching_methods_used=1
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            appropriateness_of_the_topic_in_the_present_time=1
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            usefulness_of_the_topic_discusssed_in_the_activity=1
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            appropriateness_of_the_searching_methods=1
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            displayed_a_thorough_knowledge_of_the_topic=1
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            thoroughly_explained_and_processed_the_learning_activities_throughout_the_training=1
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            able_to_create_a_good_learning_environment=1
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            able_to_manage_her_time_well=1
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            demonstrated_keenness_to_the_participant_needs=1
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            timeliness_or_suitability_of_service=1
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            overall_satisfaction=1
+        ).count()
+
+       
+        template_name = 'pages/view_society_president_webinar_evaluations.html'
+    else:
+        return HttpResponse("Invalid event type.")
+
+
+    return render(request, template_name, {'event_form_details': event_form_details, 'faculty': faculty, 'questions': questions, 'excellent_count': excellent_count, 'very_satisfactory_count': very_satisfactory_count, 'satisfactory_count': satisfactory_count, 'fair_count': fair_count, 'poor_count': poor_count})
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['society president'])
@@ -1010,6 +1292,8 @@ def evaluations(request):
     context = {'evaluation': page.object_list,'total_evaluations': total_evaluations, 'faculty_evaluation_filter': faculty_evaluation_filter, 'page_obj':page, 'is_paginated': True, 'paginator':evaluation_paginator,'ordering': ordering}
     return render(request, 'pages/evaluations.html', context)
 
+@login_required(login_url='signin')
+@allowed_users(allowed_roles=['admin'])
 def evaluations_csv(request):
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename=faculty_evaluations.csv'
@@ -1432,11 +1716,13 @@ def admin_event_list(request):
     if ordering:
         events = events.order_by(ordering) 
 
-    paginator = Paginator(events, 5)  # Show 4 events per page
+    paginator = Paginator(events, 5) 
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     return render(request,'pages/admin_event_list.html',{'events': events, 'page_obj': page_obj, 'event_filter': event_filter})
 
+@login_required(login_url='signin')
+@allowed_users(allowed_roles=['admin'])
 def admin_event_evaluations(request, pk):
     event = get_object_or_404(Event, pk=pk)
     # Filter evaluations from both SchoolEventModel and WebinarSeminarModel
@@ -1446,7 +1732,7 @@ def admin_event_evaluations(request, pk):
     # Combine the results into one list
     evaluations = school_event_evaluations + webinar_seminar_evaluations
     
-    paginator = Paginator(evaluations, 5)  # Show 4 events per page
+    paginator = Paginator(evaluations, 5) 
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
@@ -1457,6 +1743,8 @@ def admin_event_evaluations(request, pk):
     }
     return render(request, 'pages/admin_event_evaluations.html', context)
 
+@login_required(login_url='signin')
+@allowed_users(allowed_roles=['admin', 'society president', 'faculty'])
 def eventevaluations_csv(request):
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename=event_evaluations.csv'
@@ -1493,8 +1781,6 @@ def eventevaluations_csv(request):
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['admin'])
 def view_admin_schoolevent_evaluations(request, pk):
-    faculty = Faculty.objects.filter(email=request.user.username).first()
-    
     # Try to get the event from SchoolEventModel or WebinarSeminarModel
     try:
         event_form_details = SchoolEventModel.objects.get(pk=pk)
@@ -1796,6 +2082,8 @@ def stakeholderevaluations(request):
     context = {'evaluations': evaluations, 'page_obj': page_obj, 'stakeholder_evaluation_filter': stakeholder_evaluation_filter}
     return render(request, 'pages/stakeholderevaluations.html', context)
 
+@login_required(login_url='signin')
+@allowed_users(allowed_roles=['admin'])
 def stakeholderevaluations_csv(request):
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename=stakeholder_evaluations.csv'
@@ -2353,7 +2641,7 @@ def sections(request):
     elif ordering == "-student_count":
         section_data = sorted(section_data, key=lambda x: x['student_count'], reverse=True)
 
-    paginator = Paginator(section_data, 5)  # Show 4 events per page
+    paginator = Paginator(section_data, 5) 
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     context = {'sections': sections, 'form':form, 'page_obj': page_obj, 'section_filter': section_filter }
@@ -2527,7 +2815,7 @@ def subjects(request):
             messages.success(request, 'Subject added successfully')
             return redirect('subjects')
     
-    paginator = Paginator(subject, 5)  # Show 4 events per page
+    paginator = Paginator(subject, 5) 
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     context = {'subject': subject, 'form': form, 'page_obj': page_obj, 'subject_filter': subject_filter}
@@ -2584,7 +2872,7 @@ def users(request):
         # Store user groups in the dictionary with user id as key
         user_groups[user.username] = groups
 
-    paginator = Paginator(users, 5)  # Show 4 events per page
+    paginator = Paginator(users, 5) 
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     context = {'user_groups': user_groups, 'page_obj': page_obj, 'user_filter': user_filter}
@@ -3186,19 +3474,12 @@ def view_evaluation_form(request, pk):
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['faculty'])
 def faculty_event_evaluations(request):
-     faculty = Faculty.objects.filter(email=request.user.username).first()
-     events = SchoolEventModel.objects.all()  
-     return render(request,'pages/faculty_event_evaluations.html',{'events': events, 'faculty': faculty})
-
-@login_required(login_url='signin')
-@allowed_users(allowed_roles=['faculty'])
-def faculty_events(request):
      user = request.user
      faculty = Faculty.objects.filter(email=request.user.username).first()    
      event = Event.objects.filter(author=user).order_by('-updated')
      form = EventCreationForm()
      if request.method == 'POST':
-        form = EventCreationForm(request.POST)
+        form = EventCreationForm(request.POST, request.FILES)
         if form.is_valid():
             event = form.save(commit=False)
             event.author = request.user  # Set the author to the currently logged-in user
@@ -3207,21 +3488,323 @@ def faculty_events(request):
             #event.published_by = faculty 
             #event.save()
 
-            return redirect('faculty_events')
+            return redirect('faculty_event_evaluations')
         else:
             # Print form errors for debugging
             print(form.errors)
            
      context = {'event': event, 'faculty': faculty, 'form':form}
-     return render(request, 'pages/faculty_events.html', context)
+     return render(request, 'pages/faculty_event_evaluations.html', context)
+
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['faculty'])
-def view_schoolevent_evaluations(request, pk):
-    faculty = Faculty.objects.filter(email=request.user.username).first()
-    school_event_form_details = SchoolEventModel.objects.get(pk=pk)
+def view_faculty_event_evaluations(request, pk):
+    faculty = Faculty.objects.filter(email=request.user.username).first()  
+    event = get_object_or_404(Event, pk=pk)
+    # Filter evaluations from both SchoolEventModel and WebinarSeminarModel
+    school_event_evaluations = list(SchoolEventModel.objects.filter(event=event))
+    webinar_seminar_evaluations = list(WebinarSeminarModel.objects.filter(event=event))
 
-    return render(request, 'pages/view_schoolevent_evaluations.html', {'school_event_form_details': school_event_form_details, 'faculty': faculty})
+    # Combine the results into one list
+    evaluations = school_event_evaluations + webinar_seminar_evaluations
+    
+    paginator = Paginator(evaluations, 5) 
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'faculty': faculty,
+        'event': event,
+        'evaluations': evaluations,
+        'page_obj': page_obj
+    }
+    return render(request, 'pages/view_faculty_event_evaluations.html', context)
+
+
+@login_required(login_url='signin')
+@allowed_users(allowed_roles=['faculty'])
+def faculty_view_event_evaluations(request, pk):
+     # Try to get the event from SchoolEventModel or WebinarSeminarModel
+    try:
+        event_form_details = SchoolEventModel.objects.get(pk=pk)
+        event_type = 'school_event'
+    except SchoolEventModel.DoesNotExist:
+        try:
+            event_form_details = WebinarSeminarModel.objects.get(pk=pk)
+            event_type = 'webinar_event'
+        except WebinarSeminarModel.DoesNotExist:
+            # If no event is found in either model, handle the error
+            return HttpResponse("Event not found.")
+
+    # Render different templates based on the event type
+    if event_type == 'school_event':
+        faculty = Faculty.objects.filter(email=request.user.username).first()  
+        questions = SchoolEventQuestions.objects.all().order_by('order')
+
+        excellent_count = SchoolEventModel.objects.filter(pk=pk).filter(
+            meeting_expectation=5
+        ).count() + SchoolEventModel.objects.filter(pk=pk).filter(
+            attainment_of_the_objectives=5
+        ).count() + SchoolEventModel.objects.filter(pk=pk).filter(pk=pk).filter(
+            topics_discussed=5
+        ).count() + SchoolEventModel.objects.filter(pk=pk).filter(
+            input_presentation=5
+        ).count()  + SchoolEventModel.objects.filter(pk=pk).filter(
+            management_team=5
+        ).count()  + SchoolEventModel.objects.filter(pk=pk).filter(
+            venue_and_physical_arrangement=5
+        ).count() + SchoolEventModel.objects.filter(pk=pk).filter(
+            overall_assessment=5
+        ).count()
+
+        very_satisfactory_count = SchoolEventModel.objects.filter(pk=pk).filter(
+            meeting_expectation=4
+        ).count() + SchoolEventModel.objects.filter(pk=pk).filter(
+            attainment_of_the_objectives=4
+        ).count() + SchoolEventModel.objects.filter(pk=pk).filter(pk=pk).filter(
+            topics_discussed=4
+        ).count() + SchoolEventModel.objects.filter(pk=pk).filter(
+            input_presentation=4
+        ).count()  + SchoolEventModel.objects.filter(pk=pk).filter(
+            management_team=4
+        ).count()  + SchoolEventModel.objects.filter(pk=pk).filter(
+            venue_and_physical_arrangement=4
+        ).count() + SchoolEventModel.objects.filter(pk=pk).filter(
+            overall_assessment=4
+        ).count()
+
+        satisfactory_count = SchoolEventModel.objects.filter(pk=pk).filter(
+            meeting_expectation=3
+        ).count() + SchoolEventModel.objects.filter(pk=pk).filter(
+            attainment_of_the_objectives=3
+        ).count() + SchoolEventModel.objects.filter(pk=pk).filter(pk=pk).filter(
+            topics_discussed=3
+        ).count() + SchoolEventModel.objects.filter(pk=pk).filter(
+            input_presentation=3
+        ).count()  + SchoolEventModel.objects.filter(pk=pk).filter(
+            management_team=3
+        ).count()  + SchoolEventModel.objects.filter(pk=pk).filter(
+            venue_and_physical_arrangement=3
+        ).count() + SchoolEventModel.objects.filter(pk=pk).filter(
+            overall_assessment=3
+        ).count()
+
+        fair_count = SchoolEventModel.objects.filter(pk=pk).filter(
+            meeting_expectation=2
+        ).count() + SchoolEventModel.objects.filter(pk=pk).filter(
+            attainment_of_the_objectives=2
+        ).count() + SchoolEventModel.objects.filter(pk=pk).filter(pk=pk).filter(
+            topics_discussed=2
+        ).count() + SchoolEventModel.objects.filter(pk=pk).filter(
+            input_presentation=2
+        ).count()  + SchoolEventModel.objects.filter(pk=pk).filter(
+            management_team=2
+        ).count()  + SchoolEventModel.objects.filter(pk=pk).filter(
+            venue_and_physical_arrangement=2
+        ).count() + SchoolEventModel.objects.filter(pk=pk).filter(
+            overall_assessment=2
+        ).count()
+
+        poor_count = SchoolEventModel.objects.filter(pk=pk).filter(
+            meeting_expectation=1
+        ).count() + SchoolEventModel.objects.filter(pk=pk).filter(
+            attainment_of_the_objectives=1
+        ).count() + SchoolEventModel.objects.filter(pk=pk).filter(pk=pk).filter(
+            topics_discussed=1
+        ).count() + SchoolEventModel.objects.filter(pk=pk).filter(
+            input_presentation=1
+        ).count()  + SchoolEventModel.objects.filter(pk=pk).filter(
+            management_team=1
+        ).count()  + SchoolEventModel.objects.filter(pk=pk).filter(
+            venue_and_physical_arrangement=1
+        ).count() + SchoolEventModel.objects.filter(pk=pk).filter(
+            overall_assessment=1
+        ).count()
+
+        template_name = 'pages/view_faculty_schoolevent_evaluations.html'
+        
+    elif event_type == 'webinar_event':
+        faculty = Faculty.objects.filter(email=request.user.username).first()  
+        questions = WebinarSeminarQuestions.objects.all().order_by('order')
+
+        excellent_count = WebinarSeminarModel.objects.filter(pk=pk).filter(
+            relevance_of_the_activity=5
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(pk=pk).filter(
+            quality_of_the_activity=5
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            timeliness=5
+        ).count()  + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            attainment_of_the_objective=5
+        ).count()  + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            appropriateness_of_the_topic_to_attain_the_objective=5
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            appropriateness_of_the_searching_methods_used=5
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            appropriateness_of_the_topic_in_the_present_time=5
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            usefulness_of_the_topic_discusssed_in_the_activity=5
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            appropriateness_of_the_searching_methods=5
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            displayed_a_thorough_knowledge_of_the_topic=5
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            thoroughly_explained_and_processed_the_learning_activities_throughout_the_training=5
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            able_to_create_a_good_learning_environment=5
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            able_to_manage_her_time_well=5
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            demonstrated_keenness_to_the_participant_needs=5
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            timeliness_or_suitability_of_service=5
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            overall_satisfaction=5
+        ).count()
+
+        very_satisfactory_count = WebinarSeminarModel.objects.filter(pk=pk).filter(
+            relevance_of_the_activity=4
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(pk=pk).filter(
+            quality_of_the_activity=4
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            timeliness=4
+        ).count()  + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            attainment_of_the_objective=4
+        ).count()  + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            appropriateness_of_the_topic_to_attain_the_objective=4
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            appropriateness_of_the_searching_methods_used=4
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            appropriateness_of_the_topic_in_the_present_time=4
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            usefulness_of_the_topic_discusssed_in_the_activity=4
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            appropriateness_of_the_searching_methods=4
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            displayed_a_thorough_knowledge_of_the_topic=4
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            thoroughly_explained_and_processed_the_learning_activities_throughout_the_training=4
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            able_to_create_a_good_learning_environment=4
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            able_to_manage_her_time_well=4
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            demonstrated_keenness_to_the_participant_needs=4
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            timeliness_or_suitability_of_service=4
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            overall_satisfaction=4
+        ).count()
+
+        satisfactory_count = WebinarSeminarModel.objects.filter(pk=pk).filter(
+            relevance_of_the_activity=3
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(pk=pk).filter(
+            quality_of_the_activity=3
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            timeliness=3
+        ).count()  + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            attainment_of_the_objective=3
+        ).count()  + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            appropriateness_of_the_topic_to_attain_the_objective=3
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            appropriateness_of_the_searching_methods_used=3
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            appropriateness_of_the_topic_in_the_present_time=3
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            usefulness_of_the_topic_discusssed_in_the_activity=3
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            appropriateness_of_the_searching_methods=3
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            displayed_a_thorough_knowledge_of_the_topic=3
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            thoroughly_explained_and_processed_the_learning_activities_throughout_the_training=3
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            able_to_create_a_good_learning_environment=3
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            able_to_manage_her_time_well=3
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            demonstrated_keenness_to_the_participant_needs=3
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            timeliness_or_suitability_of_service=3
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            overall_satisfaction=3
+        ).count()
+
+        fair_count = WebinarSeminarModel.objects.filter(pk=pk).filter(
+            relevance_of_the_activity=2
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(pk=pk).filter(
+            quality_of_the_activity=2
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            timeliness=2
+        ).count()  + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            attainment_of_the_objective=2
+        ).count()  + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            appropriateness_of_the_topic_to_attain_the_objective=2
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            appropriateness_of_the_searching_methods_used=2
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            appropriateness_of_the_topic_in_the_present_time=2
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            usefulness_of_the_topic_discusssed_in_the_activity=2
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            appropriateness_of_the_searching_methods=2
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            displayed_a_thorough_knowledge_of_the_topic=2
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            thoroughly_explained_and_processed_the_learning_activities_throughout_the_training=2
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            able_to_create_a_good_learning_environment=2
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            able_to_manage_her_time_well=2
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            demonstrated_keenness_to_the_participant_needs=2
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            timeliness_or_suitability_of_service=2
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            overall_satisfaction=2
+        ).count()
+
+        poor_count = WebinarSeminarModel.objects.filter(pk=pk).filter(
+            relevance_of_the_activity=1
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(pk=pk).filter(
+            quality_of_the_activity=1
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            timeliness=1
+        ).count()  + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            attainment_of_the_objective=1
+        ).count()  + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            appropriateness_of_the_topic_to_attain_the_objective=1
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            appropriateness_of_the_searching_methods_used=1
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            appropriateness_of_the_topic_in_the_present_time=1
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            usefulness_of_the_topic_discusssed_in_the_activity=1
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            appropriateness_of_the_searching_methods=1
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            displayed_a_thorough_knowledge_of_the_topic=1
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            thoroughly_explained_and_processed_the_learning_activities_throughout_the_training=1
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            able_to_create_a_good_learning_environment=1
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            able_to_manage_her_time_well=1
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            demonstrated_keenness_to_the_participant_needs=1
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            timeliness_or_suitability_of_service=1
+        ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
+            overall_satisfaction=1
+        ).count()
+
+       
+        template_name = 'pages/view_faculty_webinar_evaluations.html'
+    else:
+        return HttpResponse("Invalid event type.")
+
+
+    return render(request, template_name, {'event_form_details': event_form_details, 'faculty': faculty, 'questions': questions, 'excellent_count': excellent_count, 'very_satisfactory_count': very_satisfactory_count, 'satisfactory_count': satisfactory_count, 'fair_count': fair_count, 'poor_count': poor_count})
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['faculty'])
@@ -3233,7 +3816,7 @@ def edit_faculty_events(request, pk):
         form = EventCreationForm(request.POST, request.FILES, instance=event)
         if form.is_valid():
             form.save(commit=True)
-            return redirect('faculty_events')
+            return redirect('faculty_event_evaluations')
 
            
     context = {'event': event, 'faculty': faculty, 'form':form}
@@ -3245,6 +3828,77 @@ def delete_faculty_events(request, pk):
     event = Event.objects.get(pk=pk)
     if request.method == 'POST':
             event.delete()
-            return redirect('faculty_events')
+            return redirect('faculty_event_evaluations')
 
     return render(request, 'pages/delete.html', {'obj':event})
+
+@login_required(login_url='signin')
+@allowed_users(allowed_roles=['faculty'])
+def faculty_events(request):
+    user = request.user
+    faculty = Faculty.objects.filter(email=request.user.username).first()   
+    faculty_department = faculty.department  # Get the department the faculty is a part of
+    events = Event.objects.filter(department_attendees=faculty_department).distinct()  # Get events related to those department
+    # Get evaluated event IDs by the current user
+     # Get evaluated event IDs by the current user for SchoolEventModel
+    evaluated_school_event_ids = SchoolEventModel.objects.filter(user=user).values_list('event_id', flat=True)
+    
+    # Get evaluated event IDs by the current user for WebinarSeminarModel
+    evaluated_webinar_event_ids = WebinarSeminarModel.objects.filter(user=user).values_list('event_id', flat=True)
+
+    # Combine evaluated event IDs from both models
+    evaluated_event_ids = list(evaluated_school_event_ids) + list(evaluated_webinar_event_ids)
+     # Get current time
+    current_time = timezone.now()
+    upcoming_events = events.filter(date__gt=current_time, evaluation_status=False)  # Events in the future
+    # Past events with closed evaluation
+    past_events = events.filter(date__lt=current_time, evaluation_status=False)  # Past events with evaluation closed   
+    # Exclude events that have been evaluated
+    unevaluated_events = events.exclude(id__in=evaluated_event_ids).exclude(id__in=past_events).exclude(id__in=upcoming_events).order_by('-date') 
+    return render(request, 'pages/faculty_events.html', {'faculty': faculty, 'unevaluated_events': unevaluated_events, 'past_events': past_events, 'upcoming_events': upcoming_events})
+
+@login_required(login_url='signin')
+@allowed_users(allowed_roles=['faculty'])
+def faculty_events_upcoming(request):
+    faculty = Faculty.objects.filter(email=request.user.username).first()  
+    department = faculty.department  # Get the department the faculty is a part of
+    events = Event.objects.filter(department_attendees=department).distinct()  # Get events related to those department
+    
+    current_time = timezone.now()
+    upcoming_events = events.filter(date__gt=current_time, evaluation_status=False)  # Events in the future
+
+    return render(request, 'pages/faculty_events_upcoming.html', {'faculty': faculty,'upcoming_events': upcoming_events})
+
+@login_required(login_url='signin')
+@allowed_users(allowed_roles=['faculty'])
+def faculty_events_evaluated(request):
+    user = request.user
+    faculty = Faculty.objects.filter(email=request.user.username).first()  
+    department = faculty.department  # Get the department the faculty is a part of
+    events = Event.objects.filter(department_attendees=department).distinct()  # Get events related to those department
+      # Get evaluated event IDs by the current user
+     # Get evaluated event IDs by the current user for SchoolEventModel
+    evaluated_school_event_ids = SchoolEventModel.objects.filter(user=user).values_list('event_id', flat=True)
+    
+    # Get evaluated event IDs by the current user for WebinarSeminarModel
+    evaluated_webinar_event_ids = WebinarSeminarModel.objects.filter(user=user).values_list('event_id', flat=True)
+
+    # Combine evaluated event IDs from both models
+    evaluated_event_ids = list(evaluated_school_event_ids) + list(evaluated_webinar_event_ids)
+    
+    # Exclude events that have been evaluated
+    evaluated_events = events.filter(id__in=evaluated_event_ids).order_by('-date')[:10]
+    return render(request, 'pages/faculty_events_evaluated.html', {'faculty': faculty, 'evaluated_events': evaluated_events})
+
+@login_required(login_url='signin')
+@allowed_users(allowed_roles=['faculty'])
+def faculty_events_closed(request):
+    faculty = Faculty.objects.filter(email=request.user.username).first()  
+    department = faculty.department  # Get the department the faculty is a part of
+    events = Event.objects.filter(department_attendees=department).distinct()  # Get events related to those department
+
+    # Get current time
+    current_time = timezone.now()
+    # Past events with closed evaluation
+    past_events = events.filter(date__lt=current_time, evaluation_status=False)  # Past events with evaluation closed   
+    return render(request, 'pages/faculty_events_closed.html', {'faculty': faculty, 'past_events': past_events})

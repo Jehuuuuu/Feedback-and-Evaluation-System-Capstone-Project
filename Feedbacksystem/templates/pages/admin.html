@@ -48,7 +48,7 @@
       <ul class="nav flex-column nav-pills nav-container">
         <li class="nav-item">
           <a class="nav-link {% if request.path == '/administrator' %} active {% endif %}" href="/administrator">
-          <i class="bi bi-grid-1x2-fill nav-icon"></i> <b>DASHBOARD</b>
+          <i class="bi bi-grid-1x2-fill nav-icon"></i> <b>Dashboard</b>
         
         
         </a>
@@ -56,7 +56,7 @@
        
       <li class="nav-item dropdown">
         <button class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-          <i class="bi bi-chat-left-fill nav-icon"></i> <b>EVALUATIONS</b>
+          <i class="bi bi-chat-left-fill nav-icon"></i> <b>Evaluations</b>
         </button>
         <div class="dropdown-menu" aria-labelledby="navbarDropdown">
             <a class="dropdown-item" href="{% url 'facultyevaluations' %}">Faculty Evaluations</a>
@@ -66,12 +66,12 @@
         </li>
         <li class="nav-item">
           <a class="nav-link {% if request.path == '/forms' %} active {% endif %}" href="{% url 'forms' %}">
-            <i class="bi bi-ui-radios nav-icon"></i> <b>FORMS</b>
+            <i class="bi bi-ui-radios nav-icon"></i> <b>Forms</b>
           </a>
         </li>
       <li class="nav-item dropdown">
         <button class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-          <i class="bi bi-duffle-fill nav-icon"></i> <b>FACULTY</b>
+          <i class="bi bi-duffle-fill nav-icon"></i> <b>Faculty</b>
         </button>
         <div class="dropdown-menu" aria-labelledby="navbarDropdown">
             <a class="dropdown-item" href="{% url 'faculty' %}">Faculty</a>
@@ -80,7 +80,7 @@
       </li>
       <li class="nav-item dropdown">
         <button class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-          <i class="bi bi-backpack-fill nav-icon"></i> <b>STUDENTS</b>
+          <i class="bi bi-backpack-fill nav-icon"></i> <b>Students</b>
         </button>
         <div class="dropdown-menu" aria-labelledby="navbarDropdown">
             <a class="dropdown-item" href="{% url 'students' %}">Students</a>
@@ -93,12 +93,12 @@
    
     <li class="nav-item">
       <a class="nav-link {% if request.path == '/users' %} active {% endif %}" href="{% url 'users' %}">
-        <i class="bi bi-people-fill nav-icon"></i> <b>USERS</b>
+        <i class="bi bi-people-fill nav-icon"></i> <b>Users</b>
       </a>
     </li>
     <li class="nav-item">
       <a class="nav-link" href="{% url 'adminlogout' %}">
-        <i class="bi bi-box-arrow-in-left nav-icon"></i> <b>LOGOUT</b>
+        <i class="bi bi-box-arrow-in-left nav-icon"></i> <b>Logout</b>
       </a>
     </li>
 
@@ -120,17 +120,16 @@
 
         {% endif %}
             <div class="row">
-              <div class="col-md-4">
+              <div class="col-md-4 mb-2" id="chart-container">
                 <h5 style="font-weight: bold">Academic Year: {{evaluation_status.academic_year}}</h5>
                 <h5 style="font-weight: bold;">{{ evaluation_status.semester }} Semester</h5>
                 <h5>Student Evaluation for Teachers Status: {{evaluation_status.evaluation_status}}</h5>
                 <button type="button" class="btn btn-warning custom-btn mt-2"  style = "color: black; text-decoration: none; "data-bs-toggle="modal" data-bs-target="#exampleModal"><i class="bi bi-pencil-square"></i>
-                  <b>Edit</b>
-              
+                  <b>Edit</b>              
                 </button>
                 <a class="btn btn-warning custom-btn mt-2"  style = "color: black; text-decoration: none; " href="{% url 'adminregister' %}"><i class="bi bi-person-plus-fill"></i> <b>Add New Admin</b></a>
               </div>
-               <div class="col-md-2 mt-2">
+               <div class="col-md-2 mb-2">
                 <div class="card">
                   <div class="card-body">
                     <h5 class="card-title" style="text-align: center;">{{ total_user }}</h5>
@@ -138,7 +137,7 @@
                 </div>
               </div>
               </div>
-               <div class="col-md-2 mt-2">
+               <div class="col-md-2 mb-2">
                 <div class="card">
                   <div class="card-body">
                     <h5 class="card-title" style="text-align: center;">{{ total_faculty }}</h5>
@@ -146,7 +145,7 @@
                 </div>
               </div>
               </div>
-               <div class="col-md-2 mt-2">
+               <div class="col-md-2 mb-2">
                 <div class="card">
                   <div class="card-body">
                     <h5 class="card-title" style="text-align: center;">{{ total_students }}</h5>
@@ -154,7 +153,7 @@
                 </div>
               </div>
               </div>
-               <div class="col-md-2 mt-2">
+               <div class="col-md-2 mb-2">
                 <div class="card">
                   <div class="card-body">
                     <h5 class="card-title" style="text-align: center;">{{ total_sections }}</h5>
@@ -190,7 +189,6 @@
     {% endblock header %}
     
     {% block feature %}
-    <div class="container">
       <form method="GET" id="filterForm">
         <div class="row mt-2">
           <div class="col-md-4" id="chart-container" style="margin-right: 1em;">

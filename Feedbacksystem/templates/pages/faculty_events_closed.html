@@ -10,26 +10,23 @@
 {% endblock header %}
 {% block feature %}
 {% if messages %}
-    <div class="container">
-        {% for message in messages %}
-            <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %} alert-dismissible fade show" role="alert">
-                {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        {% endfor %}
-    </div>
+<ul class="messages">
+    {% for message in messages %}
+    <p>{{ message }}</p>
+    {% endfor %}
+</ul>
 {% endif %}
 
 <div class="btn-group mb-2">
   <a href="{% url 'faculty_events' %}" class="btn btn-success {% if request.path == '/faculty_events' %} active {% endif %}" aria-current="page">Pending</a>
   <a href="{% url 'faculty_events_upcoming' %}" class="btn btn-success">Upcoming</a>
   <a href="{% url 'faculty_events_evaluated' %}" class="btn btn-success">Evaluated</a>
-  <a href="{% url 'faculty_events_closed' %}" class="btn btn-success">Closed</a>
+  <a href="{% url 'faculty_events_closed' %}" class="btn btn-success {% if request.path == '/faculty_events_closed' %} active {% endif %}">Closed</a>
 </div>
 
 <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-4 g-3">
 
-{% for i in unevaluated_events %}
+{% for i in past_events %}
   
 <div class="card border-0">
     <div class="card-body">

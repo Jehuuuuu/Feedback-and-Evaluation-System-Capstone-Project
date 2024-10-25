@@ -52,13 +52,13 @@ urlpatterns = [
     path('facultyfeedbackandevaluations', views.facultyfeedbackandevaluations, name='facultyfeedbackandevaluations'),
     path('view_evaluation_form/<int:pk>/', views.view_evaluation_form, name='view_evaluation_form'),
     path('admin_view_evaluation_form/<int:pk>/', views.admin_view_evaluation_form, name='admin_view_evaluation_form'),
-    path('faculty_events', views.faculty_events, name='faculty_events'),
+    path('faculty_event_evaluations', views.faculty_event_evaluations, name='faculty_event_evaluations'),
     path('edit_faculty_events/<int:pk>/', views.edit_faculty_events, name='edit_faculty_events'),
     path('delete_faculty_events/<int:pk>/', views.delete_faculty_events, name='delete_faculty_events'),
     path('event/<int:pk>/', views.event_detail, name='event_detail'),
     path('edit_student_profile', views.edit_student_profile, name='edit_student_profile'),
-    path('faculty_event_evaluations', views.faculty_event_evaluations, name='faculty_event_evaluations'),
-    path('view_schoolevent_evaluations/<int:pk>/', views.view_schoolevent_evaluations, name='view_schoolevent_evaluations'),
+    path('view_faculty_event_evaluations/<int:pk>/', views.view_faculty_event_evaluations, name='view_faculty_event_evaluations'),
+    path('faculty_view_event_evaluations/<int:pk>/', views.faculty_view_event_evaluations, name='faculty_view_event_evaluations'),
     path('evaluation_response_chart_data', views.evaluation_response_chart_data, name='evaluation_response_chart_data'),
     path('department_response_chart_data', views.department_response_chart_data, name='department_response_chart_data'),
     path('faculty-response-chart-data/<int:department_id>/', views.faculty_response_chart_data, name='faculty_response_chart_data'),
@@ -85,7 +85,12 @@ urlpatterns = [
     path('president_edit_event_evaluations/<int:pk>', views.president_edit_event_evaluations, name='president_edit_event_evaluations'),
     path('president_delete_event_evaluations/<int:pk>', views.president_delete_event_evaluations, name='president_delete_event_evaluations'),
     path('stakeholderevaluations_csv', views.stakeholderevaluations_csv, name='stakeholderevaluations_csv'),
-    path('eventevaluations_csv', views.eventevaluations_csv, name='eventevaluations_csv')
+    path('eventevaluations_csv', views.eventevaluations_csv, name='eventevaluations_csv'),
+    path('view_society_president_event_evaluations/<int:pk>/', views.view_society_president_event_evaluations, name='view_society_president_event_evaluations'),
+    path('faculty_events', views.faculty_events, name='faculty_events'),
+    path('faculty_events_upcoming', views.faculty_events_upcoming, name='faculty_events_upcoming'),
+    path('faculty_events_evaluated', views.faculty_events_evaluated, name='faculty_events_evaluated'),
+    path('faculty_events_closed', views.faculty_events_closed, name='faculty_events_closed'),
 ]
 
 if settings.DEBUG:

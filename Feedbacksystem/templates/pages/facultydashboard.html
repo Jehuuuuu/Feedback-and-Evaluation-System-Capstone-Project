@@ -71,6 +71,7 @@
           </button>
           <div class="dropdown-menu" aria-labelledby="navbarDropdown">
               <a class="dropdown-item" href="{% url 'facultyfeedbackandevaluations' %}">SET</a>
+              <a class="dropdown-item" href="{% url 'faculty_event_evaluations' %}">Event Evaluations</a>
       </li>
       <li class="nav-item">
         <a class="nav-link {% if request.path == '/faculty_events' %} active {% endif %}" href="/faculty_events">

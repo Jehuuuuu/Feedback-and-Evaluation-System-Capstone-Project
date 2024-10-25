@@ -1,0 +1,145 @@
+{% extends "pages/home.html" %}
+{% load static %}
+{% block title %}Event Evaluation Details{% endblock %}
+
+{% block header %}
+
+    <h2> Event Evaluation Form Details </h2>
+    <hr>
+   
+{% endblock header %}
+{% block feature %}
+<div class="row">
+    <div class="col-xl-6 mb-2">
+        <table class="table table-responsive table-bordered " >
+                <tr>
+                 <th  scope="col" style="color:#fafafa;  background: #2a9134">I.  Overall Evaluation</th>
+                 <th  scope="col" style="color:#fafafa;  background: #2a9134">Rating</th>
+            </tr>
+            </thead>
+            {% for question in questions %}
+            <tr>
+                {% if question.order == 1 %}
+                <td>{{question.text}}</td>
+                <td> {{ event_form_details.meeting_expectation }}</td>
+                {% endif %}
+            </tr>
+            <tr>
+                {% if question.order == 2 %}
+                <td>{{question.text}}</td>
+                <td> {{ event_form_details.attainment_of_the_objectives }}</td>
+                {% endif %}
+            </tr>
+            <tr>
+                {% if question.order == 3 %}
+                <td>{{question.text}}</td>
+                <td> {{ event_form_details.topics_discussed }}</td>
+                {% endif %}
+            </tr>
+            <tr>
+                {% if question.order == 4 %}
+                <td>{{question.text}}</td>
+                <td> {{ event_form_details.input_presentation }}</td>
+                {% endif %}
+            </tr>
+            <tr>
+                {% if question.order == 5 %}
+                <td>{{question.text}}</td>
+                <td> {{ event_form_details.management_team }}</td>
+                {% endif %}
+            </tr>
+            <tr>
+                {% if question.order == 6 %}
+                <td>{{question.text}}</td>
+                <td> {{ event_form_details.venue_and_physical_arrangement }}</td>
+                {% endif %}
+            </tr>
+            <tr>
+                {% if question.order == 7 %}
+                <td>{{question.text}}</td>
+                <td> {{ event_form_details.overall_assessment }}</td>
+                {% endif %}
+            </tr>
+            <tr>
+                {% if question.order == 8 %}
+                <td>{{question.text}}</td>
+                <td> {{ event_form_details.suggestions_and_comments }}</td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+    
+    <div class="col-xl-6">
+        <table class="table table-bordered form-info">
+            <tr>
+                <td>Average</td>
+                <td>{{ event_form_details.average_rating }}</td>
+            </tr>
+            <tr>
+                <td>Rating</td>
+                <td>{{ event_form_details.get_rating_category }}</td>
+            </tr>
+            <tr>
+                <td>Academic Year</td>
+                <td>{{ event_form_details.academic_year }}</td>
+            </tr>
+            <tr>
+                <td>Semester</td>
+                <td>{{ event_form_details.semester }}</td>
+            </tr>
+        </table>
+        <canvas id="myChart" width="400" height="200"></canvas>
+        
+                <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+                <script>
+                    var ctx = document.getElementById('myChart').getContext('2d');
+                    var myChart = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: ['Excellent', 'Very Satisfactory', 'Satisfactory', 'Fair', 'Poor'],  // Add more labels if needed
+                            datasets: [{
+                                label: '# of Responses',
+                                data: [
+                                    {{ excellent_count }},
+                                    {{ very_satisfactory_count }},
+                                    {{ satisfactory_count }},
+                                    {{ fair_count }},
+                                    {{ poor_count }},
+                                    // Add other counts here
+                                ],
+                                backgroundColor: [
+                                    'rgba(75, 192, 192, 0.2)',
+                                    'rgba(54, 162, 235, 0.2)',
+                                    'rgba(255, 206, 86, 0.2)',
+                                    // Add colors for other ratings if needed
+                                ],
+                                borderColor: [
+                                    'rgba(75, 192, 192, 1)',
+                                    'rgba(54, 162, 235, 1)',
+                                    'rgba(255, 206, 86, 1)',
+                                    // Add border colors for other ratings if needed
+                                ],
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            scales: {
+                                x: {
+                            ticks: {
+                                autoSkip: false,  // Prevents automatic skipping of labels
+                                maxRotation: 0,   // Set maximum rotation of labels to 0 degrees (horizontal)
+                                minRotation: 0    // Set minimum rotation of labels to 0 degrees (horizontal)
+                            }
+                                },
+                                y: {
+                                    beginAtZero: true
+                                }
+                            }
+                        }
+                    });
+        </script>
+    </div>
+</div>
+
+{% endblock feature %}
