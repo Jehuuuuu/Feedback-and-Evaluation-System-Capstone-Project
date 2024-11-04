@@ -55,7 +55,7 @@ urlpatterns = [
     path('faculty_event_evaluations', views.faculty_event_evaluations, name='faculty_event_evaluations'),
     path('edit_faculty_events/<int:pk>/', views.edit_faculty_events, name='edit_faculty_events'),
     path('delete_faculty_events/<int:pk>/', views.delete_faculty_events, name='delete_faculty_events'),
-    path('event/<int:pk>/', views.event_detail, name='event_detail'),
+    path('evaluate_event/<int:pk>/', views.event_detail, name='event_detail'),
     path('edit_student_profile', views.edit_student_profile, name='edit_student_profile'),
     path('view_faculty_event_evaluations/<int:pk>/', views.view_faculty_event_evaluations, name='view_faculty_event_evaluations'),
     path('faculty_view_event_evaluations/<int:pk>/', views.faculty_view_event_evaluations, name='faculty_view_event_evaluations'),
@@ -91,6 +91,16 @@ urlpatterns = [
     path('faculty_events_upcoming', views.faculty_events_upcoming, name='faculty_events_upcoming'),
     path('faculty_events_evaluated', views.faculty_events_evaluated, name='faculty_events_evaluated'),
     path('faculty_events_closed', views.faculty_events_closed, name='faculty_events_closed'),
+    path('event_evaluation_form/<int:pk>/', views.faculty_event_detail, name='faculty_event_detail'),
+    path('send_message/<int:pk>/', views.send_message, name='send_message'),
+    path('faculty_evaluations_csv', views.faculty_evaluations_csv, name='faculty_evaluations_csv'),
+    path('mark-notifications-read/', views.mark_notifications_read, name='mark_notifications_read'),
+    path('view_message/<int:notification_id>/', views.view_message, name='view_message'),
+    path('inbox', views.inbox, name='inbox'),
+    path('faculty_notifications', views.faculty_notifications, name='faculty_notifications'),
+    path('student_notifications', views.student_notifications, name='student_notifications'),
+    path('clear_student_notifications', views.clear_student_notifications, name='clear_student_notifications'),
+    path('get_evaluation_data/', views.get_evaluation_data, name='get_evaluation_data'),
 ]
 
 if settings.DEBUG:

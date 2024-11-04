@@ -1,0 +1,32 @@
+{% extends "pages/facultydashboard.html" %}
+{% load static %}
+{% block title %}Inbox{% endblock %}
+
+{% block header %}
+
+{% endblock header %}
+
+{% block feature %}
+
+<div class="container">
+    <h1 class=" mt-4">Inbox</h1>
+    <div class="inbox-container" >
+    
+        <div class="message-list">
+            <div class="message-items">
+                {% for message in messages %}
+                <div class="message-item">
+                    <div class="message-sender"><a href="{% url 'view_message' message.id %}">{{ message.actor.username }}</a></div>
+                    <div class="message-subject">
+                        <a href="{% url 'view_message' message.id %}">{{ message.verb }} - <span class="message_description">{{ message.description|truncatechars:50 }}</span></a>
+                    </div>
+                    <div class="message-timestamp">{{ message.timestamp|date:"F j, Y, g:i a" }}</div>
+                </div>
+                {% empty %}
+                <p>No messages found.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock feature %}

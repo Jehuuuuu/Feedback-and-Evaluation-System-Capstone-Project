@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from Feedbacksystem.models import Course, Section, SectionSubjectFaculty, Faculty, Department, Student, Subject, LikertEvaluation, EvaluationStatus, Event, SchoolEventModel, FacultyEvaluationQuestions, SchoolEventQuestions, WebinarSeminarModel, WebinarSeminarQuestions, StakeholderFeedbackModel, StakeholderFeedbackQuestions
-from .forms import TeacherForm, StudentForm, CourseForm, SectionForm, SectionSubjectFacultyForm, SubjectForm, StudentRegistrationForm, StudentLoginForm, LikertEvaluationForm, FacultyRegistrationForm, FacultyLoginForm, EvaluationStatusForm, DepartmentForm, EventCreationForm, SchoolEventForm, WebinarSeminarForm, StudentProfileForm, EditQuestionForm, EditSchoolEventQuestionForm,  WebinarSeminarForm, EditWebinarSeminarQuestionForm, StakeholderFeedbackForm
+from Feedbacksystem.models import Course, Section, SectionSubjectFaculty, Faculty, Department, Student, Subject, LikertEvaluation, EvaluationStatus, Event, SchoolEventModel, FacultyEvaluationQuestions, SchoolEventQuestions, WebinarSeminarModel, WebinarSeminarQuestions, StakeholderFeedbackModel, StakeholderFeedbackQuestions, Message
+from .forms import TeacherForm, StudentForm, CourseForm, SectionForm, SectionSubjectFacultyForm, SubjectForm, StudentRegistrationForm, StudentLoginForm, LikertEvaluationForm, FacultyRegistrationForm, FacultyLoginForm, EvaluationStatusForm, DepartmentForm, EventCreationForm, SchoolEventForm, WebinarSeminarForm, StudentProfileForm, EditQuestionForm, EditSchoolEventQuestionForm,  WebinarSeminarForm, EditWebinarSeminarQuestionForm, StakeholderFeedbackForm, MessageForm
 from django.contrib.auth.models import User, Group
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import UserCreationForm
@@ -26,8 +26,10 @@ from django.utils.timezone import now
 from datetime import timedelta
 from collections import defaultdict
 from statistics import mean
-from django.db import models  # Add this import at the top
-
+from django.db import models  
+from django.core.mail import EmailMessage
+from notifications.signals import notify
+from notifications.models import Notification
 ITEMS_PER_PAGE = 5
             # ------------------------------------------------------
             #                Login-Page Views
@@ -175,6 +177,7 @@ def stakeholder_feedback_form(request):
             cleanliness = form.cleaned_data['cleanliness']
             comfort = form.cleaned_data['comfort']
             suggestions_and_comments = form.cleaned_data['suggestions_and_comments']
+            predicted_sentiment = single_prediction(suggestions_and_comments)
             # Save the data to database
             form = StakeholderFeedbackModel(
                 name=name,
@@ -190,6 +193,7 @@ def stakeholder_feedback_form(request):
                 cleanliness=cleanliness,
                 comfort=comfort,
                 suggestions_and_comments=suggestions_and_comments,
+                predicted_sentiment = predicted_sentiment
             )           
             form.save()
             print(questions)
@@ -223,8 +227,10 @@ def get_code(request):
 def home(request):
     user = request.user
     is_president = request.user.groups.filter(name='society president').exists()  # Check if the user is in the "student" group
-    evaluation_status = EvaluationStatus.objects.first()
-    student = Student.objects.filter(student_number=request.user.username).first() 
+    student = Student.objects.filter(student_number=request.user.username).first()
+    event_notifications = Notification.objects.filter(recipient=user, level='success') 
+    unread_notifications = Notification.objects.filter(recipient=user, level='success', unread=True)
+    notifications_unread_count = unread_notifications.count()
     courses = student.Course 
     #pending events to display
     events = Event.objects.filter(course_attendees=courses).distinct()  # Get events related to those courses
@@ -267,20 +273,46 @@ def home(request):
             pass 
       
     #pagination
-    paginator = Paginator(unevaluated_events, 4) 
+    paginator = Paginator(unevaluated_events, 3) 
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-    context = {'evaluation_status': evaluation_status, 'student': student, 'unevaluated_events': unevaluated_events, 'page_obj': page_obj, 'completed_count': completed_count, 'total_faculty': total_faculty, 'is_president': is_president}
+    context = {'evaluation_status': evaluation_status, 'student': student, 'unevaluated_events': unevaluated_events, 'page_obj': page_obj, 'completed_count': completed_count, 'total_faculty': total_faculty, 'is_president': is_president, 'event_notifications': event_notifications, 'notifications_unread_count': notifications_unread_count}
     return render(request, 'pages/home.html', context)
     
+@login_required(login_url='signin')
+@allowed_users(allowed_roles=['student'])
+def student_notifications(request):
+    user=request.user
+    is_president = request.user.groups.filter(name='society president').exists()  # Check if the user is in the "student" group
+    student = Student.objects.filter(student_number=request.user.username).first()   
+    event_notifications = Notification.objects.filter(recipient=user, level='success')
+    unread_notifications = Notification.objects.filter(recipient=user, level='success', unread=True)
+    notifications_unread_count = unread_notifications.count()
+    notifications = Notification.objects.filter(recipient=user, level='success')
+  
+    return render(request, 'pages/student_notifications.html', {'student': student, 'is_president': is_president, 'notifications': notifications, 'event_notifications': event_notifications,
+        'notifications_unread_count': notifications_unread_count,  })  # Return the response
+
+@login_required(login_url='signin')
+@allowed_users(allowed_roles=['student', 'society president'])
+def clear_student_notifications(request):
+    user=request.user
+    is_president = request.user.groups.filter(name='society president').exists()  # Check if the user is in the "student" group
+    student = Student.objects.filter(student_number=request.user.username).first()   
+    notifications = Notification.objects.filter(recipient=user, level='success')
+    notifications.delete()
+    return render(request, 'pages/home.html', {'student': student, 'is_president': is_president, 'notifications': notifications})  # Return the response
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['student', 'society president'])
 def student_profile(request):
-    student = Student.objects.filter(student_number=request.user.username).first()
-    user = request.user
+    user=request.user
+    is_president = request.user.groups.filter(name='society president').exists()  # Check if the user is in the "student" group
+    student = Student.objects.filter(student_number=request.user.username).first()   
+    event_notifications = Notification.objects.filter(recipient=user, level='success')
+    unread_notifications = Notification.objects.filter(recipient=user, level='success', unread=True)
+    notifications_unread_count = unread_notifications.count()
     user_groups = user.groups.all()
-    is_president = request.user.groups.filter(name='society president').exists()
     # Example of checking if the user is in a specific group, e.g., "society president"
     is_society_president = user_groups.filter(name="society president").exists()
     evaluation_status = EvaluationStatus.objects.first()
@@ -302,16 +334,19 @@ def student_profile(request):
             # If evaluation doesn't exist, set status to 'Pending'
             evaluation_status_list.append((section_subject_faculty.subjects, section_subject_faculty.faculty, 'Pending'))
             
-    context = {'student': student, 'section_subjects_faculty': section_subjects_faculty, 'evaluation_status_list': evaluation_status_list, 'is_society_president': is_society_president, 'is_president': is_president}
+    context = {'student': student, 'section_subjects_faculty': section_subjects_faculty, 'evaluation_status_list': evaluation_status_list, 'is_society_president': is_society_president, 'is_president': is_president, 'event_notifications': event_notifications, 'notifications_unread_count': notifications_unread_count}
     return render(request, 'pages/student_profile.html', context)
 
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['student', 'society president'])
 def edit_student_profile(request):
-    student = Student.objects.filter(student_number=request.user.username).first()
-    user = request.user.student
-    is_president = request.user.groups.filter(name='society president').exists()
+    user=request.user.student
+    is_president = request.user.groups.filter(name='society president').exists()  # Check if the user is in the "student" group
+    student = Student.objects.filter(student_number=request.user.username).first()   
+    event_notifications = Notification.objects.filter(recipient=user, level='success')
+    unread_notifications = Notification.objects.filter(recipient=user, level='success', unread=True)
+    notifications_unread_count = unread_notifications.count()
     form = StudentProfileForm(instance = user)
     if request.method == 'POST':
         form = StudentProfileForm(request.POST, request.FILES, instance = user)
@@ -320,25 +355,33 @@ def edit_student_profile(request):
             messages.success(request, 'Profile Updated Successfully')
             return redirect('student_profile')
 
-    return render(request, 'pages/edit_student_profile.html', {'student': student, 'form': form, 'is_president': is_president})
+    return render(request, 'pages/edit_student_profile.html', {'student': student, 'form': form, 'is_president': is_president, 'event_notifications': event_notifications, 'notifications_unread_count': notifications_unread_count})
 
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['student', 'society president'])
 def facultyeval(request):
     evaluation_status = EvaluationStatus.objects.first()
-    student = Student.objects.filter(student_number=request.user.username).first()
-    is_president = request.user.groups.filter(name='society president').exists()
+    user=request.user
+    is_president = request.user.groups.filter(name='society president').exists()  # Check if the user is in the "student" group
+    student = Student.objects.filter(student_number=request.user.username).first()   
+    event_notifications = Notification.objects.filter(recipient=user, level='success')
+    unread_notifications = Notification.objects.filter(recipient=user, level='success', unread=True)
+    notifications_unread_count = unread_notifications.count()
     section_subjects_faculty = SectionSubjectFaculty.objects.filter(section=student.Section)
     
-    return render(request, 'pages/facultyeval.html', {'student': student, 'section_subjects_faculty': section_subjects_faculty, 'evaluation_status': evaluation_status, 'is_president': is_president})
+    return render(request, 'pages/facultyeval.html', {'student': student, 'section_subjects_faculty': section_subjects_faculty, 'evaluation_status': evaluation_status, 'is_president': is_president, 'event_notifications': event_notifications, 'notifications_unread_count': notifications_unread_count})
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['student', 'society president'])
 def evaluate_subject_faculty(request,pk):
     section_subject_faculty = get_object_or_404(SectionSubjectFaculty, pk=pk)
-    student = Student.objects.filter(student_number=request.user.username).first()
-    is_president = request.user.groups.filter(name='society president').exists()
+    user=request.user
+    is_president = request.user.groups.filter(name='society president').exists()  # Check if the user is in the "student" group
+    student = Student.objects.filter(student_number=request.user.username).first()   
+    event_notifications = Notification.objects.filter(recipient=user, level='success')
+    unread_notifications = Notification.objects.filter(recipient=user, level='success', unread=True)
+    notifications_unread_count = unread_notifications.count()
     section_subjects_faculty = SectionSubjectFaculty.objects.filter(section=student.Section)
     questions = FacultyEvaluationQuestions.objects.all().order_by('order')
     user = request.user
@@ -473,16 +516,19 @@ def evaluate_subject_faculty(request,pk):
 
     else:
         form = LikertEvaluationForm()
-    context = { 'form': form, 'section_subject_faculty': section_subject_faculty, 'section_subjects_faculty': section_subjects_faculty, 'student': student, 'questions': questions, 'user_evaluations':user_evaluations, 'is_president': is_president}
+    context = { 'form': form, 'section_subject_faculty': section_subject_faculty, 'section_subjects_faculty': section_subjects_faculty, 'student': student, 'questions': questions, 'user_evaluations':user_evaluations, 'is_president': is_president, 'event_notifications': event_notifications, 'notifications_unread_count': notifications_unread_count}
     return render(request, 'pages/evaluate_subject_faculty.html', context)
 
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['student', 'society president'])
 def eventhub(request):
-    user = request.user
-    is_president = request.user.groups.filter(name='society president').exists()
-    student = Student.objects.filter(student_number=request.user.username).first()
+    user=request.user
+    is_president = request.user.groups.filter(name='society president').exists()  # Check if the user is in the "student" group
+    student = Student.objects.filter(student_number=request.user.username).first()   
+    event_notifications = Notification.objects.filter(recipient=user, level='success')
+    unread_notifications = Notification.objects.filter(recipient=user, level='success', unread=True)
+    notifications_unread_count = unread_notifications.count()
     courses = student.Course  # Get all courses the student is enrolled in
     events = Event.objects.filter(course_attendees=courses).distinct()  # Get events related to those courses
       # Get evaluated event IDs by the current user
@@ -501,27 +547,34 @@ def eventhub(request):
     past_events = events.filter(date__lt=current_time, evaluation_status=False)  # Past events with evaluation closed   
     # Exclude events that have been evaluated
     unevaluated_events = events.exclude(id__in=evaluated_event_ids).exclude(id__in=past_events).exclude(id__in=upcoming_events).order_by('-date') 
-    return render(request, 'pages/eventhub.html', {'student': student, 'unevaluated_events': unevaluated_events, 'past_events': past_events, 'upcoming_events': upcoming_events, 'is_president': is_president})
+    return render(request, 'pages/eventhub.html', {'student': student, 'unevaluated_events': unevaluated_events, 'past_events': past_events, 'upcoming_events': upcoming_events, 'is_president': is_president, 'event_notifications': event_notifications, 'notifications_unread_count': notifications_unread_count})
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['student', 'society president'])
 def eventhub_upcoming(request):
-    student = Student.objects.filter(student_number=request.user.username).first()
-    is_president = request.user.groups.filter(name='society president').exists()
+    user=request.user
+    is_president = request.user.groups.filter(name='society president').exists()  # Check if the user is in the "student" group
+    student = Student.objects.filter(student_number=request.user.username).first()   
+    event_notifications = Notification.objects.filter(recipient=user, level='success')
+    unread_notifications = Notification.objects.filter(recipient=user, level='success', unread=True)
+    notifications_unread_count = unread_notifications.count()
     courses = student.Course  # Get all courses the student is enrolled in
     events = Event.objects.filter(course_attendees=courses).distinct()  # Get events related to those courses
     
     current_time = timezone.now()
     upcoming_events = events.filter(date__gt=current_time, evaluation_status=False)  # Events in the future
 
-    return render(request, 'pages/eventhub_upcoming.html', {'student': student,'upcoming_events': upcoming_events, 'is_president': is_president})
+    return render(request, 'pages/eventhub_upcoming.html', {'student': student,'upcoming_events': upcoming_events, 'is_president': is_president, 'event_notifications': event_notifications, 'notifications_unread_count': notifications_unread_count})
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['student', 'society president'])
 def eventhub_evaluated(request):
-    user = request.user
-    student = Student.objects.filter(student_number=request.user.username).first()
-    is_president = request.user.groups.filter(name='society president').exists()
+    user=request.user
+    is_president = request.user.groups.filter(name='society president').exists()  # Check if the user is in the "student" group
+    student = Student.objects.filter(student_number=request.user.username).first()   
+    event_notifications = Notification.objects.filter(recipient=user, level='success')
+    unread_notifications = Notification.objects.filter(recipient=user, level='success', unread=True)
+    notifications_unread_count = unread_notifications.count()
     courses = student.Course  # Get all courses the student is enrolled in
     events = Event.objects.filter(course_attendees=courses).distinct()  # Get events related to those courses
       # Get evaluated event IDs by the current user
@@ -536,13 +589,17 @@ def eventhub_evaluated(request):
     
     # Exclude events that have been evaluated
     evaluated_events = events.filter(id__in=evaluated_event_ids).order_by('-date')[:10]
-    return render(request, 'pages/eventhub_evaluated.html', {'student': student, 'evaluated_events': evaluated_events, 'is_president': is_president})
+    return render(request, 'pages/eventhub_evaluated.html', {'student': student, 'evaluated_events': evaluated_events, 'is_president': is_president, 'event_notifications': event_notifications, 'notifications_unread_count': notifications_unread_count})
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['student', 'society president'])
 def eventhub_closed(request):
-    student = Student.objects.filter(student_number=request.user.username).first()
-    is_president = request.user.groups.filter(name='society president').exists()
+    user=request.user
+    is_president = request.user.groups.filter(name='society president').exists()  # Check if the user is in the "student" group
+    student = Student.objects.filter(student_number=request.user.username).first()   
+    event_notifications = Notification.objects.filter(recipient=user, level='success')
+    unread_notifications = Notification.objects.filter(recipient=user, level='success', unread=True)
+    notifications_unread_count = unread_notifications.count()
     courses = student.Course  # Get all courses the student is enrolled in
     events = Event.objects.filter(course_attendees=courses).distinct()  # Get events related to those courses
 
@@ -550,14 +607,17 @@ def eventhub_closed(request):
     current_time = timezone.now()
     # Past events with closed evaluation
     past_events = events.filter(date__lt=current_time, evaluation_status=False)  # Past events with evaluation closed   
-    return render(request, 'pages/eventhub_closed.html', {'student': student, 'past_events': past_events, 'is_president': is_president})
+    return render(request, 'pages/eventhub_closed.html', {'student': student, 'past_events': past_events, 'is_president': is_president, 'event_notifications': event_notifications, 'notifications_unread_count': notifications_unread_count})
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['student', 'society president'])
 def event_detail(request, pk):
-    user = request.user
-    is_president = request.user.groups.filter(name='society president').exists()  
-    student = Student.objects.filter(student_number=request.user.username).first()
+    user=request.user
+    is_president = request.user.groups.filter(name='society president').exists()  # Check if the user is in the "student" group
+    student = Student.objects.filter(student_number=request.user.username).first()   
+    event_notifications = Notification.objects.filter(recipient=user, level='success')
+    unread_notifications = Notification.objects.filter(recipient=user, level='success', unread=True)
+    notifications_unread_count = unread_notifications.count()
     event = Event.objects.get(pk=pk)
     questions = SchoolEventQuestions.objects.all().order_by('order')
     if event.event_type.name == 'School Event':
@@ -574,6 +634,7 @@ def event_detail(request, pk):
                 venue_and_physical_arrangement = form.cleaned_data['venue_and_physical_arrangement']
                 overall_assessment = form.cleaned_data['overall_assessment']
                 suggestions_and_comments = form.cleaned_data['suggestions_and_comments']
+                predicted_sentiment = single_prediction(suggestions_and_comments)
                 # Save the data to database
                 form = SchoolEventModel(
                     user=user,
@@ -586,6 +647,7 @@ def event_detail(request, pk):
                     venue_and_physical_arrangement=venue_and_physical_arrangement,
                     overall_assessment=overall_assessment,
                     suggestions_and_comments=suggestions_and_comments,
+                    predicted_sentiment = predicted_sentiment
                 )
                 form.save()
             messages.success(request, 'Evaluation submitted successfully.')
@@ -635,6 +697,8 @@ def event_detail(request, pk):
 
                 overall_satisfaction = form.cleaned_data['overall_satisfaction']
 
+                predicted_sentiment = single_prediction(suggestions_and_comments)
+
                 # Save the data to the database
                 form = WebinarSeminarModel(
                     user=user,
@@ -676,12 +740,14 @@ def event_detail(request, pk):
                     timeliness_or_suitability_of_service=timeliness_or_suitability_of_service,
 
                     overall_satisfaction=overall_satisfaction,
+
+                    predicted_sentiment = single_prediction(predicted_sentiment)
                 )
                 form.save()
                 messages.success(request, 'Evaluation submitted successfully.')
                 return redirect('eventhub')
 
-        return render(request, 'pages/webinar_seminar_form.html', context={'event': event, 'form': form, 'student': student, 'questions': questions, 'is_president': is_president})
+        return render(request, 'pages/webinar_seminar_form.html', context={'event': event, 'form': form, 'student': student, 'questions': questions, 'is_president': is_president, 'event_notifications': event_notifications, 'notifications_unread_count': notifications_unread_count})
     else:
         # Handle other event types
         pass
@@ -689,16 +755,24 @@ def event_detail(request, pk):
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['student', 'society president'])
 def about(request):
-    student = Student.objects.filter(student_number=request.user.username).first()
-    is_president = request.user.groups.filter(name='society president').exists()  
-    return render(request, 'pages/about.html', {'student': student, 'is_president': is_president})
+    user=request.user
+    is_president = request.user.groups.filter(name='society president').exists()  # Check if the user is in the "student" group
+    student = Student.objects.filter(student_number=request.user.username).first()   
+    event_notifications = Notification.objects.filter(recipient=user, level='success')
+    unread_notifications = Notification.objects.filter(recipient=user, level='success', unread=True)
+    notifications_unread_count = unread_notifications.count()  
+    return render(request, 'pages/about.html', {'student': student, 'is_president': is_president, 'event_notifications': event_notifications, 'notifications_unread_count': notifications_unread_count})
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['student', 'society president'])
 def contactUs(request):
-    student = Student.objects.filter(student_number=request.user.username).first()
-    is_president = request.user.groups.filter(name='society president').exists()  
-    return render(request, 'pages/contactUs.html', {'student': student, 'is_president': is_president})
+    user=request.user
+    is_president = request.user.groups.filter(name='society president').exists()  # Check if the user is in the "student" group
+    student = Student.objects.filter(student_number=request.user.username).first()   
+    event_notifications = Notification.objects.filter(recipient=user, level='success')
+    unread_notifications = Notification.objects.filter(recipient=user, level='success', unread=True)
+    notifications_unread_count = unread_notifications.count()  
+    return render(request, 'pages/contactUs.html', {'student': student, 'is_president': is_president, 'event_notifications': event_notifications, 'notifications_unread_count': notifications_unread_count})
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['student', 'society president'])
@@ -709,9 +783,12 @@ def suggestionbox(request):
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['society president'])
 def society_president_events(request):
-     user = request.user
-     student = Student.objects.filter(student_number=request.user.username).first()
-     is_president = request.user.groups.filter(name='society president').exists()     
+     user=request.user
+     is_president = request.user.groups.filter(name='society president'). exists()  # Check if the user is in the "student" group
+     student = Student.objects.filter(student_number=request.user.username).first()   
+     event_notifications = Notification.objects.filter(recipient=user, level='success')
+     unread_notifications = Notification.objects.filter(recipient=user, level='success', unread=True)
+     notifications_unread_count = unread_notifications.count()    
      event = Event.objects.filter(author=user).order_by('-updated')
      form = EventCreationForm()
      if request.method == 'POST':
@@ -729,14 +806,18 @@ def society_president_events(request):
             # Print form errors for debugging
             print(form.errors)
            
-     context = {'event': event, 'student': student, 'form':form, 'is_president': is_president}
+     context = {'event': event, 'student': student, 'form':form, 'is_president': is_president, 'event_notifications': event_notifications, 'notifications_unread_count': notifications_unread_count}
      return render(request, 'pages/society_president_events.html', context)
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['society president'])
 def president_view_event_evaluations(request, pk):
-    student = Student.objects.filter(student_number=request.user.username).first()
-    is_president = request.user.groups.filter(name='society president').exists()    
+    user=request.user
+    is_president = request.user.groups.filter(name='society president').exists()  # Check if the user is in the "student" group
+    student = Student.objects.filter(student_number=request.user.username).first()   
+    event_notifications = Notification.objects.filter(recipient=user, level='success')
+    unread_notifications = Notification.objects.filter(recipient=user, level='success', unread=True)
+    notifications_unread_count = unread_notifications.count()    
     event = get_object_or_404(Event, pk=pk)
         # Filter evaluations from both SchoolEventModel and WebinarSeminarModel
     school_event_evaluations = list(SchoolEventModel.objects.filter(event=event))
@@ -754,7 +835,7 @@ def president_view_event_evaluations(request, pk):
         'evaluations': evaluations,
         'student':student,
         'is_president': is_president,
-        'page_obj': page_obj
+        'page_obj': page_obj, 'event_notifications': event_notifications, 'notifications_unread_count': notifications_unread_count
     }
 
     return render(request, 'pages/president_view_event_evaluations.html', context)
@@ -762,6 +843,12 @@ def president_view_event_evaluations(request, pk):
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['society president'])
 def view_society_president_event_evaluations(request, pk):
+    user=request.user
+    is_president = request.user.groups.filter(name='society president').exists()  # Check if the user is in the "student" group
+    student = Student.objects.filter(student_number=request.user.username).first()   
+    event_notifications = Notification.objects.filter(recipient=user, level='success')
+    unread_notifications = Notification.objects.filter(recipient=user, level='success', unread=True)
+    notifications_unread_count = unread_notifications.count()
     # Try to get the event from SchoolEventModel or WebinarSeminarModel
     try:
         event_form_details = SchoolEventModel.objects.get(pk=pk)
@@ -1039,11 +1126,17 @@ def view_society_president_event_evaluations(request, pk):
         return HttpResponse("Invalid event type.")
 
 
-    return render(request, template_name, {'event_form_details': event_form_details, 'faculty': faculty, 'questions': questions, 'excellent_count': excellent_count, 'very_satisfactory_count': very_satisfactory_count, 'satisfactory_count': satisfactory_count, 'fair_count': fair_count, 'poor_count': poor_count})
+    return render(request, template_name, {'event_form_details': event_form_details, 'faculty': faculty, 'questions': questions, 'excellent_count': excellent_count, 'very_satisfactory_count': very_satisfactory_count, 'satisfactory_count': satisfactory_count, 'fair_count': fair_count, 'poor_count': poor_count, 'student': student, 'event_notifications': event_notifications, 'notifications_unread_count': notifications_unread_count})
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['society president'])
 def president_edit_event_evaluations(request, pk):
+    user=request.user
+    is_president = request.user.groups.filter(name='society president').exists()  # Check if the user is in the "student" group
+    student = Student.objects.filter(student_number=request.user.username).first()   
+    event_notifications = Notification.objects.filter(recipient=user, level='success')
+    unread_notifications = Notification.objects.filter(recipient=user, level='success', unread=True)
+    notifications_unread_count = unread_notifications.count()
     event = Event.objects.get(pk=pk)
     form = EventCreationForm(instance=event)
     if request.method == 'POST':
@@ -1053,18 +1146,24 @@ def president_edit_event_evaluations(request, pk):
             return redirect('society_president_events')
 
            
-    context = {'event': event, 'form':form}
+    context = {'event': event, 'form':form, 'student': student, 'event_notifications': event_notifications, 'notifications_unread_count': notifications_unread_count}
     return render(request, 'pages/president_edit_event_evaluations.html', context)
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['society president'])
 def president_delete_event_evaluations(request, pk):
+    user=request.user
+    is_president = request.user.groups.filter(name='society president').exists()  # Check if the user is in the "student" group
+    student = Student.objects.filter(student_number=request.user.username).first()   
+    event_notifications = Notification.objects.filter(recipient=user, level='success')
+    unread_notifications = Notification.objects.filter(recipient=user, level='success', unread=True)
+    notifications_unread_count = unread_notifications.count()
     event = Event.objects.get(pk=pk)
     if request.method == 'POST':
             event.delete()
             return redirect('society_president_events')
 
-    return render(request, 'pages/delete.html', {'obj':event})
+    return render(request, 'pages/society_president_delete_form.html', {'obj':event, 'student': student, 'event_notifications': event_notifications, 'notifications_unread_count': notifications_unread_count})
 
 def studentlogout(request):
     logout(request)
@@ -1170,6 +1269,7 @@ def evaluation_response_chart_data(request):
 
 def department_response_chart_data(request):
     # Get all departments
+    
     departments = Department.objects.all()
 
     # Prepare data for chart
@@ -2362,6 +2462,43 @@ def editteacher(request, pk):
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['admin'])
+def send_message(request, pk):
+    user = request.user
+    faculty = get_object_or_404(Faculty, pk=pk)
+    faculty_user = faculty.user
+    if request.method == 'POST':
+        form = MessageForm(request.POST, request.FILES)
+        if form.is_valid():
+            message = form.save(commit=False)
+            message.sender = user
+            message.recipient = faculty_user
+            message.save()
+
+            # Send email with attachment if it exists
+            email = EmailMessage(
+                subject=f'New Message: {message.subject}',
+                body=message.content,
+                from_email='your-email@example.com',
+                to=[faculty.email],
+            )
+            if message.attachment:
+                email.attach(message.attachment.name, message.attachment.read())
+            email.send()
+
+            notify.send(
+                sender=user,
+                recipient=faculty_user,
+                verb=message.subject,
+                description=message.content
+            )
+            return redirect('faculty')
+    else:
+        form = MessageForm()
+    return render(request, 'pages/send_message.html', {'form': form, 'faculty': faculty})
+
+
+@login_required(login_url='signin')
+@allowed_users(allowed_roles=['admin'])
 def deleteTeacher(request, pk):
     faculty = Faculty.objects.get(pk=pk)
     if request.method == 'POST':
@@ -2919,16 +3056,38 @@ def delete_user(request, user_id):
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['faculty'])
 def facultydashboard(request):
-    faculty = Faculty.objects.filter(email=request.user.username).first()    
+    user=request.user
+    faculty = Faculty.objects.filter(email=request.user.username).first()   
+
+    event_notifications = Notification.objects.filter(recipient=user, level='success')
+    messages_notifications = Notification.objects.filter(recipient=user, level='info')
+    unread_notifications = Notification.objects.filter(recipient=user, level='success', unread=True)
+    unread_messages = Notification.objects.filter(recipient=user, level='info', unread=True)
+
+    notifications_unread_count = unread_notifications.count()
+    messages_unread_count = unread_messages.count()
+    
     evaluation_status = EvaluationStatus.objects.first()
     teacher_evaluations = LikertEvaluation.objects.filter(section_subject_faculty__faculty=faculty)
     total_evaluations = teacher_evaluations.count()
+    positive_evaluations = teacher_evaluations.filter(predicted_sentiment='Positive').count()
+    negative_evaluations = teacher_evaluations.filter(predicted_sentiment='Negative').count()
+
+    # Calculate sentiment score
+    if total_evaluations > 0:
+        sentiment_score = (positive_evaluations - negative_evaluations) / total_evaluations
+    else:
+        sentiment_score = 0  # Handle case when there are no evaluations
+
     # Compute the average rating
     avg_rating = teacher_evaluations.aggregate(average_rating=Avg('average_rating'))['average_rating']
 
-    # Round the average rating to one decimal point
-    avg_rating = round(avg_rating, 1)
-
+    if avg_rating:
+        # Round the average rating to one decimal point
+        avg_rating = round(avg_rating, 1)
+    else:
+        pass
+    
     recent_comments = teacher_evaluations.values('comments', 'predicted_sentiment')[:3]
 
    
@@ -3070,24 +3229,135 @@ def facultydashboard(request):
         'avg_rating': avg_rating,
         'recent_comments': recent_comments,
         'categorized_data': categories,  # Pass the categorized data to the template
-        'total_evaluations': total_evaluations
+        'total_evaluations': total_evaluations,
+        'event_notifications': event_notifications,
+        'notifications_unread_count': notifications_unread_count,
+        'messages_notifications': messages_notifications,
+        'messages_unread_count': messages_unread_count,
+        'sentiment_score': sentiment_score,
     }
 
     return render(request, 'pages/facultydashboard.html', context)
 
+def get_evaluation_data(request):
+    faculty = Faculty.objects.filter(email=request.user.username).first()
+    teacher_evaluations = LikertEvaluation.objects.filter(section_subject_faculty__faculty=faculty)
+    positive_evaluations = teacher_evaluations.filter(predicted_sentiment='Positive').count()
+    negative_evaluations = teacher_evaluations.filter(predicted_sentiment='Negative').count()
+
+    data = {
+        'positive_evaluations': positive_evaluations,
+        'negative_evaluations': negative_evaluations,
+    }
+    return JsonResponse(data)
+
+@login_required(login_url='signin')
+@allowed_users(allowed_roles=['student', 'faculty'])
+def mark_notifications_read(request):
+    if request.method == 'POST':
+        # Mark all notifications as read for the current user
+        Notification.objects.filter(recipient=request.user, unread=True).update(unread=False)
+        return JsonResponse({'status': 'success'})
+    return JsonResponse({'status': 'error'}, status=400)
+
+@login_required(login_url='signin')
+@allowed_users(allowed_roles=['faculty'])
+def faculty_notifications(request):
+    user=request.user
+    faculty = Faculty.objects.filter(email=request.user.username).first()   
+    event_notifications = Notification.objects.filter(recipient=user, level='success')
+    messages_notifications = Notification.objects.filter(recipient=user, level='info')
+    unread_notifications = Notification.objects.filter(recipient=user, level='success', unread=True)
+    unread_messages = Notification.objects.filter(recipient=user, level='info', unread=True)
+
+    notifications_unread_count = unread_notifications.count()
+    messages_unread_count = unread_messages.count()
+    notifications = Notification.objects.filter(recipient=user, level='success')
+  
+    return render(request, 'pages/faculty_notifications.html', {'faculty': faculty, 'notifications': notifications, 'event_notifications': event_notifications,
+        'notifications_unread_count': notifications_unread_count,
+        'messages_notifications': messages_notifications,
+        'messages_unread_count': messages_unread_count })  # Return the response
+
+@login_required(login_url='signin')
+@allowed_users(allowed_roles=['faculty'])
+def inbox(request):
+    user=request.user
+    faculty = Faculty.objects.filter(email=request.user.username).first()   
+    event_notifications = Notification.objects.filter(recipient=user, level='success')
+    messages_notifications = Notification.objects.filter(recipient=user, level='info')
+    unread_notifications = Notification.objects.filter(recipient=user, level='success', unread=True)
+    unread_messages = Notification.objects.filter(recipient=user, level='info', unread=True)
+
+    notifications_unread_count = unread_notifications.count()
+    messages_unread_count = unread_messages.count()
+    messages = Notification.objects.filter(recipient=user, level='info')
+  
+    return render(request, 'pages/inbox.html', {'faculty': faculty, 'messages': messages, 'event_notifications': event_notifications,
+        'notifications_unread_count': notifications_unread_count,
+        'messages_notifications': messages_notifications,
+        'messages_unread_count': messages_unread_count, })  # Return the response
+
+@login_required(login_url='signin')
+@allowed_users(allowed_roles=['faculty'])
+def view_message(request, notification_id):
+    user=request.user
+    faculty = Faculty.objects.filter(email=request.user.username).first()   
+
+    event_notifications = Notification.objects.filter(recipient=user, level='success')
+    messages_notifications = Notification.objects.filter(recipient=user, level='info')
+    unread_notifications = Notification.objects.filter(recipient=user, level='success', unread=True)
+    unread_messages = Notification.objects.filter(recipient=user, level='info', unread=True)
+
+    notifications_unread_count = unread_notifications.count()
+    messages_unread_count = unread_messages.count()
+
+
+     # Get the specific message by ID, ensuring it's intended for the current user
+    message = get_object_or_404(Notification, id=notification_id, recipient=request.user)
+    message.mark_as_read()
+
+    return render(request, 'pages/view_message.html', {'faculty': faculty, 'message': message,'event_notifications': event_notifications,
+        'notifications_unread_count': notifications_unread_count,
+        'messages_notifications': messages_notifications,
+        'messages_unread_count': messages_unread_count,  })  # Return the response
 
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['faculty'])
 def facultyprofile(request):
-    faculty = Faculty.objects.filter(email=request.user.username).first()    
-    context = {'faculty': faculty}
+    user=request.user
+    faculty = Faculty.objects.filter(email=request.user.username).first()   
+
+    event_notifications = Notification.objects.filter(recipient=user, level='success')
+    messages_notifications = Notification.objects.filter(recipient=user, level='info')
+    unread_notifications = Notification.objects.filter(recipient=user, level='success', unread=True)
+    unread_messages = Notification.objects.filter(recipient=user, level='info', unread=True)
+
+    notifications_unread_count = unread_notifications.count()
+    messages_unread_count = unread_messages.count()
+
+    context = {'faculty': faculty, 'event_notifications': event_notifications,
+        'notifications_unread_count': notifications_unread_count,
+        'messages_notifications': messages_notifications,
+        'messages_unread_count': messages_unread_count,}
     return render(request, 'pages/facultyprofile.html', context)
+
    
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['faculty'])   
 def facultyfeedbackandevaluations(request):
-    faculty = Faculty.objects.filter(email=request.user.username).first()       
+    user=request.user
+    faculty = Faculty.objects.filter(email=request.user.username).first()   
+
+    event_notifications = Notification.objects.filter(recipient=user, level='success')
+    messages_notifications = Notification.objects.filter(recipient=user, level='info')
+    unread_notifications = Notification.objects.filter(recipient=user, level='success', unread=True)
+    unread_messages = Notification.objects.filter(recipient=user, level='info', unread=True)
+
+    notifications_unread_count = unread_notifications.count()
+    messages_unread_count = unread_messages.count()
+
     email = request.user.email
     teacher_evaluations = LikertEvaluation.objects.filter(section_subject_faculty__faculty=faculty)
     try:
@@ -3097,14 +3367,77 @@ def facultyfeedbackandevaluations(request):
         # Handle the case where the faculty with the given email does not exist
         raise Http404("Faculty does not exist for the logged-in user")
 
-    context = {'faculty': faculty, 'teacher': teacher, 'teacher_evaluations': teacher_evaluations}
+     #filter and search
+    faculty_evaluation_filter = EvaluationFilter(request.GET, queryset=teacher_evaluations)
+    teacher_evaluations = faculty_evaluation_filter.qs
+    
+
+    # ordering functionality
+   
+    ordering = request.GET.get('ordering', "")
+
+     
+    if ordering:
+        teacher_evaluations = teacher_evaluations.order_by(ordering) 
+
+    #pagination
+    page_number = request.GET.get('page', 1)
+    evaluation_paginator = Paginator(teacher_evaluations, ITEMS_PER_PAGE)
+   
+
+    try:
+        page = evaluation_paginator.page(page_number)
+    except EmptyPage:
+        page = evaluation_paginator.page(evaluation_paginator.num_pages)
+ 
+    context = {'faculty': faculty, 'teacher': teacher, 'teacher_evaluations': page.object_list, 'faculty_evaluation_filter': faculty_evaluation_filter, 'page_obj':page, 'is_paginated': True, 'paginator':evaluation_paginator,'ordering': ordering, 'event_notifications': event_notifications,
+        'notifications_unread_count': notifications_unread_count,
+        'messages_notifications': messages_notifications,
+        'messages_unread_count': messages_unread_count, }
 
     return render(request, 'pages/facultyfeedbackandevaluations.html', context)
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['faculty'])
-def view_evaluation_form(request, pk):
+def faculty_evaluations_csv(request):
     faculty = Faculty.objects.filter(email=request.user.username).first()
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename=faculty_evaluations.csv'
+
+    # Create a csv writer
+    writer = csv.writer(response)
+
+    # Apply filters from the EvaluationFilter based on the request data
+    evaluation_filter = EvaluationFilter(request.GET, queryset=LikertEvaluation.objects.filter(section_subject_faculty__faculty=faculty))
+
+    # Get the filtered queryset
+    filtered_evaluations = evaluation_filter.qs
+
+    # Add column headings to csv file
+
+    writer.writerow(['Subject', 'Faculty', 'Average', 'Rating', 'Overall Impression', 'Polarity', 'Academic Year', 'Semester'])
+
+    # Loop thru and output
+    for i in filtered_evaluations:
+        writer.writerow([i.section_subject_faculty.subjects, i.section_subject_faculty.faculty, i.average_rating, i.get_rating_category(), i.comments, i.predicted_sentiment, i.academic_year, i.semester ])
+
+    return response
+
+
+@login_required(login_url='signin')
+@allowed_users(allowed_roles=['faculty'])
+def view_evaluation_form(request, pk):
+    user=request.user
+    faculty = Faculty.objects.filter(email=request.user.username).first()   
+
+    event_notifications = Notification.objects.filter(recipient=user, level='success')
+    messages_notifications = Notification.objects.filter(recipient=user, level='info')
+    unread_notifications = Notification.objects.filter(recipient=user, level='success', unread=True)
+    unread_messages = Notification.objects.filter(recipient=user, level='info', unread=True)
+
+    notifications_unread_count = unread_notifications.count()
+    messages_unread_count = unread_messages.count()
+    
     questions = FacultyEvaluationQuestions.objects.all().order_by('order')
     faculty_evaluation_form = LikertEvaluation.objects.get(pk=pk)
     outstanding_count = LikertEvaluation.objects.filter(pk=pk).filter(
@@ -3469,13 +3802,24 @@ def view_evaluation_form(request, pk):
         extends_consideration_to_students=1
     ).count()    
     
-    return render(request, 'pages/view_evaluation_form.html', {'faculty_evaluation_form': faculty_evaluation_form, 'faculty': faculty, 'outstanding_count': outstanding_count, 'very_satisfactory_count': very_satisfactory_count, 'satisfactory_count': satisfactory_count, 'unsatisfactory_count': unsatisfactory_count, 'poor_count': poor_count, 'questions': questions})
+    return render(request, 'pages/view_evaluation_form.html', {'faculty_evaluation_form': faculty_evaluation_form, 'faculty': faculty, 'outstanding_count': outstanding_count, 'very_satisfactory_count': very_satisfactory_count, 'satisfactory_count': satisfactory_count, 'unsatisfactory_count': unsatisfactory_count, 'poor_count': poor_count, 'questions': questions, 'event_notifications': event_notifications,
+        'notifications_unread_count': notifications_unread_count,
+        'messages_notifications': messages_notifications,
+        'messages_unread_count': messages_unread_count,})
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['faculty'])
 def faculty_event_evaluations(request):
-     user = request.user
-     faculty = Faculty.objects.filter(email=request.user.username).first()    
+     user=request.user
+     faculty = Faculty.objects.filter(email=request.user.username).first()   
+
+     event_notifications = Notification.objects.filter(recipient=user, level='success')
+     messages_notifications = Notification.objects.filter(recipient=user, level='info')
+     unread_notifications = Notification.objects.filter(recipient=user, level='success', unread=True)
+     unread_messages = Notification.objects.filter(recipient=user, level='info', unread=True)
+
+     notifications_unread_count = unread_notifications.count()
+     messages_unread_count = unread_messages.count()    
      event = Event.objects.filter(author=user).order_by('-updated')
      form = EventCreationForm()
      if request.method == 'POST':
@@ -3487,20 +3831,57 @@ def faculty_event_evaluations(request):
             #event = form.save(commit=False)
             #event.published_by = faculty 
             #event.save()
+            
+            student_users = User.objects.filter(student__Course__in=event.course_attendees.all())
+
+            # Get user instances associated with selected department attendees
+            faculty_users = User.objects.filter(faculty__department__in=event.department_attendees.all())
+            notification_description = f"A new event '{event.title}' is scheduled for {event.date}. Please evaluate and provide your feedback!"
+
+            # Send notifications to student attendees
+            notify.send(
+                sender=user,
+                recipient=student_users,
+                verb="New Event Created",
+                description=notification_description,
+                level='success'
+            )
+
+            # Send notifications to faculty attendees
+            notify.send(
+                sender=user,
+                recipient=faculty_users,
+                verb="New Event Created",
+                description=notification_description,
+                level='success'
+            )
 
             return redirect('faculty_event_evaluations')
         else:
             # Print form errors for debugging
             print(form.errors)
            
-     context = {'event': event, 'faculty': faculty, 'form':form}
+     context = {'event': event, 'faculty': faculty, 'form':form, 'event_notifications': event_notifications,
+        'notifications_unread_count': notifications_unread_count,
+        'messages_notifications': messages_notifications,
+        'messages_unread_count': messages_unread_count,}
      return render(request, 'pages/faculty_event_evaluations.html', context)
 
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['faculty'])
 def view_faculty_event_evaluations(request, pk):
-    faculty = Faculty.objects.filter(email=request.user.username).first()  
+    user=request.user
+    faculty = Faculty.objects.filter(email=request.user.username).first()   
+
+    event_notifications = Notification.objects.filter(recipient=user, level='success')
+    messages_notifications = Notification.objects.filter(recipient=user, level='info')
+    unread_notifications = Notification.objects.filter(recipient=user, level='success', unread=True)
+    unread_messages = Notification.objects.filter(recipient=user, level='info', unread=True)
+
+    notifications_unread_count = unread_notifications.count()
+    messages_unread_count = unread_messages.count()
+
     event = get_object_or_404(Event, pk=pk)
     # Filter evaluations from both SchoolEventModel and WebinarSeminarModel
     school_event_evaluations = list(SchoolEventModel.objects.filter(event=event))
@@ -3517,7 +3898,11 @@ def view_faculty_event_evaluations(request, pk):
         'faculty': faculty,
         'event': event,
         'evaluations': evaluations,
-        'page_obj': page_obj
+        'page_obj': page_obj, 
+        'event_notifications': event_notifications,
+        'notifications_unread_count': notifications_unread_count,
+        'messages_notifications': messages_notifications,
+        'messages_unread_count': messages_unread_count,
     }
     return render(request, 'pages/view_faculty_event_evaluations.html', context)
 
@@ -3525,6 +3910,16 @@ def view_faculty_event_evaluations(request, pk):
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['faculty'])
 def faculty_view_event_evaluations(request, pk):
+    user=request.user
+    faculty = Faculty.objects.filter(email=request.user.username).first()   
+
+    event_notifications = Notification.objects.filter(recipient=user, level='success')
+    messages_notifications = Notification.objects.filter(recipient=user, level='info')
+    unread_notifications = Notification.objects.filter(recipient=user, level='success', unread=True)
+    unread_messages = Notification.objects.filter(recipient=user, level='info', unread=True)
+
+    notifications_unread_count = unread_notifications.count()
+    messages_unread_count = unread_messages.count()  
      # Try to get the event from SchoolEventModel or WebinarSeminarModel
     try:
         event_form_details = SchoolEventModel.objects.get(pk=pk)
@@ -3539,7 +3934,16 @@ def faculty_view_event_evaluations(request, pk):
 
     # Render different templates based on the event type
     if event_type == 'school_event':
-        faculty = Faculty.objects.filter(email=request.user.username).first()  
+        user=request.user
+        faculty = Faculty.objects.filter(email=request.user.username).first()   
+
+        event_notifications = Notification.objects.filter(recipient=user, level='success')
+        messages_notifications = Notification.objects.filter(recipient=user, level='info')
+        unread_notifications = Notification.objects.filter(recipient=user, level='success', unread=True)
+        unread_messages = Notification.objects.filter(recipient=user, level='info', unread=True)
+
+        notifications_unread_count = unread_notifications.count()
+        messages_unread_count = unread_messages.count()  
         questions = SchoolEventQuestions.objects.all().order_by('order')
 
         excellent_count = SchoolEventModel.objects.filter(pk=pk).filter(
@@ -3625,7 +4029,16 @@ def faculty_view_event_evaluations(request, pk):
         template_name = 'pages/view_faculty_schoolevent_evaluations.html'
         
     elif event_type == 'webinar_event':
-        faculty = Faculty.objects.filter(email=request.user.username).first()  
+        user=request.user
+        faculty = Faculty.objects.filter(email=request.user.username).first()   
+
+        event_notifications = Notification.objects.filter(recipient=user, level='success')
+        messages_notifications = Notification.objects.filter(recipient=user, level='info')
+        unread_notifications = Notification.objects.filter(recipient=user, level='success', unread=True)
+        unread_messages = Notification.objects.filter(recipient=user, level='info', unread=True)
+
+        notifications_unread_count = unread_notifications.count()
+        messages_unread_count = unread_messages.count()
         questions = WebinarSeminarQuestions.objects.all().order_by('order')
 
         excellent_count = WebinarSeminarModel.objects.filter(pk=pk).filter(
@@ -3804,12 +4217,24 @@ def faculty_view_event_evaluations(request, pk):
         return HttpResponse("Invalid event type.")
 
 
-    return render(request, template_name, {'event_form_details': event_form_details, 'faculty': faculty, 'questions': questions, 'excellent_count': excellent_count, 'very_satisfactory_count': very_satisfactory_count, 'satisfactory_count': satisfactory_count, 'fair_count': fair_count, 'poor_count': poor_count})
+    return render(request, template_name, {'event_form_details': event_form_details, 'faculty': faculty, 'questions': questions, 'excellent_count': excellent_count, 'very_satisfactory_count': very_satisfactory_count, 'satisfactory_count': satisfactory_count, 'fair_count': fair_count, 'poor_count': poor_count, 'faculty': faculty, 'event_notifications': event_notifications,
+        'notifications_unread_count': notifications_unread_count,
+        'messages_notifications': messages_notifications,
+        'messages_unread_count': messages_unread_count,})
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['faculty'])
 def edit_faculty_events(request, pk):
-    faculty = Faculty.objects.filter(email=request.user.username).first()    
+    user=request.user
+    faculty = Faculty.objects.filter(email=request.user.username).first()   
+
+    event_notifications = Notification.objects.filter(recipient=user, level='success')
+    messages_notifications = Notification.objects.filter(recipient=user, level='info')
+    unread_notifications = Notification.objects.filter(recipient=user, level='success', unread=True)
+    unread_messages = Notification.objects.filter(recipient=user, level='info', unread=True)
+
+    notifications_unread_count = unread_notifications.count()
+    messages_unread_count = unread_messages.count()    
     event = Event.objects.get(pk=pk)
     form = EventCreationForm(instance=event)
     if request.method == 'POST':
@@ -3819,24 +4244,48 @@ def edit_faculty_events(request, pk):
             return redirect('faculty_event_evaluations')
 
            
-    context = {'event': event, 'faculty': faculty, 'form':form}
+    context = {'event': event, 'faculty': faculty, 'form':form, 'event_notifications': event_notifications,
+        'notifications_unread_count': notifications_unread_count,
+        'messages_notifications': messages_notifications,
+        'messages_unread_count': messages_unread_count,}
     return render(request, 'pages/edit_faculty_events.html', context)
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['faculty'])
 def delete_faculty_events(request, pk):
+    user=request.user
+    faculty = Faculty.objects.filter(email=request.user.username).first()   
+
+    event_notifications = Notification.objects.filter(recipient=user, level='success')
+    messages_notifications = Notification.objects.filter(recipient=user, level='info')
+    unread_notifications = Notification.objects.filter(recipient=user, level='success', unread=True)
+    unread_messages = Notification.objects.filter(recipient=user, level='info', unread=True)
+
+    notifications_unread_count = unread_notifications.count()
+    messages_unread_count = unread_messages.count()    
     event = Event.objects.get(pk=pk)
     if request.method == 'POST':
             event.delete()
             return redirect('faculty_event_evaluations')
 
-    return render(request, 'pages/delete.html', {'obj':event})
+    return render(request, 'pages/faculty_delete_form.html', {'obj':event, 'faculty': faculty, 'event_notifications': event_notifications,
+        'notifications_unread_count': notifications_unread_count,
+        'messages_notifications': messages_notifications,
+        'messages_unread_count': messages_unread_count,})
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['faculty'])
 def faculty_events(request):
-    user = request.user
+    user=request.user
     faculty = Faculty.objects.filter(email=request.user.username).first()   
+
+    event_notifications = Notification.objects.filter(recipient=user, level='success')
+    messages_notifications = Notification.objects.filter(recipient=user, level='info')
+    unread_notifications = Notification.objects.filter(recipient=user, level='success', unread=True)
+    unread_messages = Notification.objects.filter(recipient=user, level='info', unread=True)
+
+    notifications_unread_count = unread_notifications.count()
+    messages_unread_count = unread_messages.count()   
     faculty_department = faculty.department  # Get the department the faculty is a part of
     events = Event.objects.filter(department_attendees=faculty_department).distinct()  # Get events related to those department
     # Get evaluated event IDs by the current user
@@ -3855,25 +4304,48 @@ def faculty_events(request):
     past_events = events.filter(date__lt=current_time, evaluation_status=False)  # Past events with evaluation closed   
     # Exclude events that have been evaluated
     unevaluated_events = events.exclude(id__in=evaluated_event_ids).exclude(id__in=past_events).exclude(id__in=upcoming_events).order_by('-date') 
-    return render(request, 'pages/faculty_events.html', {'faculty': faculty, 'unevaluated_events': unevaluated_events, 'past_events': past_events, 'upcoming_events': upcoming_events})
+    return render(request, 'pages/faculty_events.html', {'faculty': faculty, 'unevaluated_events': unevaluated_events, 'past_events': past_events, 'upcoming_events': upcoming_events, 'event_notifications': event_notifications,
+        'notifications_unread_count': notifications_unread_count,
+        'messages_notifications': messages_notifications,
+        'messages_unread_count': messages_unread_count,})
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['faculty'])
 def faculty_events_upcoming(request):
-    faculty = Faculty.objects.filter(email=request.user.username).first()  
+    user=request.user
+    faculty = Faculty.objects.filter(email=request.user.username).first()   
+
+    event_notifications = Notification.objects.filter(recipient=user, level='success')
+    messages_notifications = Notification.objects.filter(recipient=user, level='info')
+    unread_notifications = Notification.objects.filter(recipient=user, level='success', unread=True)
+    unread_messages = Notification.objects.filter(recipient=user, level='info', unread=True)
+
+    notifications_unread_count = unread_notifications.count()
+    messages_unread_count = unread_messages.count()  
     department = faculty.department  # Get the department the faculty is a part of
     events = Event.objects.filter(department_attendees=department).distinct()  # Get events related to those department
     
     current_time = timezone.now()
     upcoming_events = events.filter(date__gt=current_time, evaluation_status=False)  # Events in the future
 
-    return render(request, 'pages/faculty_events_upcoming.html', {'faculty': faculty,'upcoming_events': upcoming_events})
+    return render(request, 'pages/faculty_events_upcoming.html', {'faculty': faculty,'upcoming_events': upcoming_events, 'event_notifications': event_notifications,
+        'notifications_unread_count': notifications_unread_count,
+        'messages_notifications': messages_notifications,
+        'messages_unread_count': messages_unread_count,})
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['faculty'])
 def faculty_events_evaluated(request):
-    user = request.user
-    faculty = Faculty.objects.filter(email=request.user.username).first()  
+    user=request.user
+    faculty = Faculty.objects.filter(email=request.user.username).first()   
+
+    event_notifications = Notification.objects.filter(recipient=user, level='success')
+    messages_notifications = Notification.objects.filter(recipient=user, level='info')
+    unread_notifications = Notification.objects.filter(recipient=user, level='success', unread=True)
+    unread_messages = Notification.objects.filter(recipient=user, level='info', unread=True)
+
+    notifications_unread_count = unread_notifications.count()
+    messages_unread_count = unread_messages.count()  
     department = faculty.department  # Get the department the faculty is a part of
     events = Event.objects.filter(department_attendees=department).distinct()  # Get events related to those department
       # Get evaluated event IDs by the current user
@@ -3888,12 +4360,24 @@ def faculty_events_evaluated(request):
     
     # Exclude events that have been evaluated
     evaluated_events = events.filter(id__in=evaluated_event_ids).order_by('-date')[:10]
-    return render(request, 'pages/faculty_events_evaluated.html', {'faculty': faculty, 'evaluated_events': evaluated_events})
+    return render(request, 'pages/faculty_events_evaluated.html', {'faculty': faculty, 'evaluated_events': evaluated_events, 'event_notifications': event_notifications,
+        'notifications_unread_count': notifications_unread_count,
+        'messages_notifications': messages_notifications,
+        'messages_unread_count': messages_unread_count,})
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['faculty'])
 def faculty_events_closed(request):
-    faculty = Faculty.objects.filter(email=request.user.username).first()  
+    user=request.user
+    faculty = Faculty.objects.filter(email=request.user.username).first()   
+
+    event_notifications = Notification.objects.filter(recipient=user, level='success')
+    messages_notifications = Notification.objects.filter(recipient=user, level='info')
+    unread_notifications = Notification.objects.filter(recipient=user, level='success', unread=True)
+    unread_messages = Notification.objects.filter(recipient=user, level='info', unread=True)
+
+    notifications_unread_count = unread_notifications.count()
+    messages_unread_count = unread_messages.count()  
     department = faculty.department  # Get the department the faculty is a part of
     events = Event.objects.filter(department_attendees=department).distinct()  # Get events related to those department
 
@@ -3901,4 +4385,154 @@ def faculty_events_closed(request):
     current_time = timezone.now()
     # Past events with closed evaluation
     past_events = events.filter(date__lt=current_time, evaluation_status=False)  # Past events with evaluation closed   
-    return render(request, 'pages/faculty_events_closed.html', {'faculty': faculty, 'past_events': past_events})
+    return render(request, 'pages/faculty_events_closed.html', {'faculty': faculty, 'past_events': past_events, 'event_notifications': event_notifications,
+        'notifications_unread_count': notifications_unread_count,
+        'messages_notifications': messages_notifications,
+        'messages_unread_count': messages_unread_count,})
+
+@login_required(login_url='signin')
+@allowed_users(allowed_roles=['faculty'])
+def faculty_event_detail(request, pk):
+    user=request.user
+    faculty = Faculty.objects.filter(email=request.user.username).first()   
+
+    event_notifications = Notification.objects.filter(recipient=user, level='success')
+    messages_notifications = Notification.objects.filter(recipient=user, level='info')
+    unread_notifications = Notification.objects.filter(recipient=user, level='success', unread=True)
+    unread_messages = Notification.objects.filter(recipient=user, level='info', unread=True)
+
+    notifications_unread_count = unread_notifications.count()
+    messages_unread_count = unread_messages.count() 
+    event = Event.objects.get(pk=pk)
+    questions = SchoolEventQuestions.objects.all().order_by('order')
+    if event.event_type.name == 'School Event':
+        form = SchoolEventForm()
+        if request.method == 'POST':
+            form = SchoolEventForm(request.POST)
+            if form.is_valid():
+                 # Process the evaluation form
+                meeting_expectation = form.cleaned_data['meeting_expectation']
+                attainment_of_the_objectives = form.cleaned_data['attainment_of_the_objectives']
+                topics_discussed = form.cleaned_data['topics_discussed']
+                input_presentation = form.cleaned_data['input_presentation']
+                management_team = form.cleaned_data['management_team']
+                venue_and_physical_arrangement = form.cleaned_data['venue_and_physical_arrangement']
+                overall_assessment = form.cleaned_data['overall_assessment']
+                suggestions_and_comments = form.cleaned_data['suggestions_and_comments']
+                # Save the data to database
+                form = SchoolEventModel(
+                    user=user,
+                    event=event,
+                    meeting_expectation=meeting_expectation,
+                    attainment_of_the_objectives=attainment_of_the_objectives,
+                    topics_discussed=topics_discussed,
+                    input_presentation=input_presentation,
+                    management_team=management_team,
+                    venue_and_physical_arrangement=venue_and_physical_arrangement,
+                    overall_assessment=overall_assessment,
+                    suggestions_and_comments=suggestions_and_comments,
+                )
+                form.save()
+            messages.success(request, 'Evaluation submitted successfully.')
+            return redirect('faculty_events')
+        return render(request, 'pages/faculty_school_event_form.html', context = {'event': event, 'form': form, 'faculty': faculty, 'questions': questions, 'event_notifications': event_notifications,
+        'notifications_unread_count': notifications_unread_count,
+        'messages_notifications': messages_notifications,
+        'messages_unread_count': messages_unread_count,})
+    
+    elif event.event_type.name == 'Webinar/Seminar':
+        questions = WebinarSeminarQuestions.objects.all().order_by('order')
+        form = WebinarSeminarForm()  # Assuming WebinarSeminarForm is similar to SchoolEventForm
+        if request.method == 'POST':
+            form = WebinarSeminarForm(request.POST)
+            if form.is_valid():
+                # Process Webinar/Seminar evaluation
+                relevance_of_the_activity = form.cleaned_data['relevance_of_the_activity']
+
+                quality_of_the_activity = form.cleaned_data['quality_of_the_activity']
+
+                timeliness = form.cleaned_data['timeliness']
+
+                suggestions_and_comments = form.cleaned_data['suggestions_and_comments']
+
+                attainment_of_the_objective = form.cleaned_data['attainment_of_the_objective']
+
+                appropriateness_of_the_topic_to_attain_the_objective = form.cleaned_data['appropriateness_of_the_topic_to_attain_the_objective']
+
+                appropriateness_of_the_searching_methods_used = form.cleaned_data['appropriateness_of_the_searching_methods_used']
+                
+                topics_to_be_included = form.cleaned_data['topics_to_be_included']
+
+                appropriateness_of_the_topic_in_the_present_time = form.cleaned_data['appropriateness_of_the_topic_in_the_present_time']
+
+                usefulness_of_the_topic_discusssed_in_the_activity = form.cleaned_data['usefulness_of_the_topic_discusssed_in_the_activity']
+
+                appropriateness_of_the_searching_methods = form.cleaned_data['appropriateness_of_the_searching_methods']
+
+                displayed_a_thorough_knowledge_of_the_topic = form.cleaned_data['displayed_a_thorough_knowledge_of_the_topic']
+
+                thoroughly_explained_and_processed_the_learning_activities_throughout_the_training = form.cleaned_data['thoroughly_explained_and_processed_the_learning_activities_throughout_the_training']
+
+                able_to_create_a_good_learning_environment = form.cleaned_data['able_to_create_a_good_learning_environment']
+
+                able_to_manage_her_time_well = form.cleaned_data['able_to_manage_her_time_well']
+
+                demonstrated_keenness_to_the_participant_needs = form.cleaned_data['demonstrated_keenness_to_the_participant_needs']
+
+                timeliness_or_suitability_of_service = form.cleaned_data['timeliness_or_suitability_of_service']
+
+                overall_satisfaction = form.cleaned_data['overall_satisfaction']
+
+                # Save the data to the database
+                form = WebinarSeminarModel(
+                    user=user,
+                    
+                    event=event,
+
+                    relevance_of_the_activity=relevance_of_the_activity,
+                    
+                    quality_of_the_activity=quality_of_the_activity,
+
+                    timeliness=timeliness,
+
+                    suggestions_and_comments=suggestions_and_comments,
+
+                    attainment_of_the_objective=attainment_of_the_objective,
+
+                    appropriateness_of_the_topic_to_attain_the_objective = appropriateness_of_the_topic_to_attain_the_objective,
+
+                    appropriateness_of_the_searching_methods_used=appropriateness_of_the_searching_methods_used,
+
+                    topics_to_be_included=topics_to_be_included,
+
+                    appropriateness_of_the_topic_in_the_present_time=appropriateness_of_the_topic_in_the_present_time,
+
+                    usefulness_of_the_topic_discusssed_in_the_activity=usefulness_of_the_topic_discusssed_in_the_activity,
+
+                    appropriateness_of_the_searching_methods=appropriateness_of_the_searching_methods,
+
+                    displayed_a_thorough_knowledge_of_the_topic=displayed_a_thorough_knowledge_of_the_topic,
+
+                    thoroughly_explained_and_processed_the_learning_activities_throughout_the_training=thoroughly_explained_and_processed_the_learning_activities_throughout_the_training,
+
+                    able_to_create_a_good_learning_environment=able_to_create_a_good_learning_environment,
+
+                    able_to_manage_her_time_well=able_to_manage_her_time_well,
+
+                    demonstrated_keenness_to_the_participant_needs=demonstrated_keenness_to_the_participant_needs,
+
+                    timeliness_or_suitability_of_service=timeliness_or_suitability_of_service,
+
+                    overall_satisfaction=overall_satisfaction,
+                )
+                form.save()
+                messages.success(request, 'Evaluation submitted successfully.')
+                return redirect('faculty_events')
+
+        return render(request, 'pages/faculty_webinar_seminar_form.html', context={'event': event, 'form': form, 'faculty': faculty, 'questions': questions, 'event_notifications': event_notifications,
+        'notifications_unread_count': notifications_unread_count,
+        'messages_notifications': messages_notifications,
+        'messages_unread_count': messages_unread_count,})
+    else:
+        # Handle other event types
+        pass

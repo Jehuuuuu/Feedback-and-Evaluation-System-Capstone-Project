@@ -21,6 +21,44 @@
 </head>
 
 <body>
+  <!-- Profile Modal -->
+<div class="modal fade" id="profileModal" tabindex="-1" aria-labelledby="profileModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-sm">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="profileModalLabel">Profile</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="card">
+          {% if faculty.profile_picture %}
+              <img src="{{ faculty.profile_picture.url }}" alt="Profile Picture" class="card-img-top">
+          {% else %}
+              <img src="{% static 'images/Default_avatar.webp' %}" alt="Default Profile Picture" class="card-img-top">
+          {% endif %}
+          <div class="button-container text-center mt-2">
+              <button class="btn btn-warning"><a href="{}" style="color: inherit;"><i class="bi bi-pencil-square"></i> Edit</a></button>
+          </div>
+      </div>
+  </div>
+      <ul class="list-group list-group-flush">
+          <li class="list-group-item"><b>Name: </b>{{ faculty.first_name }} {{ faculty.last_name }}</li>
+          <li class="list-group-item"><b>Email: </b>{{ faculty.email }}</li>
+          <li class="list-group-item"><b>Contact Number: </b>{{ faculty.contact_number }}</li>
+          <li class="list-group-item"><b>Department: </b>{{ faculty.department }}</li>
+      </ul>
+      </div>
+      <div class="modal-footer">
+
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+
+
   <div class="container-fluid" style="padding: 0;">
     <div class="header">
       <button id="sidebarCollapse" class="btn">
@@ -36,6 +74,8 @@
           <div class="header-title">Feedback and Evaluation System </div>
           <div class="subtitle">Cavite State University - Bacoor Campus</div>
         </div>
+ 
+
         <div class="profile-pic">
           {% if faculty.profile_picture %}
           <img src="{{ faculty.profile_picture.url }}" alt="Profile Picture" width="60" style=" border-radius: 50%; margin-right: 1em;">
@@ -44,6 +84,66 @@
           {% endif %}
             <a href="{% url 'facultyprofile' %}" style="font-weight: 500;"> <p id="profile_name" style="color: #fafafa; display: inline-block;">{{ faculty.first_name }} {{ faculty.last_name }}</p> </a>
         </div>
+<div class="row" style="margin-right: 2em; gap: 1em;">
+ <div class="col-4">
+   
+                      <!-- Notification bell and dropdown for notifications -->
+       <div class="notification-container" style="position: relative;">
+         <a href="#" class="notification-bell" data-bs-toggle="dropdown" aria-expanded="false">
+           <i class="bi bi-bell-fill"></i>
+             {% if notifications_unread_count > 0 %}
+                 <span id="notification-badge" class="badge">{{ notifications_unread_count }}</span>
+             {% endif %}
+         </a>
+   
+         <!-- Dropdown for notifications -->
+         <div class="dropdown-menu dropdown-menu-end notifications_container">
+             <h6 class="dropdown-header">Notifications</h6>
+             {% if event_notifications %}
+                 {% for notification in event_notifications %}
+                   <a href="{% url 'faculty_events'%}" class="dropdown-item" style="white-space: normal;">
+                      <b>{{ notification.verb }} </b>- {{notification.description}} {{ notification.timestamp|timesince }} ago
+                     </a>
+                 {% endfor %}
+                 <div class="dropdown-divider"></div>
+                 <a href="{% url 'faculty_notifications' %}" class="dropdown-item text-center">View all notifications</a>
+             {% else %}
+                 <span class="dropdown-item text-muted">No new notifications</span>
+             {% endif %}
+         </div>
+       </div>
+ </div>
+<div class="col-4">
+  
+       <!-- Message Icon and dropdown for messages -->
+      <div class="notification-container" style="position: relative;">
+        <a href="#" class="notification-bell" data-bs-toggle="dropdown" aria-expanded="false">
+          <i class="bi bi-envelope-fill"></i>
+            {% if messages_unread_count > 0 %}
+                <span  id="notification-badge" class="badge">{{ messages_unread_count }}</span>
+            {% endif %}
+        </a>
+  
+        <!-- Dropdown for Messages -->
+        <div class="dropdown-menu dropdown-menu-end notifications_container">
+            <h6 class="dropdown-header">Messages</h6>
+            {% if messages_notifications %}
+                {% for message in messages_notifications %}
+                    <a href="{% url 'view_message' message.id %}" class="dropdown-item" style="white-space: normal;">
+                      {{ message.actor }} - <b>{{ message.verb }}</b> {{ message.timestamp|timesince }} ago
+                    </a>
+                {% endfor %}
+                <div class="dropdown-divider"></div>
+                <a href="{% url 'inbox' %}" class="dropdown-item text-center">View all messages</a>
+            {% else %}
+                <span class="dropdown-item text-muted">No new messages</span>
+            {% endif %}
+        </div>
+      </div>
+</div>
+</div>
+
+
     </div>
     </div>
 </div>
@@ -60,7 +160,7 @@
       </li>
        
         <li class="nav-item">
-          <a class="nav-link {% if request.path == '/facultyprofile' %} active {% endif %}" href="{% url 'facultyprofile' %}">
+          <a class="nav-link profile" data-bs-toggle="modal" data-bs-target="#profileModal" href="{% url 'facultyprofile' %}">
             <i class="bi bi-person-lines-fill nav-icon nav-icon"> </i> <b>Profile</b>
               </a>
         </li>
@@ -92,15 +192,16 @@
       {% block header %}
 
     <div class="row ">
-      <div class="col-lg-6">
+      <div class="col-md-6 col-sm-12 mb-2 ">
         <div class = "header_status">
           <h5>Academic Year: 2024-2025</h5>
           <h5>Semester: 1st</h5>
           <h5>Student Evaluation for Teachers: {% if evaluation_status.evaluation_status %} In Progress {% else %} Closed {% endif %} </h5>
          </div>
       </div>
-      <div class="col-lg-2">
-        <div class="card" style="width: 10rem;">
+
+      <div class="col-lg-2 col-md-3 col-sm-4 col-6 mb-2 ">
+        <div class="card" style="width: 10rem; border: none;">
          <div class="card-body" style="text-align: center;">
            <h1 class="card-title mb-2">
                {{ total_evaluations }}
@@ -110,8 +211,8 @@
               </div>
       </div>
 
-       <div class="col-lg-2">
-         <div class="card" style="width: 10rem;">
+       <div class="col-lg-2 col-md-3 col-sm-3 col-5 mb-2">
+         <div class="card " style="width: 10rem; border: none;">
           <div class="card-body" style="text-align: center;">
             {% if avg_rating >= 5 %}
             <h1 class="card-title mb-2" style="color: #339933;">
@@ -138,43 +239,115 @@
           </div>
                </div>
        </div>
+       
+       <div class="col-lg-2 col-md-3 col-sm-4 col-6 mb-2">
+        <div class="card" style="width: 10rem; border: none;">
+            <div class="card-body" style="text-align: center;">
+                <h1 class="card-title mb-2">
+                    {{ sentiment_score }}
+                </h1>
+                <h6 class="card-subtitle"                     data-bs-toggle="tooltip" 
+                data-bs-placement="bottom" 
+                title="Positive Evaluations - Negative Evaluations / Total Evaluations">Sentiment Score</h6>
+            </div>
+        </div>
+    </div>
+    
+
+
       </div>
 
-    </div>
 
-    <div class="row mt-2">
-      <div class=" col-lg-8">
+
+ </div>
+
+    <div class="row">
+      <div class=" col-lg-8 mb-2">
         <div class="chart-container">
           <h5>Rating Distribution:</h5>
           <!-- Canvas for the Chart.js chart -->
           <canvas id="evaluationChart" height="200px"></canvas>
         </div>
       </div>
-      <div class="col-lg-4">
-        <div class="chart-container">
-          <table class="table table-bordered">
-              <h5>Recent feedback</h5>
-              {% for i in recent_comments %}
-              <tr>
-                {% if i.predicted_sentiment == 'Positive' %}
-                <td class="text-success">
-                    {{ i.comments }}
-                </td>
-                {% endif %}
-                {% if i.predicted_sentiment == 'Negative' %}
-                <td class="text-danger">
-                    {{ i.comments }}
-                </td>
-                {% endif %}
-              </tr>
-              {% endfor %}
-          </table>
-          <a href="{% url 'facultyfeedbackandevaluations' %}">View all</a>
-        </div>
-    </div>
-
-
+          <!-- Sentiment Score Pie Chart -->
+    <div class="col-lg-4 mb-2">
+      <div class="chart-container">
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <canvas id="sentimentchart" width="200" height="200"></canvas>
+        <table class="table table-bordered">
+          <h5>Recent feedback</h5>
+          {% for i in recent_comments %}
+          <tr>
+            {% if i.predicted_sentiment == 'Positive' %}
+            <td class="text-success">
+                {{ i.comments }}
+            </td>
+            {% endif %}
+            {% if i.predicted_sentiment == 'Negative' %}
+            <td class="text-danger">
+                {{ i.comments }}
+            </td>
+            {% endif %}
+          </tr>
+          {% endfor %}
+      </table>
+      <a href="{% url 'facultyfeedbackandevaluations' %}">View all</a>
+      <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            fetch('/get_evaluation_data/')
+                .then(response => response.json())
+                .then(data => {
+                    var ctx = document.getElementById('sentimentchart').getContext('2d');
+                    var sentimentChart = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: ['Positive', 'Negative'],  // Labels for the X-axis
+                            datasets: [{
+                                label: 'Evaluations',  // Dataset label
+                                data: [data.positive_evaluations, data.negative_evaluations],
+                                backgroundColor: ['#4caf50', '#f44336'],
+                                borderColor: ['#4caf50', '#f44336'],
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: {
+                                    display: true,
+                                    position: 'top',
+                                    labels: {
+                                        boxWidth: 0,  // Set box width to 0 to hide the color box
+                                        font: {
+                                            size: 14
+                                        }
+                                    }
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(tooltipItem) {
+                                            return tooltipItem.label + ': ' + tooltipItem.raw;  // Show label without color
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true
+                                }
+                            }
+                        }
+                    });
+                })
+                .catch(error => console.error('Error fetching data:', error));
+        });
+    </script>
     
+      </div>
+  </div>
+</div>
+      
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
       // Pass the categorized data from Django to JavaScript
@@ -226,45 +399,8 @@
       });
   </script>
 
-<script>
-  var ctx = document.getElementById('sentimentChart').getContext('2d');
-  var periods = {{ periods|safe }};
-  var positiveCounts = {{ positive_counts|safe }};
-  var negativeCounts = {{ negative_counts|safe }};
-  
-  var sentimentChart = new Chart(ctx, {
-      type: 'line',
-      data: {
-          labels: periods,
-          datasets: [
-              {
-                  label: 'Positive Comments',
-                  data: positiveCounts,
-                  borderColor: 'rgba(75, 192, 192, 1)',
-                  backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                  fill: false
-              },
-              {
-                  label: 'Negative Comments',
-                  data: negativeCounts,
-                  borderColor: 'rgba(255, 99, 132, 1)',
-                  backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                  fill: false
-              }
-          ]
-      },
-      options: {
-          scales: {
-              y: {
-                  beginAtZero: true,
-                  ticks: {
-                      stepSize: 1
-                  }
-              }
-          }
-      }
-  });
-</script>
+
+
     {% endblock header %}
    
     {% block feature %}
@@ -297,7 +433,43 @@
         });
     });
 </script>
-   
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+      const notificationDropdown = document.querySelector('.notification-bell');
+  
+      if (notificationDropdown) {
+          notificationDropdown.addEventListener('click', function () {
+              fetch('{% url "mark_notifications_read" %}', {
+                  method: 'POST',
+                  headers: {
+                      'Content-Type': 'application/json',
+                      'X-CSRFToken': '{{ csrf_token }}'
+                  },
+                  body: JSON.stringify({ read: true })
+              })
+              .then(response => {
+                  if (response.ok) {
+                      // Hide the notification badge
+                      const badge = document.querySelector('.badge');
+                      if (badge) {
+                          badge.style.display = 'none';
+                      }
+                  }
+              });
+          });
+      }
+  });
+  </script>
+<script>
+  // Initialize the tooltip using Bootstrap's JavaScript
+  document.addEventListener("DOMContentLoaded", function() {
+      var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+      var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+          return new bootstrap.Tooltip(tooltipTriggerEl)
+      })
+  });
+</script>
 </body>
 
 </html>

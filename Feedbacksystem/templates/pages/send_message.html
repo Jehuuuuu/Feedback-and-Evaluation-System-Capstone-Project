@@ -1,10 +1,10 @@
 {% extends "pages/admin.html" %}
 
-{% block title %}Edit Faculty{% endblock %}
+{% block title %}Send Message{% endblock %}
 
 {% block header %}
 
-    <h2> Edit Faculty</h2>
+    <h2>Message {{ faculty.first_name }} {{ faculty.last_name }}</h2>
     <hr>
    
 {% endblock header %}
@@ -17,7 +17,7 @@
         {{ form.as_p }}
     
     
-    <input type = "submit" value="Save changes" enctype="multipart/form-data" class="btn btn-warning custom-btn">
+    <input type = "submit" value="Send" enctype="multipart/form-data" class="btn btn-warning custom-btn w-100">
     </form>
     </div>
 </div>

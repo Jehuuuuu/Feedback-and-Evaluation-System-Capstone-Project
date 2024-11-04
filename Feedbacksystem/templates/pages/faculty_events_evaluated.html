@@ -24,11 +24,11 @@
   <a href="{% url 'faculty_events_closed' %}" class="btn btn-success {% if request.path == '/faculty_events_closed' %} active {% endif %}">Closed</a>
 </div>
 
-<div class="row row-cols-1 row-cols-sm-2 row-cols-lg-4 g-3">
+<div class="row row-cols-1 row-cols-sm-2 row-cols-lg-4 row-cols-xl-4 g-3">
 
 {% for i in evaluated_events %}
   
-<div class="card border-0">
+<div class="card">
     <div class="card-body">
     {% if i.event_picture %}
     <img src="{{ i.event_picture.url }}"  class="card-img-top img-fluid"  alt="Event Thumbnail">

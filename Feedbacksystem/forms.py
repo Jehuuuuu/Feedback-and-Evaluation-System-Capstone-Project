@@ -1,7 +1,7 @@
 from django.forms import ModelForm
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
-from .models import Faculty, Student, Course, Section, SectionSubjectFaculty, Subject, EvaluationStatus, Department, Event, SchoolEventModel, WebinarSeminarModel, FacultyEvaluationQuestions, SchoolEventQuestions, WebinarSeminarQuestions, LikertEvaluation
+from .models import Faculty, Student, Course, Section, SectionSubjectFaculty, Subject, EvaluationStatus, Department, Event, SchoolEventModel, WebinarSeminarModel, FacultyEvaluationQuestions, SchoolEventQuestions, WebinarSeminarQuestions, LikertEvaluation, Message
 from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
@@ -165,13 +165,15 @@ class FacultyRegistrationForm(UserCreationForm):
 
         user.username = self.cleaned_data['email']
 
-        # Associate the user with the faculty record
-        user.faculty = Faculty.objects.get(email=self.cleaned_data['email'])
-
         if commit:
             user.save()
+            # Link the user to the corresponding Faculty record by email
+            faculty = Faculty.objects.get(email=self.cleaned_data['email'])
+            faculty.user = user
+            faculty.save()
 
         return user
+
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -492,4 +494,12 @@ class EditWebinarSeminarQuestionForm(ModelForm):
             'text': forms.Textarea(attrs={'class': 'form-control'}),
         }
        
-    
+class MessageForm(forms.ModelForm):
+    class Meta:
+        model = Message
+        fields = ['subject', 'content', 'attachment']
+        widgets = {
+            'subject': forms.TextInput(attrs={'class': 'form-control'}),
+            'content': forms.Textarea(attrs={'class': 'form-control'}),
+        }
+

@@ -87,15 +87,15 @@
             <tr>
                 <th  scope="col">Event</th>
                 <th  scope="col">Date </th>
-                <th  scope="col">Options </th>
+                <th  scope="col" style="width: 75px;">Options </th>
             </tr>
 
             {% for i in page_obj %}
             <tr>
                 <td>{{ i.title }} </td>
                 <td>{{ i.date }} </td>
-                <td style="display: flex; flex-direction: row; align-items: center; "> 
-                 <a href="{% url 'admin_event_evaluations' i.pk %}"><button class="btn btn-primary d-flex align-items-center" style="  padding:1px 7px 1px 7px"><i class="bi bi-eye-fill" style="font-size:20px; margin-right: 5px;"></i>View</button></a> 
+                <td style="width: 75px; display: flex; flex-direction: row;">  
+                 <a href="{% url 'admin_event_evaluations' i.pk %}"><button class="btn btn-primary" style="padding:1px 2px 1px 7px"><i class="bi bi-eye-fill" style="font-size:20px; margin-right: 5px;"></i></button></a> 
                   </td>
             </tr>
     

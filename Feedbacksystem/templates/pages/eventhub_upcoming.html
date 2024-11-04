@@ -17,7 +17,7 @@
 </ul>
 {% endif %}
 
-<div class="btn-group">
+<div class="btn-group mb-2">
   <a href="{% url 'eventhub' %}" class="btn btn-success {% if request.path == '/eventhub' %} active {% endif %}" aria-current="page">Pending</a>
   <a href="{% url 'eventhub_upcoming' %}" class="btn btn-success {% if request.path == '/eventhub_upcoming' %} active {% endif %}">Upcoming</a>
   <a href="{% url 'eventhub_evaluated' %}" class="btn btn-success">Evaluated</a>
@@ -28,7 +28,7 @@
 
 {% for i in upcoming_events %}
   
-<div class="card border-0">
+<div class="card ">
     <div class="card-body">
     {% if i.event_picture %}
     <img src="{{ i.event_picture.url }}"  class="card-img-top img-fluid"  alt="Event Thumbnail">

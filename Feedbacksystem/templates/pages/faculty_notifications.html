@@ -1,0 +1,33 @@
+{% extends "pages/facultydashboard.html" %}
+{% load static %}
+{% block title %}Inbox{% endblock %}
+
+{% block header %}
+
+{% endblock header %}
+
+{% block feature %}
+<div class="container mt-4">
+    <h1 class="mb-4">Notifications</h1>
+    <div class="notification-list">
+        {% for notification in notifications %}
+            <a href="{% url 'faculty_events' %}">
+                <div class="notification-item {% if notification.unread %}unread{% else %}read{% endif %} d-flex align-items-center">
+                    <div class="notification-icon me-3">
+                        <i class="bi bi-bell-fill"></i>
+                    </div>
+                    <div class="notification-content">
+                        <p class="mb-1">
+                            <strong>{{ notification.verb }}</strong>
+                        </p>
+                        <p class="text-muted">{{ notification.description}}</p>
+                        <small class="text-muted">{{ notification.timestamp|timesince }} ago</small>
+                    </div>
+                </div>
+            </a>
+        {% empty %}
+            <p class="text-center">No notifications found.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock feature %}

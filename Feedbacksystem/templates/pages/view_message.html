@@ -1,0 +1,49 @@
+{% extends "pages/facultydashboard.html" %}
+{% load static %}
+{% block title %}{{message.verb}}{% endblock %}
+
+{% block header %}
+{% endblock header %}
+ 
+{% block feature %}
+<div class="container mt-4" style="max-width: 800px; background-color: #f9f9f9; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+    <!-- Message Toolbar -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <a href="{% url 'inbox' %}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left"></i> Back to Inbox
+        </a>
+        <div>
+            <button class="btn btn-outline-primary btn-sm">
+                <i class="bi bi-star"></i> Star
+            </button>
+            <button class="btn btn-outline-danger btn-sm">
+                <i class="bi bi-trash"></i> Delete
+            </button>
+        </div>
+    </div>
+    
+    <!-- Message Header -->
+    <div class="message-header mb-3">
+        <h4 class="fw-bold">{{ message.verb }}</h4>
+        <p class="text-muted">From: {{ message.actor }} &bull; {{ message.timestamp|date:"M d, Y H:i" }}</p>
+    </div>
+    
+    <hr>
+
+    <!-- Message Body -->
+    <div class="message-body">
+        <p>{{ message.description|linebreaks }}</p>
+    </div>
+    
+    <!-- Attachment Section (if any) -->
+    {% if message.attachment %}
+    <div class="attachment mt-4">
+        <h6>Attachment:</h6>
+        <a href="{{ message.attachment.url }}" download class="btn btn-link">
+            <i class="bi bi-paperclip"></i> {{ message.attachment.name }}
+        </a>
+    </div>
+    {% endif %}
+</div>
+    {% endblock feature %}
+

@@ -20,18 +20,18 @@
     </div>
 {% endif %}
 
-<div class="btn-group">
+<div class="btn-group mb-2">
   <a href="{% url 'eventhub' %}" class="btn btn-success {% if request.path == '/eventhub' %} active {% endif %}" aria-current="page">Pending</a>
   <a href="{% url 'eventhub_upcoming' %}" class="btn btn-success">Upcoming</a>
   <a href="{% url 'eventhub_evaluated' %}" class="btn btn-success">Evaluated</a>
   <a href="{% url 'eventhub_closed' %}" class="btn btn-success">Closed</a>
 </div>
 
-<div class="row row-cols-1 row-cols-sm-2 row-cols-lg-4 g-3">
+<div class="row row-cols-1 row-cols-sm-2 row-cols-lg-4 g-3" >
 
 {% for i in unevaluated_events %}
   
-<div class="card border-0">
+<div class="card ">
     <div class="card-body">
     {% if i.event_picture %}
     <img src="{{ i.event_picture.url }}"  class="card-img-top img-fluid"  alt="Event Thumbnail">

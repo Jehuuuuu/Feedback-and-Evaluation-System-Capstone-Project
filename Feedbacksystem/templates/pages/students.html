@@ -131,9 +131,9 @@
           <td>{{ i.Section }}</td>
           <td style="display: flex; flex-direction: row; align-items: center; height: 80px;"> 
 
-            <a style="margin-right: 10px; text-decoration: none;" href="{% url 'editstudent'  i.pk  %}"><button class="btn btn-warning d-flex align-items-center" style=" padding:1px 7px 1px 7px"><i class="bi bi-pencil-square" style="font-size:20px; margin-right: 5px;"></i>Edit</button></a>
+            <a style="margin-right: 10px; text-decoration: none;" href="{% url 'editstudent'  i.pk  %}"><button class="btn btn-warning d-flex align-items-center" style=" padding:1px 2px 1px 7px"><i class="bi bi-pencil-square" style="font-size:20px; margin-right: 5px;"></i></button></a>
             
-            <a style="margin-right: 10px; text-decoration: none;" href="{% url 'deleteStudent'  i.pk  %}"><button class="btn btn-danger d-flex align-items-center" style="padding:4px 7px 4px 7px"  ><i style="font-size:20px; margin-right: 5px;" class='bx bxs-trash' ></i>Delete</button></a>
+            <a style="margin-right: 10px; text-decoration: none;" href="{% url 'deleteStudent'  i.pk  %}"><button class="btn btn-danger d-flex align-items-center" style="padding:4px 2px 4px 7px"  ><i style="font-size:24px; margin-right: 5px;" class='bx bxs-trash' ></i></button></a>
 
           </td>
       </tr>

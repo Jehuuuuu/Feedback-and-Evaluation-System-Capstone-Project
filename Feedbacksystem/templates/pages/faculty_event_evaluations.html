@@ -121,11 +121,11 @@
                         {% endfor %}
                     </td>
                     <td>{{ i.evaluation_identifier }}</td>
-                    <td style="display: flex; flex-direction: row; gap:1em; align-items: center; height: 7em;"> <a href="{% url 'view_faculty_event_evaluations'  i.pk  %}" style="text-decoration: none;"><button class="btn btn-primary d-flex align-items-center" style=" padding:1px 7px 1px 7px"><i class="bi bi-eye-fill" style="font-size:20px; margin-right: 5px;"></i> View</button></a>
+                    <td style="display: flex; flex-direction: row; gap:1em; align-items: center; height: 7.5em;"> <a href="{% url 'view_faculty_event_evaluations'  i.pk  %}" style="text-decoration: none;"><button class="btn btn-primary d-flex align-items-center" style=" padding:1px 2px 1px 7px"><i class="bi bi-eye-fill" style="font-size:20px; margin-right: 5px;"></i> </button></a>
 
-                        <a href="{% url 'edit_faculty_events'  i.pk  %}" style="text-decoration: none;"><button class="btn btn-warning d-flex align-items-center" style=" padding:1px 7px 1px 7px"><i class="bi bi-pencil-square" style="font-size:20px; margin-right: 5px;"></i>Edit</button></a>
+                        <a href="{% url 'edit_faculty_events'  i.pk  %}" style="text-decoration: none;"><button class="btn btn-warning d-flex align-items-center" style=" padding:1px 2px 1px 7px"><i class="bi bi-pencil-square" style="font-size:20px; margin-right: 5px;"></i></button></a>
             
-                        <a href="{% url 'delete_faculty_events'  i.pk  %}" style="text-decoration: none;"><button class="btn btn-danger d-flex align-items-center" style="padding:4px 7px 4px 7px" ><i style="font-size:15px; margin-right: 5px;"  class="bi bi-trash-fill" ></i>Delete</button></a>
+                        <a href="{% url 'delete_faculty_events'  i.pk  %}" style="text-decoration: none;"><button class="btn btn-danger d-flex align-items-center" style="padding:4px 2px 4px 7px" ><i style="font-size:16.5px; margin-right: 5px;"  class="bi bi-trash-fill" ></i></button></a>
                     </td>
                       {% endfor %}
                 </tr>

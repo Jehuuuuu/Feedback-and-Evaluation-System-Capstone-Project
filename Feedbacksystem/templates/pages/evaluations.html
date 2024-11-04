@@ -69,15 +69,14 @@
       <option id="-created" value="-created">Date Submitted: Descending</option>
     </select>
   </div>
-  
+
   <!-- Search Form and Export Button -->
   <div class="col-lg-4 col-md-2">
     <a href="{% url 'evaluations_csv' %}?{{ request.GET.urlencode }}" class="btn btn-primary">Export to CSV</a>
   </div>
 </div>
-
   <div class="table-responsive mt-2 evaluations_table">
-    <table class="table table-bordered">
+    <table class="table table-bordered ">
         <tr>
           <th scope="col">Subject</th>
           <th scope="col">Faculty</th>
@@ -100,11 +99,11 @@
             <td>{{ i.predicted_sentiment }}</td>
             <td>{{ i.academic_year }}</td>
             <td>{{ i.semester }}</td>
-            <td style="display: flex; flex-direction: row; align-items: center; height: 100px;">
+            <td style="display: flex; flex-direction: row; align-items: center; height: 100px;" class="options_column">
 
               <a href="{% url 'admin_view_evaluation_form' i.pk %}" style="margin-right: 10px; text-decoration: none;">
-                <button class="btn btn-primary d-flex align-items-center" style=" padding:1px 7px 1px 7px">
-                  <i class="bi bi-eye-fill" style="font-size:20px; margin-right: 5px;"></i>View</button></a>
+                <button class="btn btn-primary d-flex align-items-center" style=" padding:1px 2px 1px 7px">
+                  <i class="bi bi-eye-fill" style="font-size:20px; margin-right: 5px;"></i></button></a>
     
         </tr>
         {% endfor %}

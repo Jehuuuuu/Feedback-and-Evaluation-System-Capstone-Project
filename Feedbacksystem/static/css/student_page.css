@@ -6,6 +6,10 @@
 body{
   overflow-y: hidden; /* Hide scrollbar for sidebar */
   scroll-behavior: smooth;
+  background-color:  #faf5fF;
+  color: #333;
+  line-height: 1.6;
+  font-family: system-ui, sans-serif;
 }
 th{
   color: #ffffff !important; 
@@ -80,12 +84,34 @@ a:hover {
 
 .profile-pic{
   width: 100%;
-  margin-right: 1.5em;
-  padding-right: 1.5em;
+
+  padding-right: 1em;
   display: flex;
   align-items: flex-end;
   flex-direction: row;
   justify-content: flex-end;
+}
+.notification-bell {
+  position: relative;
+  color: white;
+  font-size: 1.5rem;
+  margin-right: 1em;
+  display: flex;
+  align-items: center; /* Ensure vertical alignment */
+}
+
+.notification-bell .badge {
+  position: absolute;
+  top: 0px; /* Adjust as necessary */
+  right: -5px; /* Adjust as necessary */
+  background-color: red;
+  color: white;
+  padding: 2px 6px;
+  border-radius: 50%;
+  font-size: 0.75rem
+}
+.notifications_container{
+  width: 500px;
 }
 main {
   height: calc(90vh); /* Adjust to leave space for padding */
@@ -170,8 +196,9 @@ main {
   }
 
   #eval{
-    padding: 1em ;
-    box-shadow: 2px 2px 5px 3px rgba(0,0,0,0.2);
+    background-color: #ffffff;
+    padding: 1em;
+    border-radius:  0.25rem;
     height: 9em;
     max-width: 550px;
   }
@@ -210,8 +237,8 @@ main {
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
-  width: 20px; /* Set the width of the custom radio button */
-  height: 20px; /* Set the height of the custom radio button */
+  width: 25px; /* Set the width of the custom radio button */
+  height: 25px; /* Set the height of the custom radio button */
   border-radius: 50%; /* Make the radio button circular */
   border: 2px solid #2a9134; /* Add a border */
   outline: none;
@@ -278,6 +305,55 @@ main {
 }
 .rating_scale{
   align-self: center;
+}
+footer{
+  display: flex;
+  justify-content: space-between;
+  border-top: 1px solid #EDEDED;
+  align-items: center;
+  padding: 0.5em 0;
+}
+.footer__socials__logo{
+  width: 2em;
+}
+.footer__copyright__text{
+  color: #666666;
+  margin-top: 1em;
+  font-size: 1.125rem;
+}
+/* Notifications container styles */
+.notification-list {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* Notification item styles */
+.notification-item {
+  padding: 16px;
+  margin-bottom: 12px;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.3s;
+}
+
+/* Different background color for read/unread notifications */
+.notification-item.unread {
+  background-color: #ffffff;
+}
+
+.notification-item.read {
+  background-color: #f5f5f5;
+}
+
+/* Notification icon styles */
+.notification-icon {
+  font-size: 24px;
+  color: #2a9134;
+}
+
+/* Notification content hover effect */
+.notification-item:hover{
+  background-color: #e9ecef;
 }
 @media (max-width:1200px) {
   #sidebar {
@@ -368,4 +444,24 @@ width: 100%;
 #faculty-select option{
   font-size: 0.75rem;
 }
+footer{
+  display: block;
+  text-align: center;
+}
+.footer__socials__logo{
+  width: 2.2em;
+}
+.custom-radio input[type="radio"] {
+  width: 20px; /* Set the width of the custom radio button */
+  height: 20px; /* Set the height of the custom radio button */
+
+}
+    #profile_name{
+      visibility: hidden;
+      margin-right: -5em;
+      padding: 0;
+    }
+    .profile-pic{
+      visibility: hidden;
+    }
 }

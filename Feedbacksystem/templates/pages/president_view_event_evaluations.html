@@ -30,11 +30,11 @@
         <td>{{ i.event.title }} </td>
         <td>{{ i.average_rating }}</td>
         <td>{{ i.suggestions_and_comments }}</td>
-        <td></td>
+        <td>{{ i.predicted_sentiment }}</td>
         <td>{{ i.academic_year }}</td>
         <td>{{ i.semester }}</td>
         <td style="display: flex; flex-direction: row; align-items: center; "> 
-            <a href="{% url 'view_society_president_event_evaluations' i.pk %}"><button class="btn btn-primary d-flex align-items-center" style="  padding:1px 7px 1px 7px"><i class="bi bi-eye-fill" style="font-size:20px; margin-right: 5px;"></i>View</button></a> 
+            <a href="{% url 'view_society_president_event_evaluations' i.pk %}"><button class="btn btn-primary d-flex align-items-center" style="  padding:1px 2px 1px 7px"><i class="bi bi-eye-fill" style="font-size:20px; margin-right: 5px;"></i></button></a> 
              </td>
             
     </tr>

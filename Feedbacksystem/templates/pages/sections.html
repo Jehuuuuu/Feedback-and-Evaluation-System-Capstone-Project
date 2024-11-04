@@ -87,11 +87,11 @@
     <tr>
         <td>{{ i.section.name }}</td>   
         <td>{{ i.student_count }}</td> 
-        <td style="display: flex; flex-direction: row; gap:1em; align-items: center;"> <a href="{% url 'section_details' i.section.pk %}" style="text-decoration: none;"><button class="btn btn-primary d-flex align-items-center" style=" padding:1px 7px 1px 7px"><i class="bi bi-eye-fill" style="font-size:20px; margin-right: 5px;"></i>View</button></a>
+        <td style="display: flex; flex-direction: row; gap:1em; align-items: center;"> <a href="{% url 'section_details' i.section.pk %}" style="text-decoration: none;"><button class="btn btn-primary d-flex align-items-center" style=" padding:1px 2px 1px 7px"><i class="bi bi-eye-fill" style="font-size:20px; margin-right: 5px;"></i></button></a>
 
-            <a href="{% url 'editsection'  i.section.pk  %}" style="text-decoration: none;"><button class="btn btn-warning d-flex align-items-center" style=" padding:1px 7px 1px 7px"><i class="bi bi-pencil-square" style="font-size:20px; margin-right: 5px;"></i>Edit</button></a>
+            <a href="{% url 'editsection'  i.section.pk  %}" style="text-decoration: none;"><button class="btn btn-warning d-flex align-items-center" style=" padding:1px 2px 1px 7px"><i class="bi bi-pencil-square" style="font-size:20px; margin-right: 5px;"></i></button></a>
 
-            <a href="{% url 'deleteSection'  i.section.pk  %}" style="text-decoration: none;"><button class="btn btn-danger d-flex align-items-center" style="padding:4px 7px 4px 7px" ><i style="font-size:20px; margin-right: 5px;" class='bx bxs-trash' ></i>Delete</button></a>
+            <a href="{% url 'deleteSection'  i.section.pk  %}" style="text-decoration: none;"><button class="btn btn-danger d-flex align-items-center" style="padding:4px 2px 4px 7px" ><i style="font-size:24px; margin-right: 5px;" class='bx bxs-trash' ></i></button></a>
 
             </td>
     </tr>

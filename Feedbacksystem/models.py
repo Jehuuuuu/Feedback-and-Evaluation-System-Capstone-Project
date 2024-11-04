@@ -727,3 +727,15 @@ class StakeholderFeedbackQuestions(models.Model):
             last_question = StakeholderFeedbackQuestions.objects.last()
             self.order = 1 if not last_question else last_question.order + 1
         super().save(*args, **kwargs)
+
+class Message(models.Model):
+    sender = models.ForeignKey(User, related_name='sent_messages', on_delete=models.CASCADE)
+    recipient = models.ForeignKey(User, related_name='received_messages', on_delete=models.CASCADE)
+    subject = models.CharField(max_length=100)
+    content = models.TextField()
+    attachment = models.FileField(upload_to='message_attachments/', null=True, blank=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    is_read = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.subject} - From: {self.sender} To: {self.recipient}"

@@ -63,7 +63,6 @@ a{
 .profile-pic{
   width: 100%;
   margin-right: 1.5em;
-  padding-right: 1.5em;
   display: flex;
   align-items: flex-end;
   flex-direction: row;
@@ -71,6 +70,28 @@ a{
 }
 #profile_name:hover{
   text-decoration: underline;
+}
+.notification-bell {
+  position: relative;
+  color: white;
+  font-size: 1.5rem;
+  margin-right: 1em;
+  display: flex;
+  align-items: center; /* Ensure vertical alignment */
+}
+
+.notification-bell .badge {
+  position: absolute;
+  top: 0px; /* Adjust as necessary */
+  right: -5px; /* Adjust as necessary */
+  background-color: red;
+  color: white;
+  padding: 2px 6px;
+  border-radius: 50%;
+  font-size: 0.75rem
+}
+.notifications_container{
+  width: 500px;
 }
 a:hover {
   cursor: pointer;
@@ -150,17 +171,33 @@ width: 100%;
 #navbarDropdown{
     font-weight: bold;
   }
-.flex-column li a{
+  .flex-column li a {
     background-color: #fafafa;
-    &:focus, &:active, &:hover {
-      color:#fafafa;
-      background-color: #ff9400;
-      -webkit-box-shadow: none;
-      -moz-box-shadow: none;
-      box-shadow: none;
-
-  }
 }
+
+.flex-column li a:focus,
+.flex-column li a:active,
+.flex-column li a:hover {
+    color: #fafafa;
+    background-color: #ff9400;
+    -webkit-box-shadow: none;
+    -moz-box-shadow: none;
+    box-shadow: none;
+}
+
+.nav-link.profile:focus {
+    color: inherit !important;
+    background-color: transparent !important;
+    outline: none !important;
+}
+.nav-link.profile:hover {
+  color: #fafafa;
+  background-color: #ff9400;
+  -webkit-box-shadow: none;
+  -moz-box-shadow: none;
+  box-shadow: none;
+}
+
 hr{
     border: none;
     border-bottom: 2px solid #ff9400;
@@ -188,15 +225,164 @@ hr{
   background-color: #2a9134 !important;
   border-color: #2a9134
 }
-
-.card{
-  border: none !important;
-}
 .chart-container{
   background-color: #ffffff;
   padding: 1em;
   border-radius:  0.25rem;
 }
+.likert-horizontal {
+  display: flex;  /* Arrange radio buttons horizontally */
+  justify-content: space-around;
+}
+
+.likert-horizontal input[type="radio"] {
+  margin-left: 50px; /* Adjust spacing as needed */
+  margin-top: 1em;
+  align-self: center;
+}
+
+
+.form-check-input{
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  appearance: none !important;
+  width: 20px !important; /* Set the width of the custom radio button */
+  height: 20px !important; /* Set the height of the custom radio button */
+  border-radius: 50% !important; /* Make the radio button circular */
+  border: 2px solid #2a9134 !important; /* Add a border */
+  outline: none !important;
+  cursor: pointer !important;
+}
+.form-check-input:checked{
+  background-color: #2a9134;/* Change background color when radio button is checked */
+}
+
+.custom-radio input[type="radio"] {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  width: 20px; /* Set the width of the custom radio button */
+  height: 20px; /* Set the height of the custom radio button */
+  border-radius: 50%; /* Make the radio button circular */
+  border: 2px solid #2a9134; /* Add a border */
+  outline: none;
+  cursor: pointer;
+}
+
+.custom-radio input[type="radio"]:checked {
+  background-color: #2a9134;/* Change background color when radio button is checked */
+}
+.likert-horizontal.custom-radio .form-check {
+  display: flex;
+  align-items: center;
+  margin-right: 20px; /* Adjust the margin between radio buttons */
+}
+
+.likert-horizontal.custom-radio .form-check-label {
+  margin-left: 10px; /* Adjusts the space between the radio button and its label */
+  margin-top: 1em;
+}
+
+/* Custom margin class */
+
+.custom-text-input {
+  width: 100%; /* Adjust the width as needed */
+  height: 40px; /* Adjust the height as needed */
+  border: none;
+  border-bottom: 1px solid #333;
+  padding: 10px; /* Adjust padding if needed */
+  font-size: 1rem; /* Adjust the font size if needed */
+  text-wrap: wrap;
+}
+.custom-text-input:focus {
+  outline: none; /* Remove the default focus outline */
+  border-bottom: 1px solid #333; /* Change the bottom border color on focus */
+}
+
+.inbox-container {
+  display: flex;
+  height: 70vh;
+  background-color: #f9f9f9; 
+  padding: 20px; 
+  border-radius: 8px; 
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.message-list {
+  flex-grow: 1;
+  padding: 20px;
+  overflow-y: auto; /* Add scroll if content is long */
+}
+
+
+
+.message-items {
+  margin-top: 10px;
+}
+
+.message-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px;
+  border-bottom: 1px solid #e0e0e0;
+  cursor: pointer;
+}
+
+.message-item:hover {
+  background-color: #f9f9f9; /* Highlight on hover */
+}
+
+
+.message-subject {
+  flex-grow: 1;
+  padding: 0 0 0 3em;
+}
+
+.message_description{
+  color: gray;
+}
+
+
+.message-timestamp {
+  color: gray;
+  white-space: nowrap; /* Prevent line breaks */
+}
+
+/* Notifications container styles */
+.notification-list {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* Notification item styles */
+.notification-item {
+  padding: 16px;
+  margin-bottom: 12px;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.3s;
+}
+
+/* Different background color for read/unread notifications */
+.notification-item.unread {
+  background-color: #ffffff;
+}
+
+.notification-item.read {
+  background-color: #f5f5f5;
+}
+
+/* Notification icon styles */
+.notification-icon {
+  font-size: 24px;
+  color: #2a9134;
+}
+
+/* Notification content hover effect */
+.notification-item:hover{
+  background-color: #e9ecef;
+}
+
 @media (max-width:900px) {
 .header-title{
   font-size: 0.9rem;
@@ -229,6 +415,23 @@ hr{
   .subtitle{
       font-size: 0.7rem;
      }
+  .notifications_container{
+      width: 300px;
+    }
+    .sidebar-collapsed #sidebar {
+      margin-left: 0;
+      z-index: 2;
+    }
+    .message_description{
+      visibility: hidden;
+      display: none;
+    }
+    .message-timestamp {
+      font-size: 0.85rem;
+  }
+  .message-item {
+    padding: 1rem;
+}
   }
 
   @media (max-width: 600px) {
@@ -249,5 +452,20 @@ hr{
     #profile_name{
       margin-right: 5em;
       width: 100%;
+    }
+    .message-subject {
+      flex-grow: 1;
+      padding: 0 2em 0 1em;
+    }
+    
+}
+  @media (max-width: 500px) {
+    #profile_name{
+      visibility: hidden;
+      margin-right: -5em;
+      padding: 0;
+    }
+    .profile-pic{
+      visibility: hidden;
     }
 }

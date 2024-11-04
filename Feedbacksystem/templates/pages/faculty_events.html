@@ -31,7 +31,7 @@
 
 {% for i in unevaluated_events %}
   
-<div class="card border-0">
+<div class="card">
     <div class="card-body">
     {% if i.event_picture %}
     <img src="{{ i.event_picture.url }}"  class="card-img-top img-fluid"  alt="Event Thumbnail">
@@ -41,7 +41,7 @@
       <h5 class="card-title">{{i.title}}</h5>
       <h6 class="card-subtitle mb-2 text-body-secondary">{{i.date}}</h6>
       <p class="card-text">{{i.description|slice:":70"}}...</p>
-      {% if i.evaluation_status %}<a href="{% url 'event_detail' i.pk %}" class="card-link btn custom-btn">Evaluate</a>{% endif %}
+      {% if i.evaluation_status %}<a href="{% url 'faculty_event_detail' i.pk %}" class="card-link btn custom-btn">Evaluate</a>{% endif %}
       <a href="#" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#eventModal{{ i.id }}">View Details</a>
     </div>
 </div>

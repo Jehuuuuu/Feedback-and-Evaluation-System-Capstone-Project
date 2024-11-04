@@ -44,6 +44,34 @@
           {% endif %}
             <a href="{% url 'student_profile' %}"><p id="profile_name" style="color: #fafafa;">{{ student.first_name }} {{ student.last_name }}</p> </a>
         </div>
+        <!-- Notification bell and dropdown for notifications -->
+        <div class="notification-container" style="position: relative;">
+        <a href="#" class="notification-bell" data-bs-toggle="dropdown" aria-expanded="false">
+          <i class="bi bi-bell-fill"></i>
+            {% if notifications_unread_count > 0 %}
+                <span id="notification-badge" class="badge">{{ notifications_unread_count }}</span>
+            {% endif %}
+        </a>
+  
+        <!-- Dropdown for notifications -->
+        <div class="dropdown-menu dropdown-menu-end notifications_container">
+          <div class="d-flex justify-content-between align-items-center">
+            <h6 class="dropdown-header mb-0">Notifications</h6>
+            <a href="{% url 'clear_student_notifications' %}" class="btn btn-sm" style="color: #2a9134;">Clear</a>
+        </div>
+            {% if event_notifications %}
+                {% for notification in event_notifications %}
+                  <a href="{% url 'eventhub'%}" class="dropdown-item" style="white-space: normal;">
+                      <b>{{ notification.verb }} </b>- {{notification.description}} {{ notification.timestamp|timesince }} ago
+                    </a>
+                {% endfor %}
+                <div class="dropdown-divider"></div>
+                <a href="{% url 'student_notifications' %}" class="dropdown-item text-center">View all notifications</a>
+            {% else %}
+                <span class="dropdown-item text-muted">No new notifications</span>
+            {% endif %}
+        </div>
+          
     </div>
 </div>
     <nav id="sidebar" class="sidebar lightsidebar"> 
@@ -170,21 +198,31 @@
       {% endif %}
 
   </div>
+<div class="container">
   
-    
-    
-      
+  <footer>
+    <div class="footer__socials">
+      <a href="https://www.facebook.com/cvsuimusofficial"><img src="{% static 'images/Facebook.svg' %}"  alt="Facebook Logo" class="footer__socials__logo"
+        class="footer__socials__logo"></a>
+      <a href="https://www.youtube.com/@tatakcvsubacoor545"><img src="{% static 'images/Youtube.svg' %}"  alt="Youtube Logo" class="footer__socials__logo"
+        class="footer__socials__logo"></a>
+    </div>
+    <div class="footer__copyright">
+      <p class="footer__copyright__text">© Cavite State University Bacoor Campus</p>
+    </div>
+  </footer>
+  
+</div>
+</main>
     {% endblock feature %}
  
  
-  </main>
+ 
 
 
   <!-- Content goes here -->
 
-  <footer>
-    <!-- place footer here -->
-  </footer>
+
   <!-- Bootstrap JavaScript Libraries -->
   <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"
     integrity="sha384-oBqDVmMz9ATKxIep9tiCxS/Z9fNfEXiDAYTujMAeBAsjFuCZSmKbSSUnQlmh/jp3" crossorigin="anonymous">
@@ -209,6 +247,33 @@
           });
       });
   </script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const notificationDropdown = document.querySelector('.notification-bell');
+    
+        if (notificationDropdown) {
+            notificationDropdown.addEventListener('click', function () {
+                fetch('{% url "mark_notifications_read" %}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify({ read: true })
+                })
+                .then(response => {
+                    if (response.ok) {
+                        // Hide the notification badge
+                        const badge = document.querySelector('.badge');
+                        if (badge) {
+                            badge.style.display = 'none';
+                        }
+                    }
+                });
+            });
+        }
+    });
+    </script>
 </body>
 
 </html>

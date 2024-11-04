@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'Feedbacksystem',
     'django_filters',
     'import_export',
+    'notifications',
 ]
 
 MIDDLEWARE = [
@@ -135,4 +136,11 @@ MEDIA_URL = "/media/"
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_USE_SSL = False  # Set to True if using SSL; should be False if EMAIL_USE_TLS is True
+EMAIL_HOST_USER = 'jehurodriguez143@gmail.com'  # Your full email address
+EMAIL_HOST_PASSWORD = 'nldj gulq sokh jnol'  # Password or app-specific password if using Gmail
+DEFAULT_FROM_EMAIL = 'Feedback and Evaluation System - CvSU Bacoor <djangoadmin@gmail.com>'  # How the sender email appears to recipients
