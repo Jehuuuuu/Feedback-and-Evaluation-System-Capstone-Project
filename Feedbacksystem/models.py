@@ -389,6 +389,16 @@ class Event(models.Model):
     description = models.TextField(null=True, blank = True)
     author = models.ForeignKey(User, on_delete=models.CASCADE) 
     evaluation_status = models.BooleanField(default=False)
+    ADMIN_STATUS_CHOICES = [
+        ('Pending', 'Pending'),
+        ('Approved', 'Approved'),
+        ('Rejected', 'Rejected'),
+    ]
+    admin_status = models.CharField(
+        max_length=12,
+        choices=ADMIN_STATUS_CHOICES,
+        default='Pending'
+    )   
     academic_year = models.CharField(max_length=50, null=True, blank=True)
     semester = models.CharField(max_length=50, null=True, blank=True)
     updated = models.DateTimeField(auto_now = True, null=True, blank = True)
@@ -398,7 +408,7 @@ class Event(models.Model):
         ordering = ['-date', '-updated', '-created']
 
     def __str__(self):
-        return f"{self.title} - {self.evaluation_identifier}"
+        return f"{self.title}"
     
     def save(self, *args, **kwargs):
         # Get the current evaluation status
@@ -434,6 +444,7 @@ class SchoolEventModel(models.Model):
                                         (2, 'Fair'), (1, 'Poor')])
     
     suggestions_and_comments = models.TextField()
+    predicted_sentiment = models.CharField(max_length=50)
 
     academic_year = models.CharField(max_length=50, null=True, blank=True)
     semester = models.CharField(max_length=50, null=True, blank=True)
@@ -539,6 +550,7 @@ class WebinarSeminarModel(models.Model):
     academic_year = models.CharField(max_length=50, null=True, blank=True)
     semester = models.CharField(max_length=50, null=True, blank=True)
     average_rating = models.FloatField(null=True, blank=True)
+    predicted_sentiment = models.CharField(max_length=50)
 
     updated = models.DateTimeField(auto_now = True, null=True, blank = True)
     created = models.DateTimeField(auto_now_add = True, null=True, blank = True)
@@ -660,6 +672,7 @@ class StakeholderFeedbackModel(models.Model):
                                         (2, 'Barely Satisfied'), (1, 'Not satisfied')])
     
     suggestions_and_comments = models.TextField()
+    predicted_sentiment = models.CharField(max_length=50)
 
     academic_year = models.CharField(max_length=50, null=True, blank=True)
     semester = models.CharField(max_length=50, null=True, blank=True)

@@ -101,6 +101,11 @@ urlpatterns = [
     path('student_notifications', views.student_notifications, name='student_notifications'),
     path('clear_student_notifications', views.clear_student_notifications, name='clear_student_notifications'),
     path('get_evaluation_data/', views.get_evaluation_data, name='get_evaluation_data'),
+    path('pending_events', views.pending_events, name='pending_events'),
+    path('approve_event/<int:event_id>/', views.approve_event, name='approve_event'),
+    path('reject_event/<int:event_id>/', views.reject_event, name='reject_event'),
+    path('admin_edit_event/<int:pk>/', views.admin_edit_event, name="admin_edit_event"),
+    path('admin_delete_event/<int:pk>/', views.admin_delete_event, name="admin_delete_event"),
 ]
 
 if settings.DEBUG:

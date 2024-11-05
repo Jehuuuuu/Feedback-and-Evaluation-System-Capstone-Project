@@ -1,0 +1,95 @@
+{% extends "pages/admin.html" %}
+
+{% block title %}Pending Events{% endblock %}
+
+{% block header %}       
+    <div class="row">
+    <div class="col-md-6">
+        <h2>Pending Events</h2>
+    </div>
+
+    <hr>    
+    {% endblock header %}
+    {% block feature %}
+    {% if messages %}
+    <div class="container">
+        {% for message in messages %}
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    <div class="table-responsive mt-2">
+        <table class="table table-bordered">
+            <tr>
+                <th  scope="col">Event</th>
+                <th  scope="col" style="width: 100px;">Options</th>
+            </tr>
+
+            {% for i in page_obj %}
+            <tr>
+                <td><a href="#" data-bs-toggle="modal" data-bs-target="#eventModal{{ i.id }}" style="color: black;">{{ i.title }}</a> </td>
+                <td style="width: 100px; display: flex; flex-direction: row; gap: 0.5em;">  
+                 <a href="{% url 'approve_event' i.id %}"><button class="btn btn-success" style="padding:1px 2px 1px 7px"><i class="bi bi-check-lg" style="font-size:20px; margin-right: 5px;"></i></button></a> 
+                 <a href="{% url 'reject_event' i.id %}"><button class="btn btn-danger" style="padding:1px 2px 1px 7px"><i class="bi bi-x-lg" style="font-size:20px; margin-right: 5px;"></i></button></a> 
+                  </td>
+            </tr>
+
+                
+        <!-- Modal -->
+    <div class="modal fade" id="eventModal{{ i.id }}" tabindex="-1" aria-labelledby="eventModalLabel{{ i.id }}" aria-hidden="true">
+        <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+            <h1 class="modal-title fs-5" id="eventModalLabel{{ i.id }}">{{i.title}}</h1>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Date: {{ i.date }}</p>
+                <p>Time: {{ i.time }}</p>
+                <p>Location: {{ i.location }}</p>
+                <p>Description: {{ i.description }}</p>
+                <p>Evaluation Status: {{ i.evaluation_identifier }}</p>
+            </div>
+            <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>  
+            </div>
+        </div>
+        </div>
+    </div>
+
+    
+            {% endfor %}
+
+        </table>
+    </div>
+
+
+    <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                </a>
+            </li>
+            {% endif %}
+    
+            {% for num in page_obj.paginator.page_range %}
+            <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+            </li>
+            {% endfor %}
+    
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+{% endblock feature %}

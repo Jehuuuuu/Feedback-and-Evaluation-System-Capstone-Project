@@ -233,7 +233,7 @@ def home(request):
     notifications_unread_count = unread_notifications.count()
     courses = student.Course 
     #pending events to display
-    events = Event.objects.filter(course_attendees=courses).distinct()  # Get events related to those courses
+    events = Event.objects.filter(course_attendees=courses, admin_status="Approved").distinct()  # Get events related to those courses
     # Get evaluated event IDs by the current user
      # Get evaluated event IDs by the current user for SchoolEventModel
     evaluated_school_event_ids = SchoolEventModel.objects.filter(user=user).values_list('event_id', flat=True)
@@ -301,7 +301,7 @@ def clear_student_notifications(request):
     student = Student.objects.filter(student_number=request.user.username).first()   
     notifications = Notification.objects.filter(recipient=user, level='success')
     notifications.delete()
-    return render(request, 'pages/home.html', {'student': student, 'is_president': is_president, 'notifications': notifications})  # Return the response
+    return redirect('home') # Return the response
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['student', 'society president'])
@@ -530,7 +530,7 @@ def eventhub(request):
     unread_notifications = Notification.objects.filter(recipient=user, level='success', unread=True)
     notifications_unread_count = unread_notifications.count()
     courses = student.Course  # Get all courses the student is enrolled in
-    events = Event.objects.filter(course_attendees=courses).distinct()  # Get events related to those courses
+    events = Event.objects.filter(course_attendees=courses, admin_status='Approved').distinct()  # Get events related to those courses
       # Get evaluated event IDs by the current user
      # Get evaluated event IDs by the current user for SchoolEventModel
     evaluated_school_event_ids = SchoolEventModel.objects.filter(user=user).values_list('event_id', flat=True)
@@ -559,7 +559,7 @@ def eventhub_upcoming(request):
     unread_notifications = Notification.objects.filter(recipient=user, level='success', unread=True)
     notifications_unread_count = unread_notifications.count()
     courses = student.Course  # Get all courses the student is enrolled in
-    events = Event.objects.filter(course_attendees=courses).distinct()  # Get events related to those courses
+    events = Event.objects.filter(course_attendees=courses, admin_status='Approved').distinct()  # Get events related to those courses
     
     current_time = timezone.now()
     upcoming_events = events.filter(date__gt=current_time, evaluation_status=False)  # Events in the future
@@ -789,7 +789,7 @@ def society_president_events(request):
      event_notifications = Notification.objects.filter(recipient=user, level='success')
      unread_notifications = Notification.objects.filter(recipient=user, level='success', unread=True)
      notifications_unread_count = unread_notifications.count()    
-     event = Event.objects.filter(author=user).order_by('-updated')
+     event = Event.objects.filter(author=user, admin_status='Approved').order_by('-updated')
      form = EventCreationForm()
      if request.method == 'POST':
         form = EventCreationForm(request.POST)
@@ -1805,7 +1805,7 @@ def deleteEvaluation(request, pk):
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['admin'])
 def admin_event_list(request):
-    events = Event.objects.all().order_by('-date') 
+    events = Event.objects.filter(admin_status='Approved').order_by('-updated') 
     event_filter = EventFilter(request.GET, queryset=events)
     events = event_filter.qs 
     # ordering functionality
@@ -1820,6 +1820,85 @@ def admin_event_list(request):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     return render(request,'pages/admin_event_list.html',{'events': events, 'page_obj': page_obj, 'event_filter': event_filter})
+
+@login_required(login_url='signin')
+@allowed_users(allowed_roles=['admin'])
+def admin_edit_event(request, pk):
+    event = Event.objects.get(pk=pk)
+    form = EventCreationForm(instance=event)
+    if request.method == 'POST':
+        form = EventCreationForm(request.POST, request.FILES, instance=event)
+        if form.is_valid():
+            form.save(commit=True)
+            return redirect('faculty_event_evaluations')
+
+           
+    context = {'event': event, 'form':form}
+    return render(request, 'pages/admin_edit_event.html', context)
+
+
+@login_required(login_url='signin')
+@allowed_users(allowed_roles=['admin'])
+def admin_delete_event(request, pk):
+    event = Event.objects.get(pk=pk)
+    if request.method == 'POST':
+            event.delete()
+            return redirect('admin_event_evaluations')
+
+    return render(request, 'pages/delete.html', {'obj':event})
+
+@login_required(login_url='signin')
+@allowed_users(allowed_roles=['admin'])
+def pending_events(request):
+    events = Event.objects.filter(admin_status='Pending').order_by('-updated')
+    paginator = Paginator(events, 5) 
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    return render(request,'pages/pending_events.html',{'events': events, 'page_obj': page_obj})
+
+@login_required(login_url='signin')
+@allowed_users(allowed_roles=['admin'])
+def approve_event(request, event_id):
+    user=request.user
+    event = get_object_or_404(Event, id=event_id, admin_status='Pending')
+    
+    event.admin_status = 'Approved'
+    event.save()
+                
+    student_users = User.objects.filter(student__Course__in=event.course_attendees.all())
+
+    # Get user instances associated with selected department attendees
+    faculty_users = User.objects.filter(faculty__department__in=event.department_attendees.all())
+    notification_description = f"A new event '{event.title}' is scheduled for {event.date}. Please evaluate and provide your feedback!"
+
+    # Send notifications to student attendees
+    notify.send(
+        sender=user,
+        recipient=student_users,
+        verb="New Event Created",
+        description=notification_description,
+        level='success'
+    )
+
+    # Send notifications to faculty attendees
+    notify.send(
+        sender=user,
+        recipient=faculty_users,
+        verb="New Event Created",
+        description=notification_description,
+        level='success'
+    )
+    messages.success(request, 'Event approved successfully')
+    return redirect('pending_events')
+
+@login_required(login_url='signin')
+@allowed_users(allowed_roles=['admin'])
+def reject_event(request, event_id):
+    event = get_object_or_404(Event, id=event_id, admin_status='Pending')
+    event.admin_status = 'Rejected'
+    event.save()
+    messages.success(request, 'Event rejected successfully')
+    return redirect('pending_events')
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['admin'])
@@ -3820,7 +3899,7 @@ def faculty_event_evaluations(request):
 
      notifications_unread_count = unread_notifications.count()
      messages_unread_count = unread_messages.count()    
-     event = Event.objects.filter(author=user).order_by('-updated')
+     event = Event.objects.filter(author=user, admin_status='Approved').order_by('-updated')
      form = EventCreationForm()
      if request.method == 'POST':
         form = EventCreationForm(request.POST, request.FILES)
@@ -3831,30 +3910,7 @@ def faculty_event_evaluations(request):
             #event = form.save(commit=False)
             #event.published_by = faculty 
             #event.save()
-            
-            student_users = User.objects.filter(student__Course__in=event.course_attendees.all())
 
-            # Get user instances associated with selected department attendees
-            faculty_users = User.objects.filter(faculty__department__in=event.department_attendees.all())
-            notification_description = f"A new event '{event.title}' is scheduled for {event.date}. Please evaluate and provide your feedback!"
-
-            # Send notifications to student attendees
-            notify.send(
-                sender=user,
-                recipient=student_users,
-                verb="New Event Created",
-                description=notification_description,
-                level='success'
-            )
-
-            # Send notifications to faculty attendees
-            notify.send(
-                sender=user,
-                recipient=faculty_users,
-                verb="New Event Created",
-                description=notification_description,
-                level='success'
-            )
 
             return redirect('faculty_event_evaluations')
         else:

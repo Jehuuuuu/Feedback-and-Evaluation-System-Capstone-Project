@@ -66,13 +66,13 @@
       </div>
       
     <div class="row g-0">
-        <div class="col-lg-2 col-sm-4 col-12 mb-1">
+        <div class="col-lg-2 col-md-3 col-sm-4 col-12 mb-1">
             <button type="button" class="btn btn-warning custom-btn" style="color: black; text-decoration: none;" data-bs-toggle="modal" data-bs-target="#exampleModal">
                 <i class="bi bi-pencil-square"></i> <b>Filter Options</b>
             </button>
         </div>
          <!-- Sort Dropdown -->
-        <div class="col-md-4 col-sm-7 col-12">
+        <div class="col-md-5 col-sm-7 col-12 mb-1" style="margin-right: 1em;">
             <select class="form-select" name="sort" id="sort-list" onchange="location = finalurl();">
             <option value="" id="placeholder" disabled selected hidden>Sort</option>
             <option id="date" value="date">Date: Ascending</option>
@@ -81,21 +81,28 @@
             <option id="-title" value="-title">Alphabetical: Descending</option>
             </select>
         </div>
+        <div class="col-md-3 col-sm-4 col-12">
+            <a href="{% url 'pending_events' %}" class="btn custom-btn" ><b>Pending Events</b></a>
+        </div>
     </div>
+
     <div class="table-responsive mt-2">
         <table class="table table-bordered">
             <tr>
                 <th  scope="col">Event</th>
                 <th  scope="col">Date </th>
-                <th  scope="col" style="width: 75px;">Options </th>
+                <th  scope="col" style="">Options </th>
             </tr>
 
             {% for i in page_obj %}
             <tr>
                 <td>{{ i.title }} </td>
                 <td>{{ i.date }} </td>
-                <td style="width: 75px; display: flex; flex-direction: row;">  
+                <td style=" display: flex; flex-direction: row; gap: 0.5em;">  
                  <a href="{% url 'admin_event_evaluations' i.pk %}"><button class="btn btn-primary" style="padding:1px 2px 1px 7px"><i class="bi bi-eye-fill" style="font-size:20px; margin-right: 5px;"></i></button></a> 
+                 <a href="{% url 'admin_edit_event'  i.pk  %}" style="text-decoration: none;"><button class="btn btn-warning d-flex align-items-center" style=" padding:1px 2px 1px 7px"><i class="bi bi-pencil-square" style="font-size:20px; margin-right: 5px;"></i></button></a>
+            
+                 <a href="{% url 'admin_delete_event'  i.pk  %}" style="text-decoration: none;"><button class="btn btn-danger d-flex align-items-center" style="padding:4px 2px 4px 7px" ><i style="font-size:16.5px; margin-right: 5px;"  class="bi bi-trash-fill" ></i></button></a>
                   </td>
             </tr>
     
