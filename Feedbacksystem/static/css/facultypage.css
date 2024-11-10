@@ -382,7 +382,10 @@ hr{
 .notification-item:hover{
   background-color: #e9ecef;
 }
-
+.filter_dropdown{
+  padding:1.5em !important;
+  width: 20em !important;
+}
 @media (max-width:900px) {
 .header-title{
   font-size: 0.9rem;

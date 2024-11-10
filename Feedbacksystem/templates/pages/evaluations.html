@@ -60,7 +60,7 @@
   </div>
   
   <!-- Sort Dropdown -->
-  <div class="col-lg-4 col-md-5 col-sm-7 col-12 mb-1" style="margin-right: 0.5em;">
+  <div class="col-lg-3 col-md-5 col-sm-7 col-12 mb-1" style="margin-right: 0.5em;">
     <select class="form-select" name="sort" id="sort-list" onchange="location = finalurl();">
       <option value="" id="placeholder" disabled selected hidden>Sort</option>
       <option id="average_rating" value="average_rating">Average Rating: Ascending</option>
@@ -71,9 +71,12 @@
   </div>
 
   <!-- Search Form and Export Button -->
-  <div class="col-lg-4 col-md-2">
+  <div class="col-lg-2 col-md-2 mb-1">
     <a href="{% url 'evaluations_csv' %}?{{ request.GET.urlencode }}" class="btn btn-primary">Export to CSV</a>
   </div>
+  <div class="col-md-3 col-sm-4 col-12">
+    <a href="{% url 'pending_evaluations' %}" class="btn btn-secondary" ><b>Pending Evaluations</b></a>
+</div>
 </div>
   <div class="table-responsive mt-2 evaluations_table">
     <table class="table table-bordered ">
@@ -95,7 +98,7 @@
             <td>{{ i.section_subject_faculty.faculty }}</td>
             <td>{{ i.average_rating }}</td>
             <td>{{ i.get_rating_category }}</td>
-            <td>{{ i.comments }}</td>
+            <td>{{ i.comments|truncatechars:50 }}</td>
             <td>{{ i.predicted_sentiment }}</td>
             <td>{{ i.academic_year }}</td>
             <td>{{ i.semester }}</td>

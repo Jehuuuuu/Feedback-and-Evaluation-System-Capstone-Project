@@ -106,6 +106,10 @@ urlpatterns = [
     path('reject_event/<int:event_id>/', views.reject_event, name='reject_event'),
     path('admin_edit_event/<int:pk>/', views.admin_edit_event, name="admin_edit_event"),
     path('admin_delete_event/<int:pk>/', views.admin_delete_event, name="admin_delete_event"),
+    path('pending_evaluations', views.pending_evaluations, name='pending_evaluations'),
+    path('approve_evaluation/<int:pk>/', views.approve_evaluation, name='approve_evaluation'),
+    path('reject_evaluation/<int:pk>/', views.reject_evaluation, name='reject_evaluation'),
+    path('approve_all_pending_evaluations', views.approve_all_pending_evaluations, name='approve_all_pending_evaluations'),
 ]
 
 if settings.DEBUG:

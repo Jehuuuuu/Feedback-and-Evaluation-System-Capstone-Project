@@ -81,9 +81,6 @@
             <option id="-title" value="-title">Alphabetical: Descending</option>
             </select>
         </div>
-        <div class="col-md-3 col-sm-4 col-12">
-            <a href="{% url 'pending_events' %}" class="btn custom-btn" ><b>Pending Events</b></a>
-        </div>
     </div>
 
     <div class="table-responsive mt-2">
@@ -91,7 +88,7 @@
             <tr>
                 <th  scope="col">Event</th>
                 <th  scope="col">Date </th>
-                <th  scope="col" style="">Options </th>
+                <th  scope="col">Options </th>
             </tr>
 
             {% for i in page_obj %}
@@ -100,9 +97,6 @@
                 <td>{{ i.date }} </td>
                 <td style=" display: flex; flex-direction: row; gap: 0.5em;">  
                  <a href="{% url 'admin_event_evaluations' i.pk %}"><button class="btn btn-primary" style="padding:1px 2px 1px 7px"><i class="bi bi-eye-fill" style="font-size:20px; margin-right: 5px;"></i></button></a> 
-                 <a href="{% url 'admin_edit_event'  i.pk  %}" style="text-decoration: none;"><button class="btn btn-warning d-flex align-items-center" style=" padding:1px 2px 1px 7px"><i class="bi bi-pencil-square" style="font-size:20px; margin-right: 5px;"></i></button></a>
-            
-                 <a href="{% url 'admin_delete_event'  i.pk  %}" style="text-decoration: none;"><button class="btn btn-danger d-flex align-items-center" style="padding:4px 2px 4px 7px" ><i style="font-size:16.5px; margin-right: 5px;"  class="bi bi-trash-fill" ></i></button></a>
                   </td>
             </tr>
     

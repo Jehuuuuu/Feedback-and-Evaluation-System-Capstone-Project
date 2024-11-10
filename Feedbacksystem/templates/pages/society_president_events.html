@@ -52,6 +52,7 @@
                 
                 <div class="form-group">
                     {{ form.course_attendees.label_tag }}
+                    <button type="button" class="btn btn-sm btn-primary" onclick="selectAll('course')">Select All</button>
                     <div class="checkbox-list">
                         {% for course in form.course_attendees %}
                             <div class="form-check">
@@ -62,6 +63,7 @@
                 </div>
                 <div class="form-group">
                     {{ form.department_attendees.label_tag }}
+                    <button type="button" class="btn btn-sm btn-primary" onclick="selectAll('department')">Select All</button>
                     <div class="checkbox-list">
                         {% for department in form.department_attendees %}
                             <div class="form-check">
@@ -70,6 +72,7 @@
                         {% endfor %}
                     </div>
                 </div>
+                <button type="button" class="btn btn-warning btn-sm mb-2 mt-2" onclick="clearAll()">Clear Selections</button>
                     <p>{{ form.evaluation_status.label_tag }} {{ form.evaluation_status }}</p>
                     
         </div>
@@ -101,15 +104,7 @@
                     <td>{{ i.time }}</td>
                     <td>{{ i.location }}</td>
                     <td>{{ i.event_type }}</td>
-                    <td>
-                        {% for course in i.course_attendees.all %}
-                            {{ course.name }}{% if not forloop.last %}, {% endif %}
-                        {% endfor %}
-                        <br>
-                        {% for department in i.department_attendees.all %}
-                            {{ department.name }}{% if not forloop.last %}, {% endif %}
-                        {% endfor %}
-                    </td>
+                    <td>{{ i.attendees_summary }}</td>
                     <td>{{ i.evaluation_identifier }}</td>
                     <td style="display: flex; flex-direction: row; gap:1em; align-items: center; height: 100px;"> <a href="{% url 'president_view_event_evaluations' i.pk %}" style="text-decoration: none;"><button class="btn btn-primary d-flex align-items-center" style=" padding:1px 2px 1px 7px"><i class="bi bi-eye-fill" style="font-size:20px; margin-right: 5px;"></i> </button></a>
 
@@ -123,5 +118,10 @@
                    </table>
         </div>
        </div>   
+
+       <script> function selectAll(type) { const checkboxes = document.querySelectorAll(`.checkbox-list [name$='_attendees']`); checkboxes.forEach(checkbox => { if (checkbox.name.includes(type)) { checkbox.checked = true; } }); } 
+        function clearAll() { const checkboxes = document.querySelectorAll(`.checkbox-list [type='checkbox']`); checkboxes.forEach(checkbox => { checkbox.checked = false; }); }
+        </script>
+ 
     {% endblock feature %}
 

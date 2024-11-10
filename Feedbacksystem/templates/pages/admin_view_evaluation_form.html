@@ -12,7 +12,7 @@
 {% block feature %}
 
 <div class="row table-responsive">
-    <div class="col-xl-6 mb-2" style="max-height: 400px; overflow-y: auto;">
+    <div class="col-xl-6 mb-2" style="max-height: 450px; overflow-y: auto;">
         <table class="table table-bordered ">
                 <tr>
                  <th  scope="col">I. Subject Matter Content </th>
@@ -321,6 +321,14 @@
             <tr>
                 <td>Rating</td>
                 <td>{{ faculty_evaluation_form.get_rating_category }}</td>
+            </tr>
+            <tr>
+                <td>Comment</td>
+                <td>{{ faculty_evaluation_form.comments }}</td>
+            </tr>
+            <tr>
+                <td>Polarity</td>
+                <td>{{ faculty_evaluation_form.predicted_sentiment }}</td>
             </tr>
             <tr>
                 <td>Academic Year</td>

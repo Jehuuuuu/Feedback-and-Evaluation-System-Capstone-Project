@@ -197,6 +197,10 @@ background-color: #ff9400;
 .card{
   border: none;
 }
+.filter_dropdown{
+  padding:1.5em !important;
+  width: 20em !important;
+}
 @media (min-width:1200px){
 .evaluations_table {
   overflow-x:hidden !important;

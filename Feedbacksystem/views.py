@@ -5,7 +5,7 @@ from .forms import TeacherForm, StudentForm, CourseForm, SectionForm, SectionSub
 from django.contrib.auth.models import User, Group
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import UserCreationForm
-from django.db.models import Avg, Value
+from django.db.models import Avg, Value, CharField
 from django.http import Http404
 from .utils import load_prediction_models, single_prediction
 from .filters import EvaluationFilter, FacultyFilter, StudentFilter, UserFilter, EventFilter, SectionFilter, SubjectFilter, StakeholderFilter, LikertEvaluationFilter
@@ -30,6 +30,8 @@ from django.db import models
 from django.core.mail import EmailMessage
 from notifications.signals import notify
 from notifications.models import Notification
+from django.utils.text import Truncator
+
 ITEMS_PER_PAGE = 5
             # ------------------------------------------------------
             #                Login-Page Views
@@ -805,7 +807,12 @@ def society_president_events(request):
         else:
             # Print form errors for debugging
             print(form.errors)
-           
+     for i in event:
+        # Get combined courses and departments names
+        attendees_text = ", ".join(course.name for course in i.course_attendees.all()) + " | " + ", ".join(dept.name for dept in i.department_attendees.all())
+        # Truncate combined text to 50 characters (or your chosen length)
+        i.attendees_summary = Truncator(attendees_text).chars(50)   
+
      context = {'event': event, 'student': student, 'form':form, 'is_president': is_president, 'event_notifications': event_notifications, 'notifications_unread_count': notifications_unread_count}
      return render(request, 'pages/society_president_events.html', context)
 
@@ -1194,7 +1201,8 @@ def admin(request):
     total_user = user.count()
 
     evaluation_status = EvaluationStatus.objects.first()  # Assuming there's only one status entry
-    
+    current_academic_year = evaluation_status.academic_year 
+    current_semester = evaluation_status.semester
     
     if request.method == 'POST':
         form = EvaluationStatusForm(request.POST, instance=evaluation_status)
@@ -1204,16 +1212,13 @@ def admin(request):
     else:
         form = EvaluationStatusForm(instance=evaluation_status)
     
- # Filter the evaluations based on the selected academic year and semester
     filterset = LikertEvaluationFilter(request.GET, queryset=LikertEvaluation.objects.all())
+   
 
-    # Apply filtering and collect data
-       # Check if any filters are applied, or it's the "All" option
     if not request.GET or (request.GET.get('academic_year') == '' and request.GET.get('semester') == ''):
-        # If no filters, get all-time statistics
-        data = LikertEvaluation.objects.all()
+        data = LikertEvaluation.objects.filter(academic_year=current_academic_year, semester=current_semester)
+        
     else:
-        # Otherwise, apply the filters
         data = filterset.qs
 
     positive_count = data.filter(predicted_sentiment='Positive').count()
@@ -1285,12 +1290,15 @@ def department_response_chart_data(request):
         total_negative = 0
 
         for faculty in faculty_list:
+            evaluation_status = EvaluationStatus.objects.first()
+            current_academic_year = evaluation_status.academic_year 
+            current_semester = evaluation_status.semester
             # Get total evaluations for this faculty
             total_evaluations = LikertEvaluation.objects.filter(section_subject_faculty__faculty=faculty).count()
 
             # Get positive and negative evaluations for this faculty
-            positive_evaluations = LikertEvaluation.objects.filter(section_subject_faculty__faculty=faculty, predicted_sentiment="Positive").count()
-            negative_evaluations = LikertEvaluation.objects.filter(section_subject_faculty__faculty=faculty, predicted_sentiment="Negative").count()
+            positive_evaluations = LikertEvaluation.objects.filter(section_subject_faculty__faculty=faculty, predicted_sentiment="Positive", academic_year=current_academic_year, semester=current_semester).count()
+            negative_evaluations = LikertEvaluation.objects.filter(section_subject_faculty__faculty=faculty, predicted_sentiment="Negative", academic_year=current_academic_year, semester=current_semester).count()
 
             # Add the positive and negative evaluations to department totals
             total_positive += positive_evaluations
@@ -1318,8 +1326,11 @@ def faculty_response_chart_data(request, department_id):
     faculty_data = []
 
     for faculty in faculty_list:
-        positive_evaluations = LikertEvaluation.objects.filter(section_subject_faculty__faculty=faculty, predicted_sentiment="Positive").count()
-        negative_evaluations = LikertEvaluation.objects.filter(section_subject_faculty__faculty=faculty, predicted_sentiment="Negative").count()
+        evaluation_status = EvaluationStatus.objects.first()
+        current_academic_year = evaluation_status.academic_year 
+        current_semester = evaluation_status.semester
+        positive_evaluations = LikertEvaluation.objects.filter(section_subject_faculty__faculty=faculty, predicted_sentiment="Positive", academic_year=current_academic_year, semester=current_semester).count()
+        negative_evaluations = LikertEvaluation.objects.filter(section_subject_faculty__faculty=faculty, predicted_sentiment="Negative", academic_year=current_academic_year, semester=current_semester).count()
 
         faculty_labels.append(f"{faculty.first_name} {faculty.last_name}")
 
@@ -1363,7 +1374,7 @@ def adminregister(request):
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['admin'])
 def evaluations(request):
-    evaluation = LikertEvaluation.objects.all()
+    evaluation = LikertEvaluation.objects.filter(admin_status='Approved')
     
     total_evaluations = evaluation.count()
     #filter and search
@@ -1417,12 +1428,47 @@ def evaluations_csv(request):
 
     return response
 
+@login_required(login_url='signin')
+@allowed_users(allowed_roles=['admin'])
+def pending_evaluations(request):
+    evaluations = LikertEvaluation.objects.filter(admin_status='Pending').order_by('-updated')
+    paginator = Paginator(evaluations, 5) 
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    return render(request,'pages/pending_evaluations.html',{'evaluations': evaluations, 'page_obj': page_obj})
+
+@login_required(login_url='signin')
+@allowed_users(allowed_roles=['admin'])
+def approve_evaluation(request, pk):
+    evaluation = get_object_or_404(LikertEvaluation, pk=pk, admin_status='Pending')
+    
+    evaluation.admin_status = 'Approved'
+    evaluation.save()
+                
+    return redirect('pending_evaluations')
+
+@login_required(login_url='signin')
+@allowed_users(allowed_roles=['admin'])
+def reject_evaluation(request, pk):
+    evaluation = get_object_or_404(LikertEvaluation, pk=pk, admin_status='Pending')
+    
+    evaluation.admin_status = 'Rejected'
+    evaluation.save()
+                
+    return redirect('pending_evaluations')
+
+@login_required(login_url='signin')
+@allowed_users(allowed_roles=['admin']) 
+def approve_all_pending_evaluations(request):
+     if request.method == 'POST': LikertEvaluation.objects.filter(admin_status='Pending').update(admin_status='Approved') 
+     messages.success(request, 'All pending evaluations have been approved.') 
+     return redirect('pending_evaluations')
 
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['admin'])
 def admin_view_evaluation_form(request, pk):
-    faculty_evaluation_form = LikertEvaluation.objects.get(pk=pk)
+    faculty_evaluation_form = get_object_or_404(LikertEvaluation, pk=pk)
     questions = FacultyEvaluationQuestions.objects.all().order_by('order')
 
     outstanding_count = LikertEvaluation.objects.filter(pk=pk).filter(
@@ -1847,58 +1893,6 @@ def admin_delete_event(request, pk):
 
     return render(request, 'pages/delete.html', {'obj':event})
 
-@login_required(login_url='signin')
-@allowed_users(allowed_roles=['admin'])
-def pending_events(request):
-    events = Event.objects.filter(admin_status='Pending').order_by('-updated')
-    paginator = Paginator(events, 5) 
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-    return render(request,'pages/pending_events.html',{'events': events, 'page_obj': page_obj})
-
-@login_required(login_url='signin')
-@allowed_users(allowed_roles=['admin'])
-def approve_event(request, event_id):
-    user=request.user
-    event = get_object_or_404(Event, id=event_id, admin_status='Pending')
-    
-    event.admin_status = 'Approved'
-    event.save()
-                
-    student_users = User.objects.filter(student__Course__in=event.course_attendees.all())
-
-    # Get user instances associated with selected department attendees
-    faculty_users = User.objects.filter(faculty__department__in=event.department_attendees.all())
-    notification_description = f"A new event '{event.title}' is scheduled for {event.date}. Please evaluate and provide your feedback!"
-
-    # Send notifications to student attendees
-    notify.send(
-        sender=user,
-        recipient=student_users,
-        verb="New Event Created",
-        description=notification_description,
-        level='success'
-    )
-
-    # Send notifications to faculty attendees
-    notify.send(
-        sender=user,
-        recipient=faculty_users,
-        verb="New Event Created",
-        description=notification_description,
-        level='success'
-    )
-    messages.success(request, 'Event approved successfully')
-    return redirect('pending_events')
-
-@login_required(login_url='signin')
-@allowed_users(allowed_roles=['admin'])
-def reject_event(request, event_id):
-    event = get_object_or_404(Event, id=event_id, admin_status='Pending')
-    event.admin_status = 'Rejected'
-    event.save()
-    messages.success(request, 'Event rejected successfully')
-    return redirect('pending_events')
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['admin'])
@@ -1923,7 +1917,7 @@ def admin_event_evaluations(request, pk):
     return render(request, 'pages/admin_event_evaluations.html', context)
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['admin', 'society president', 'faculty'])
+@allowed_users(allowed_roles=['admin', 'society president', 'faculty', 'head of OSAS'])
 def eventevaluations_csv(request):
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename=event_evaluations.csv'
@@ -1949,11 +1943,11 @@ def eventevaluations_csv(request):
         return HttpResponse("No evaluations found for this event.")
 
     # Write the CSV headers
-    writer.writerow(['Event', 'Suggestions and Comments', 'Average', 'Rating', 'Academic Year', 'Semester'])
+    writer.writerow(['Event', 'Author', 'Suggestions and Comments', 'Average', 'Rating', 'Academic Year', 'Semester', 'Date Submitted'])
 
     # Loop through and write the evaluation data
     for i in evaluations:
-        writer.writerow([i.event.title, i.suggestions_and_comments, i.average_rating, i.get_rating_category(), i.academic_year, i.semester])
+        writer.writerow([i.event.title, i.event.get_author_name(), i.suggestions_and_comments, i.average_rating, i.get_rating_category(), i.academic_year, i.semester, i.created])
 
     return response
 
@@ -3077,6 +3071,19 @@ def users(request):
     users = User.objects.all().order_by('-date_joined')
     user_filter = UserFilter(request.GET, queryset=users)
     users = user_filter.qs
+
+        # Annotate users with full names from Student or Faculty
+    users = users.annotate(
+        student_name=Concat(
+            'student__first_name', Value(' '), 'student__last_name',
+            output_field=CharField()
+        ),
+        faculty_name=Concat(
+            'faculty__first_name', Value(' '), 'faculty__last_name',
+            output_field=CharField()
+        )
+    )
+
     # Create a dictionary to store user groups
     user_groups = {}
 
@@ -3087,6 +3094,9 @@ def users(request):
         
         # Store user groups in the dictionary with user id as key
         user_groups[user.username] = groups
+        print(user.username, user.student_name, user.faculty_name)
+
+        
 
     paginator = Paginator(users, 5) 
     page_number = request.GET.get('page')
@@ -3133,11 +3143,10 @@ def delete_user(request, user_id):
 
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['faculty'])
+@allowed_users(allowed_roles=['faculty', 'head of OSAS'])
 def facultydashboard(request):
     user=request.user
     faculty = Faculty.objects.filter(email=request.user.username).first()   
-
     event_notifications = Notification.objects.filter(recipient=user, level='success')
     messages_notifications = Notification.objects.filter(recipient=user, level='info')
     unread_notifications = Notification.objects.filter(recipient=user, level='success', unread=True)
@@ -3146,28 +3155,36 @@ def facultydashboard(request):
     notifications_unread_count = unread_notifications.count()
     messages_unread_count = unread_messages.count()
     
+
     evaluation_status = EvaluationStatus.objects.first()
-    teacher_evaluations = LikertEvaluation.objects.filter(section_subject_faculty__faculty=faculty)
-    total_evaluations = teacher_evaluations.count()
-    positive_evaluations = teacher_evaluations.filter(predicted_sentiment='Positive').count()
-    negative_evaluations = teacher_evaluations.filter(predicted_sentiment='Negative').count()
+    current_academic_year = evaluation_status.academic_year 
+    current_semester = evaluation_status.semester
+    current_evaluation_status = evaluation_status.evaluation_status
 
-    # Calculate sentiment score
-    if total_evaluations > 0:
-        sentiment_score = (positive_evaluations - negative_evaluations) / total_evaluations
-    else:
-        sentiment_score = 0  # Handle case when there are no evaluations
-
-    # Compute the average rating
-    avg_rating = teacher_evaluations.aggregate(average_rating=Avg('average_rating'))['average_rating']
-
-    if avg_rating:
-        # Round the average rating to one decimal point
-        avg_rating = round(avg_rating, 1)
-    else:
-        pass
     
-    recent_comments = teacher_evaluations.values('comments', 'predicted_sentiment')[:3]
+
+    # Initialize the filterset and filter data
+    filterset = LikertEvaluationFilter(request.GET, queryset=LikertEvaluation.objects.filter(section_subject_faculty__faculty=faculty, admin_status='Approved'))
+    if not request.GET or (request.GET.get('academic_year') == '' and request.GET.get('semester') == ''):
+        data = LikertEvaluation.objects.filter(section_subject_faculty__faculty=faculty, 
+                                               academic_year=current_academic_year, semester=current_semester, admin_status='Approved')
+    else:
+        data = filterset.qs
+
+    # Compute evaluation counts
+    positive_evaluations = data.filter(predicted_sentiment='Positive').count()
+    negative_evaluations = data.filter(predicted_sentiment='Negative').count()
+    total_evaluations = data.count()
+
+    # Sentiment score calculation
+    sentiment_score = (positive_evaluations - negative_evaluations) / total_evaluations if total_evaluations else 0
+    rounded_sentiment_score = round(sentiment_score, 1)
+    # Average rating calculation
+    avg_rating = data.aggregate(average_rating=Avg('average_rating'))['average_rating']
+    avg_rating = round(avg_rating, 1) if avg_rating else None
+
+    # Fetch recent comments
+    recent_comments = data.values('comments', 'predicted_sentiment')[:3]
 
    
      # Categorize the evaluations for Chart.js
@@ -3226,7 +3243,7 @@ def facultydashboard(request):
     count = {key: 0 for key in categories}  # Track rating counts per category
 
     # Populate category data from evaluations
-    for evaluation in teacher_evaluations:
+    for evaluation in data:
         # Subject Matter Content
         categories['Subject Matter Content']['command_and_knowledge_of_the_subject'] += evaluation.command_and_knowledge_of_the_subject
         categories['Subject Matter Content']['depth_of_mastery'] += evaluation.depth_of_mastery
@@ -3297,11 +3314,14 @@ def facultydashboard(request):
 
        
 
-    # Calculate averages for each category
+    # Average each field
     for category, fields in categories.items():
         for field in fields:
-            categories[category][field] /= len(teacher_evaluations) if teacher_evaluations else 1
-
+            fields[field] = fields[field] / total_evaluations if total_evaluations else 0
+    
+     # Compute evaluation counts
+    positive_evaluations = data.filter(predicted_sentiment='Positive').count()
+    negative_evaluations = data.filter(predicted_sentiment='Negative').count()
     context = {
         'faculty': faculty,
         'evaluation_status': evaluation_status,
@@ -3314,13 +3334,22 @@ def facultydashboard(request):
         'messages_notifications': messages_notifications,
         'messages_unread_count': messages_unread_count,
         'sentiment_score': sentiment_score,
+        'current_evaluation_status': current_evaluation_status,
+        'filterset': filterset,
+        'rounded_sentiment_score': rounded_sentiment_score,
+        'positive_evaluations': positive_evaluations,
+        'negative_evaluations': negative_evaluations,    
     }
 
     return render(request, 'pages/facultydashboard.html', context)
 
 def get_evaluation_data(request):
     faculty = Faculty.objects.filter(email=request.user.username).first()
-    teacher_evaluations = LikertEvaluation.objects.filter(section_subject_faculty__faculty=faculty)
+    evaluation_status = EvaluationStatus.objects.first()
+    current_academic_year = evaluation_status.academic_year 
+    current_semester = evaluation_status.semester
+    
+    teacher_evaluations = LikertEvaluation.objects.filter(section_subject_faculty__faculty=faculty,academic_year=current_academic_year, semester=current_semester, admin_status='Approved' )
     positive_evaluations = teacher_evaluations.filter(predicted_sentiment='Positive').count()
     negative_evaluations = teacher_evaluations.filter(predicted_sentiment='Negative').count()
 
@@ -3331,7 +3360,7 @@ def get_evaluation_data(request):
     return JsonResponse(data)
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['student', 'faculty'])
+@allowed_users(allowed_roles=['student', 'faculty', 'head of OSAS'])
 def mark_notifications_read(request):
     if request.method == 'POST':
         # Mark all notifications as read for the current user
@@ -3340,7 +3369,7 @@ def mark_notifications_read(request):
     return JsonResponse({'status': 'error'}, status=400)
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['faculty'])
+@allowed_users(allowed_roles=['faculty', 'head of OSAS'])
 def faculty_notifications(request):
     user=request.user
     faculty = Faculty.objects.filter(email=request.user.username).first()   
@@ -3359,7 +3388,7 @@ def faculty_notifications(request):
         'messages_unread_count': messages_unread_count })  # Return the response
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['faculty'])
+@allowed_users(allowed_roles=['faculty', 'head of OSAS'])
 def inbox(request):
     user=request.user
     faculty = Faculty.objects.filter(email=request.user.username).first()   
@@ -3378,7 +3407,7 @@ def inbox(request):
         'messages_unread_count': messages_unread_count, })  # Return the response
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['faculty'])
+@allowed_users(allowed_roles=['faculty', 'head of OSAS'])
 def view_message(request, notification_id):
     user=request.user
     faculty = Faculty.objects.filter(email=request.user.username).first()   
@@ -3403,7 +3432,7 @@ def view_message(request, notification_id):
 
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['faculty'])
+@allowed_users(allowed_roles=['faculty', 'head of OSAS'])
 def facultyprofile(request):
     user=request.user
     faculty = Faculty.objects.filter(email=request.user.username).first()   
@@ -3424,7 +3453,7 @@ def facultyprofile(request):
 
    
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['faculty'])   
+@allowed_users(allowed_roles=['faculty', 'head of OSAS'])   
 def facultyfeedbackandevaluations(request):
     user=request.user
     faculty = Faculty.objects.filter(email=request.user.username).first()   
@@ -3438,7 +3467,7 @@ def facultyfeedbackandevaluations(request):
     messages_unread_count = unread_messages.count()
 
     email = request.user.email
-    teacher_evaluations = LikertEvaluation.objects.filter(section_subject_faculty__faculty=faculty)
+    teacher_evaluations = LikertEvaluation.objects.filter(section_subject_faculty__faculty=faculty, admin_status='Approved')
     try:
         # Query the Faculty model using the email address
         teacher = Faculty.objects.get(email=email)
@@ -3477,7 +3506,7 @@ def facultyfeedbackandevaluations(request):
     return render(request, 'pages/facultyfeedbackandevaluations.html', context)
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['faculty'])
+@allowed_users(allowed_roles=['faculty', 'head of OSAS'])
 def faculty_evaluations_csv(request):
     faculty = Faculty.objects.filter(email=request.user.username).first()
     response = HttpResponse(content_type='text/csv')
@@ -3504,7 +3533,7 @@ def faculty_evaluations_csv(request):
 
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['faculty'])
+@allowed_users(allowed_roles=['faculty', 'head of OSAS'])
 def view_evaluation_form(request, pk):
     user=request.user
     faculty = Faculty.objects.filter(email=request.user.username).first()   
@@ -3887,11 +3916,11 @@ def view_evaluation_form(request, pk):
         'messages_unread_count': messages_unread_count,})
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['faculty'])
+@allowed_users(allowed_roles=['faculty', 'head of OSAS'])
 def faculty_event_evaluations(request):
      user=request.user
      faculty = Faculty.objects.filter(email=request.user.username).first()   
-
+     is_head_of_osas = request.user.groups.filter(name='head of OSAS').exists() 
      event_notifications = Notification.objects.filter(recipient=user, level='success')
      messages_notifications = Notification.objects.filter(recipient=user, level='info')
      unread_notifications = Notification.objects.filter(recipient=user, level='success', unread=True)
@@ -3899,7 +3928,20 @@ def faculty_event_evaluations(request):
 
      notifications_unread_count = unread_notifications.count()
      messages_unread_count = unread_messages.count()    
-     event = Event.objects.filter(author=user, admin_status='Approved').order_by('-updated')
+     if is_head_of_osas == True:
+          event = Event.objects.filter(admin_status='Approved').select_related('author').order_by('-updated')
+     else:
+        event = Event.objects.filter(author=user, admin_status='Approved').order_by('-updated')
+
+        # ordering functionality
+     event_filter = EventFilter(request.GET, queryset=event)
+     event = event_filter.qs 
+     ordering = request.GET.get('ordering', "")
+
+        
+     if ordering:
+        event = event.order_by(ordering) 
+
      form = EventCreationForm()
      if request.method == 'POST':
         form = EventCreationForm(request.POST, request.FILES)
@@ -3916,16 +3958,81 @@ def faculty_event_evaluations(request):
         else:
             # Print form errors for debugging
             print(form.errors)
-           
+    
+
+     for i in event:
+        # Get combined courses and departments names
+        attendees_text = ", ".join(course.name for course in i.course_attendees.all()) + " | " + ", ".join(dept.name for dept in i.department_attendees.all())
+        # Truncate combined text to 50 characters (or your chosen length)
+        i.attendees_summary = Truncator(attendees_text).chars(50)
+        
+
+     paginator = Paginator(event, 5) 
+     page_number = request.GET.get('page')
+     page_obj = paginator.get_page(page_number)
+
+
      context = {'event': event, 'faculty': faculty, 'form':form, 'event_notifications': event_notifications,
         'notifications_unread_count': notifications_unread_count,
         'messages_notifications': messages_notifications,
-        'messages_unread_count': messages_unread_count,}
+        'messages_unread_count': messages_unread_count, 'is_head_of_osas': is_head_of_osas, 'page_obj': page_obj, 'event_filter': event_filter}
      return render(request, 'pages/faculty_event_evaluations.html', context)
 
+@login_required(login_url='signin')
+@allowed_users(allowed_roles=['head of OSAS'])
+def pending_events(request):
+    events = Event.objects.filter(admin_status='Pending').order_by('-updated')
+    paginator = Paginator(events, 5) 
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    return render(request,'pages/pending_events.html',{'events': events, 'page_obj': page_obj})
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['faculty'])
+@allowed_users(allowed_roles=['head of OSAS'])
+def approve_event(request, event_id):
+    user=request.user
+    event = get_object_or_404(Event, id=event_id, admin_status='Pending')
+    
+    event.admin_status = 'Approved'
+    event.save()
+                
+    student_users = User.objects.filter(student__Course__in=event.course_attendees.all())
+
+    # Get user instances associated with selected department attendees
+    faculty_users = User.objects.filter(faculty__department__in=event.department_attendees.all())
+    notification_description = f"A new event '{event.title}' is scheduled for {event.date}. Please evaluate and provide your feedback!"
+
+    # Send notifications to student attendees
+    notify.send(
+        sender=user,
+        recipient=student_users,
+        verb="New Event Created",
+        description=notification_description,
+        level='success'
+    )
+
+    # Send notifications to faculty attendees
+    notify.send(
+        sender=user,
+        recipient=faculty_users,
+        verb="New Event Created",
+        description=notification_description,
+        level='success'
+    )
+    messages.success(request, 'Event approved successfully')
+    return redirect('pending_events')
+
+@login_required(login_url='signin')
+@allowed_users(allowed_roles=['head of OSAS'])
+def reject_event(request, event_id):
+    event = get_object_or_404(Event, id=event_id, admin_status='Pending')
+    event.admin_status = 'Rejected'
+    event.save()
+    messages.success(request, 'Event rejected successfully')
+    return redirect('pending_events')
+
+@login_required(login_url='signin')
+@allowed_users(allowed_roles=['faculty', 'head of OSAS'])
 def view_faculty_event_evaluations(request, pk):
     user=request.user
     faculty = Faculty.objects.filter(email=request.user.username).first()   
@@ -3964,7 +4071,7 @@ def view_faculty_event_evaluations(request, pk):
 
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['faculty'])
+@allowed_users(allowed_roles=['faculty', 'head of OSAS'])
 def faculty_view_event_evaluations(request, pk):
     user=request.user
     faculty = Faculty.objects.filter(email=request.user.username).first()   
@@ -4279,7 +4386,7 @@ def faculty_view_event_evaluations(request, pk):
         'messages_unread_count': messages_unread_count,})
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['faculty'])
+@allowed_users(allowed_roles=['faculty' , 'head of OSAS'])
 def edit_faculty_events(request, pk):
     user=request.user
     faculty = Faculty.objects.filter(email=request.user.username).first()   
@@ -4307,7 +4414,7 @@ def edit_faculty_events(request, pk):
     return render(request, 'pages/edit_faculty_events.html', context)
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['faculty'])
+@allowed_users(allowed_roles=['faculty', 'head of OSAS'])
 def delete_faculty_events(request, pk):
     user=request.user
     faculty = Faculty.objects.filter(email=request.user.username).first()   
@@ -4330,7 +4437,7 @@ def delete_faculty_events(request, pk):
         'messages_unread_count': messages_unread_count,})
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['faculty'])
+@allowed_users(allowed_roles=['faculty' , 'head of OSAS'])
 def faculty_events(request):
     user=request.user
     faculty = Faculty.objects.filter(email=request.user.username).first()   
@@ -4366,7 +4473,7 @@ def faculty_events(request):
         'messages_unread_count': messages_unread_count,})
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['faculty'])
+@allowed_users(allowed_roles=['faculty', 'head of OSAS'])
 def faculty_events_upcoming(request):
     user=request.user
     faculty = Faculty.objects.filter(email=request.user.username).first()   
@@ -4390,7 +4497,7 @@ def faculty_events_upcoming(request):
         'messages_unread_count': messages_unread_count,})
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['faculty'])
+@allowed_users(allowed_roles=['faculty', 'head of OSAS'])
 def faculty_events_evaluated(request):
     user=request.user
     faculty = Faculty.objects.filter(email=request.user.username).first()   
@@ -4422,7 +4529,7 @@ def faculty_events_evaluated(request):
         'messages_unread_count': messages_unread_count,})
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['faculty'])
+@allowed_users(allowed_roles=['faculty', 'head of OSAS'])
 def faculty_events_closed(request):
     user=request.user
     faculty = Faculty.objects.filter(email=request.user.username).first()   
@@ -4447,7 +4554,7 @@ def faculty_events_closed(request):
         'messages_unread_count': messages_unread_count,})
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['faculty'])
+@allowed_users(allowed_roles=['faculty', 'head of OSAS'])
 def faculty_event_detail(request, pk):
     user=request.user
     faculty = Faculty.objects.filter(email=request.user.username).first()   

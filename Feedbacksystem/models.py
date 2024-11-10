@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
-
+from django.utils import timezone
 # Create your models here.
 
 class Course(models.Model):
@@ -138,8 +138,8 @@ class Student(models.Model):
             self.user.delete()
         super().delete(*args, **kwargs)
 
-    def __str__(self):
-        return f"{self.first_name} {self. last_name}"
+    def full_name(self):
+        return f"{self.first_name} {self.last_name}"
 
 class EvaluationStatus(models.Model):
     academic_year = models.CharField(max_length=50)
@@ -166,7 +166,11 @@ class LikertEvaluation(models.Model):
         ('pending', 'Pending'),  # Evaluation is pending
         ('evaluated', 'Evaluated'),  # Evaluation has been completed
     ]
-
+    ADMIN_STATUS_CHOICES = [
+        ('Pending', 'Pending'),
+        ('Approved', 'Approved'),
+        ('Rejected', 'Rejected'),
+    ]
     user = models.ForeignKey(User, on_delete=models.CASCADE) 
     section_subject_faculty = models.ForeignKey(SectionSubjectFaculty, on_delete=models.CASCADE)
 
@@ -264,6 +268,13 @@ class LikertEvaluation(models.Model):
     other_suggestions_for_improvement = models.TextField()
     comments = models.TextField()
     predicted_sentiment = models.CharField(max_length=50)
+    admin_status = models.CharField(
+        max_length=12,
+        choices=ADMIN_STATUS_CHOICES,
+        default='Pending'
+    
+    )  
+
 
     academic_year = models.CharField(max_length=50, null=True, blank=True)
     semester = models.CharField(max_length=50, null=True, blank=True)
@@ -399,6 +410,7 @@ class Event(models.Model):
         choices=ADMIN_STATUS_CHOICES,
         default='Pending'
     )   
+    evaluation_end_datetime = models.DateTimeField(null=True, blank=True)  # End date and time
     academic_year = models.CharField(max_length=50, null=True, blank=True)
     semester = models.CharField(max_length=50, null=True, blank=True)
     updated = models.DateTimeField(auto_now = True, null=True, blank = True)
@@ -410,6 +422,21 @@ class Event(models.Model):
     def __str__(self):
         return f"{self.title}"
     
+    def check_evaluation_status(self):
+        if self.evaluation_end_datetime and timezone.now() >= self.evaluation_end_datetime:
+            self.evaluation_status = False
+            self.save()
+            
+    def get_author_name(self):
+        # Check if the author is a faculty member
+        if hasattr(self.author, 'faculty'):
+            return self.author.faculty.full_name()
+        # Check if the author is a student
+        elif hasattr(self.author, 'student'):
+            return self.author.student.full_name()
+        # Default to username if neither faculty nor student
+        return self.author.username
+
     def save(self, *args, **kwargs):
         # Get the current evaluation status
         evaluation_status = EvaluationStatus.objects.first()

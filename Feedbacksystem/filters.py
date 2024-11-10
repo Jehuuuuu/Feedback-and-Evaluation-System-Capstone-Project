@@ -3,9 +3,9 @@ import django_filters
 from .models import *
 from django_filters import CharFilter
 from django import forms
-from django.db.models import Q
+from django.db.models import Q, Value, CharField
 from django.contrib.auth.models import Group
-
+from django.db.models.functions import Concat
 class EvaluationFilter(django_filters.FilterSet):
      # Foreign key field filter
     section_subject_faculty = django_filters.ModelChoiceFilter(
@@ -210,6 +210,15 @@ class EventFilter(django_filters.FilterSet):
          choices=SEMESTER_CHOICES, 
          widget=forms.Select(attrs={'class': 'form-control'})
 )
+
+    EVALUATION_STATUS_CHOICES = [
+        ('True', 'Ongoing'),
+        ('False', 'Closed'),
+    ]
+    evaluation_status = django_filters.ChoiceFilter(
+         choices=EVALUATION_STATUS_CHOICES, 
+         widget=forms.Select(attrs={'class': 'form-control'})
+)
     search = django_filters.CharFilter(
         method='filter_search',
         label='',
@@ -222,9 +231,38 @@ class EventFilter(django_filters.FilterSet):
     # Other filters...
 
     def filter_search(self, queryset, name, value):
-        return queryset.filter(
-            Q(title__icontains=value)  
+            # Annotate the queryset with the full name of the author, either as Faculty or Student
+        queryset = queryset.annotate(
+            author_full_name=Concat(
+                'author__faculty__first_name', Value(' '), 'author__faculty__last_name',
+                output_field=CharField()
+            )
+        ).annotate(
+            student_full_name=Concat(
+                'author__student__first_name', Value(' '), 'author__student__last_name',
+                output_field=CharField()
+            )
         )
+
+        # Base filter criteria for other fields
+        filter_criteria = (
+            Q(title__icontains=value) | 
+            Q(location__icontains=value) | 
+            Q(date__icontains=value) |
+            Q(author_full_name__icontains=value) |
+            Q(student_full_name__icontains=value) |
+            Q(event_type__name__icontains=value) |
+            Q(time__icontains=value)
+        )
+        
+        # Add filter for evaluation_status based on "ongoing" or "closed" input
+        if value.lower() == "ongoing":
+            filter_criteria |= Q(evaluation_status=True)
+        elif value.lower() == "closed":
+            filter_criteria |= Q(evaluation_status=False)
+
+        # Apply the complete filter criteria to the queryset
+        return queryset.filter(filter_criteria)
 
 
 
@@ -326,9 +364,9 @@ class LikertEvaluationFilter(django_filters.FilterSet):
         ('2nd', '2nd'),
     ]
 
-    academic_year = django_filters.ChoiceFilter(choices=[], label='Academic Year', empty_label='All',  # Set 'All' as the default
+    academic_year = django_filters.ChoiceFilter(choices=[], label='Academic Year',   # Set 'All' as the default
                                                 widget=forms.Select(attrs={'class': 'form-control'}))
-    semester = django_filters.ChoiceFilter(choices=SEMESTER_CHOICES, label='Semester', empty_label='All',
+    semester = django_filters.ChoiceFilter(choices=SEMESTER_CHOICES, label='Semester', 
                                            widget=forms.Select(attrs={'class': 'form-control'}))
 
     class Meta:

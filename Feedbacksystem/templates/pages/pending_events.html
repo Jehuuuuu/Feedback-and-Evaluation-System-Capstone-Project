@@ -1,4 +1,4 @@
-{% extends "pages/admin.html" %}
+{% extends "pages/facultydashboard.html" %}
 
 {% block title %}Pending Events{% endblock %}
 
@@ -47,6 +47,7 @@
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
+                <p>Date: {{ i.get_author_name }}</p>
                 <p>Date: {{ i.date }}</p>
                 <p>Time: {{ i.time }}</p>
                 <p>Location: {{ i.location }}</p>

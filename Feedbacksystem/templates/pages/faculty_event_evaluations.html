@@ -4,12 +4,22 @@
 
 {% block header %}
     
-<h2>Manage Events</h2>
-<hr>
+<div class="row">
+    <div class="col-md-6">
+        <h2>Manage Events</h2>
+    </div>
+    <div class="col-lg-4 col-md-5 mt-1 evaluations_search" style="margin-left: auto;">
+        <form method="get" action="" class="d-flex" style="gap: 1em;">
+            {{event_filter.form.search.label_tag}}
+            {{event_filter.form.search}}
+        <button type="submit" class="btn custom-btn"><i class="bi bi-search"></i></button>
+        </form>
+        </div>
+    </div>
+    <hr>   
     {% endblock header %}
     {% block feature %}
-    <div class="table-responsive">
-        {# Display non-field errors (errors related to the whole form) #}
+
         {% if form.non_field_errors %}
             <div class="alert alert-danger">
                 {% for error in form.non_field_errors %}
@@ -17,10 +27,35 @@
                 {% endfor %}
             </div>
         {% endif %}
-        <a class = "btn btn-warning custom-btn" data-bs-toggle="modal" data-bs-target="#exampleModal"> <i class="bi bi-plus-square-fill"> </i>Create Event </a>
-  
+        
+        <div class="row g-0">
+            <div class="col-lg-2 col-md-3 col-sm-4 col-6 mb-1"><a class = "btn btn-warning custom-btn" data-bs-toggle="modal" data-bs-target="#createEventModal"> <i class="bi bi-plus-square-fill"> </i>Create Event </a></div>
+        {% if is_head_of_osas %}
+            <div class="col-lg-2 col-md-3 col-sm-4 col-6 mb-1">
+                <a href="{% url 'pending_events' %}" class="btn btn-secondary" ><b>Pending Events</b></a>
+            </div>
+        {% endif %}
+            <div class="col-lg-2 col-md-3 col-sm-4 col-12 mb-1">
+                <button type="button" class="btn btn-warning custom-btn" style="color: black; text-decoration: none;" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                    <i class="bi bi-pencil-square"></i> <b>Filter Options</b>
+                </button>
+            </div>
+             <!-- Sort Dropdown -->
+            <div class="col-md-5 col-sm-7 col-12 mb-1" style="margin-right: 1em;">
+                <select class="form-select" name="sort" id="sort-list" onchange="location = finalurl();">
+                <option value="" id="placeholder" disabled selected hidden>Sort</option>
+                <option id="date" value="date">Date: Ascending</option>
+                <option id="-date" value="-date">Date: Descending</option>
+                <option id="title" value="title">Alphabetical: Ascending</option>
+                <option id="-title" value="-title">Alphabetical: Descending</option>
+                </select>
+            </div>
+
+
+        </div>
+       
   <!-- Modal -->
-  <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal fade" id="createEventModal" tabindex="-1" aria-labelledby="createEventModalLabel" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
@@ -62,6 +97,8 @@
                 
                 <div class="form-group">
                     {{ form.course_attendees.label_tag }}
+                 <button type="button" class="btn btn-sm btn-primary" onclick="selectAll('course')">Select All</button>
+                    
                     <div class="checkbox-list">
                         {% for course in form.course_attendees %}
                             <div class="form-check">
@@ -72,6 +109,7 @@
                 </div>
                 <div class="form-group">
                     {{ form.department_attendees.label_tag }}
+                    <button type="button" class="btn btn-sm btn-primary" onclick="selectAll('department')">Select All</button>
                     <div class="checkbox-list">
                         {% for department in form.department_attendees %}
                             <div class="form-check">
@@ -80,21 +118,74 @@
                         {% endfor %}
                     </div>
                 </div>
+                <button type="button" class="btn btn-warning btn-sm mb-2 mt-2" onclick="clearAll()">Clear Selections</button>
                     <p>{{ form.evaluation_status.label_tag }} {{ form.evaluation_status }}</p>
                     
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+
           <button type="submit" class="btn custom-btn">Create Event</button>
         </form>
         </div>
       </div>
     </div>
   </div>
+      <!-- filter modal -->
+      <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+        <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="exampleModalLabel">Filter Options</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form method="get" action="">
+            <!-- Course Attendees Filter -->
+            <div class="form-group mb-3">
+                {{ event_filter.form.course_attendees.label_tag }}
+                <div>
+                    {% for course in event_filter.form.course_attendees %}
+                        <div class="form-check">
+                            {{course}}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <!-- Department Attendees Filter -->
+            <div class="form-group mb-3">
+                {{ event_filter.form.department_attendees.label_tag }}
+                <div>
+                    {% for department in event_filter.form.department_attendees %}
+                        <div class="form-check">
+                            {{department}}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {{event_filter.form.academic_year.label_tag}}
+            {{event_filter.form.academic_year}}
+            {{event_filter.form.semester.label_tag}}
+            {{event_filter.form.semester}}
+            {{event_filter.form.evaluation_status.label_tag}}
+            {{event_filter.form.evaluation_status}}
+            <button type="button" class="btn btn-secondary" onclick="clearFilters()" style="margin-top: 1em;">Clear All</button>
+        </div>
+      <div class="modal-footer">
+      <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+      <input type = "submit" value="Save Changes" class="btn btn-success">
+      </form>
+      </div>
+      </div>
+      </div>
+      </div>
         <div class="table-responsive">
-            <table class="table table-bordered" style="margin-top: 1em;">
+            <table class="table table-bordered">
                 <tr>
                     <th scope="col">Title</th>
+                    {% if is_head_of_osas %}
+                    <th scope="col">Author</th>
+                    {% endif %}
                     <th scope="col">Date</th>
                     <th scope="col">Time</th>
                     <th scope="col">Location</th>
@@ -104,22 +195,17 @@
                     <th scope="col">Options</th>
                 </tr>
                 
-                {% for i in event %}
+                {% for i in page_obj %}
                 <tr>
                     <td>{{ i.title }}</td>
+                    {% if is_head_of_osas %}
+                    <td>{{ i.get_author_name }}</td>
+                    {% endif %}
                     <td>{{ i.date }}</td>
                     <td>{{ i.time }}</td>
                     <td>{{ i.location }}</td>
                     <td>{{ i.event_type }}</td>
-                    <td>
-                        {% for course in i.course_attendees.all %}
-                            {{ course.name }}{% if not forloop.last %}, {% endif %}
-                        {% endfor %}
-                        <br>
-                        {% for department in i.department_attendees.all %}
-                            {{ department.name }}{% if not forloop.last %}, {% endif %}
-                        {% endfor %}
-                    </td>
+                    <td>{{ i.attendees_summary }}</td>
                     <td>{{ i.evaluation_identifier }}</td>
                     <td style="display: flex; flex-direction: row; gap:1em; align-items: center; height: 7.5em;"> <a href="{% url 'view_faculty_event_evaluations'  i.pk  %}" style="text-decoration: none;"><button class="btn btn-primary d-flex align-items-center" style=" padding:1px 2px 1px 7px"><i class="bi bi-eye-fill" style="font-size:20px; margin-right: 5px;"></i> </button></a>
 
@@ -132,5 +218,75 @@
                    </table>
         </div>
        </div>   
+       
+    <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                </a>
+            </li>
+            {% endif %}
+    
+            {% for num in page_obj.paginator.page_range %}
+            <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+            </li>
+            {% endfor %}
+    
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+
+       <script> function selectAll(type) { const checkboxes = document.querySelectorAll(`.checkbox-list [name$='_attendees']`); checkboxes.forEach(checkbox => { if (checkbox.name.includes(type)) { checkbox.checked = true; } }); } 
+       function clearAll() { const checkboxes = document.querySelectorAll(`.checkbox-list [type='checkbox']`); checkboxes.forEach(checkbox => { checkbox.checked = false; }); }
+       </script>
+
+<script>
+    // for getting the sorting status to be displayed in sorting dropdown placeholder
+    function get(name) {
+        if (name = (new RegExp('[?&]' + encodeURIComponent(name) + '=([^&]*)')).exec(location.search))  //location.search give query sling part
+            return decodeURIComponent(name[1]);
+        }
+        if(get('ordering'))
+        document.getElementById('placeholder').innerHTML = "Sort: " + document.getElementById(get('ordering')).innerHTML;
+
+    // for getting url after applying ordering
+    function finalurl() {
+        var url = new URL(window.location.href);
+        var search_params = url.searchParams;
+        search_params.set('ordering', document.getElementById("sort-list").value);
+        url.search = search_params.toString();
+        var new_url = url.toString();
+        return new_url
+    }
+    function clearFilters() {
+        // Get all filter inputs within the form (select, text, and checkboxes)
+        var filterInputs = document.querySelectorAll('#exampleModal form select, #exampleModal form input[type="text"], #exampleModal form input[type="checkbox"]');
+
+        // Loop through each input and clear its value
+        filterInputs.forEach(function(input) {
+            if (input.tagName === 'SELECT') {
+                // For select elements, set the selected index to the default (first) option
+                input.selectedIndex = 0;
+            } else if (input.type === 'text') {
+                // For text inputs, clear the value
+                input.value = '';
+            } else if (input.type === 'checkbox') {
+                // For checkboxes, uncheck them
+                input.checked = false;
+            }
+        });
+        }
+
+</script>
+       
     {% endblock feature %}
 

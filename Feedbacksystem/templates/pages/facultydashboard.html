@@ -173,11 +173,15 @@
               <a class="dropdown-item" href="{% url 'facultyfeedbackandevaluations' %}">SET</a>
               <a class="dropdown-item" href="{% url 'faculty_event_evaluations' %}">Event Evaluations</a>
       </li>
-      <li class="nav-item">
-        <a class="nav-link {% if request.path == '/faculty_events' %} active {% endif %}" href="/faculty_events">
-          <i class="bi bi-calendar2-event-fill nav-icon"></i></i> <b>Events</b>    
-      </a>
-    </li>
+        <li class="nav-item dropdown">
+          <button class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <i class="bi bi-clipboard-check-fill"></i> Evaluate
+          </button>
+          <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+              <a class="dropdown-item" href="{% url 'faculty_events' %}">Events</a>
+              <a class="dropdown-item" href="{}">Peer to Peer</a>
+      </li>
+
 
         <li class="nav-item">
           <a class="nav-link" href="{% url 'studentlogout' %}">
@@ -196,7 +200,7 @@
         <div class = "header_status">
           <h5>Academic Year: 2024-2025</h5>
           <h5>Semester: 1st</h5>
-          <h5>Student Evaluation for Teachers: {% if evaluation_status.evaluation_status %} In Progress {% else %} Closed {% endif %} </h5>
+          <h5>Student Evaluation for Teachers:  {{current_evaluation_status}}</h5>
          </div>
       </div>
 
@@ -244,11 +248,11 @@
         <div class="card" style="width: 10rem; border: none;">
             <div class="card-body" style="text-align: center;">
                 <h1 class="card-title mb-2">
-                    {{ sentiment_score }}
+                    {{ rounded_sentiment_score }}
                 </h1>
-                <h6 class="card-subtitle"                     data-bs-toggle="tooltip" 
-                data-bs-placement="bottom" 
-                title="Positive Evaluations - Negative Evaluations / Total Evaluations">Sentiment Score</h6>
+                <h6 class="card-subtitle" style="font-size: 0.937em;">Sentiment Score <i class="bi bi-info-circle-fill " data-bs-toggle="tooltip" 
+                  data-bs-placement="bottom" 
+                  title="Positive Evaluations - Negative Evaluations / Total Evaluations"></i></h6>
             </div>
         </div>
     </div>
@@ -260,11 +264,30 @@
 
 
  </div>
+<!-- Button with Form Dropdown -->
+<div class="dropdown mb-2">
+  <button class="btn btn-primary dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+      Filter Data
+  </button>
+  <div class="dropdown-menu filter_dropdown" aria-labelledby="filterDropdown">
+      <form method="GET" id="filterForm" class="form">
+          <div class="row">
+            <div class="mb-3 col-7">
+                {{ filterset.form.academic_year.label_tag }}
+                {{ filterset.form.academic_year }}
+            </div>
+            <div class="mb-3 col-4">
+                {{ filterset.form.semester.label_tag }}
+                {{ filterset.form.semester }}
+            </div>
+          </div>
+      </form>
+  </div>
+</div>
 
     <div class="row">
       <div class=" col-lg-8 mb-2">
         <div class="chart-container">
-          <h5>Rating Distribution:</h5>
           <!-- Canvas for the Chart.js chart -->
           <canvas id="evaluationChart" height="200px"></canvas>
         </div>
@@ -294,54 +317,50 @@
       <a href="{% url 'facultyfeedbackandevaluations' %}">View all</a>
       <script>
         document.addEventListener('DOMContentLoaded', function() {
-            fetch('/get_evaluation_data/')
-                .then(response => response.json())
-                .then(data => {
-                    var ctx = document.getElementById('sentimentchart').getContext('2d');
-                    var sentimentChart = new Chart(ctx, {
-                        type: 'bar',
-                        data: {
-                            labels: ['Positive', 'Negative'],  // Labels for the X-axis
-                            datasets: [{
-                                label: 'Evaluations',  // Dataset label
-                                data: [data.positive_evaluations, data.negative_evaluations],
-                                backgroundColor: ['#4caf50', '#f44336'],
-                                borderColor: ['#4caf50', '#f44336'],
-                                borderWidth: 1
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            plugins: {
-                                legend: {
-                                    display: true,
-                                    position: 'top',
-                                    labels: {
-                                        boxWidth: 0,  // Set box width to 0 to hide the color box
-                                        font: {
-                                            size: 14
-                                        }
-                                    }
-                                },
-                                tooltip: {
-                                    callbacks: {
-                                        label: function(tooltipItem) {
-                                            return tooltipItem.label + ': ' + tooltipItem.raw;  // Show label without color
-                                        }
-                                    }
+            var ctx = document.getElementById('sentimentchart').getContext('2d');
+            var sentimentChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Positive', 'Negative'],  // Labels for the X-axis
+                    datasets: [{
+                        label: 'Evaluations',  // Dataset label
+                        data: [{{ positive_evaluations }}, {{ negative_evaluations }}],
+                        backgroundColor: ['#4caf50', '#f44336'],
+                        borderColor: ['#4caf50', '#f44336'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                boxWidth: 0,  // Set box width to 0 to hide the color box
+                                font: {
+                                    size: 14
                                 }
-                            },
-                            scales: {
-                                y: {
-                                    beginAtZero: true
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(tooltipItem) {
+                                    return tooltipItem.label + ': ' + tooltipItem.raw;  // Show label without color
                                 }
                             }
                         }
-                    });
-                })
-                .catch(error => console.error('Error fetching data:', error));
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
         });
     </script>
+    
     
       </div>
   </div>
@@ -367,7 +386,7 @@
           data: {
               labels: labels,
               datasets: [{
-                  label: 'Average Ratings',
+                  label: 'Rating Distribution per Category',
                   data: dataPoints,
                   backgroundColor: [
                       'rgba(75, 192, 192, 0.2)',
@@ -389,6 +408,26 @@
               }]
           },
           options: {
+                            responsive: true,
+                            plugins: {
+                                legend: {
+                                    display: true,
+                                    position: 'top',
+                                    labels: {
+                                        boxWidth: 0,  // Set box width to 0 to hide the color box
+                                        font: {
+                                            size: 14
+                                        }
+                                    }
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(tooltipItem) {
+                                            return tooltipItem.label + ': ' + tooltipItem.raw;  // Show label without color
+                                        }
+                                    }
+                                }
+                            },
               scales: {
                   y: {
                       beginAtZero: true,
@@ -470,6 +509,19 @@
       })
   });
 </script>
+<script>
+  // Get all select elements in the form
+  const filterForm = document.getElementById('filterForm');
+  const selects = filterForm.querySelectorAll('select');
+
+  // Add an event listener to each select element
+  selects.forEach(select => {
+    select.addEventListener('change', function() {
+      // Automatically submit the form when a selection changes
+      filterForm.submit();
+    });
+  });
+</script> 
 </body>
 
 </html>

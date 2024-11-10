@@ -189,18 +189,29 @@
     {% endblock header %}
     
     {% block feature %}
-      <form method="GET" id="filterForm">
-        <div class="row mt-2">
-          <div class="col-md-4" id="chart-container" style="margin-right: 1em;">
-            {{filterset.form.academic_year.label_tag}}
-            {{filterset.form.academic_year}}
-          </div>
-          <div class="col-md-4" id="chart-container">
-            {{filterset.form.semester.label_tag}}
-            {{filterset.form.semester}}
-          </div>
-        </div>
-      </form>
+
+<!-- Button with Form Dropdown -->
+<div class="dropdown">
+    <button class="btn btn-primary dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+        Filter Data
+    </button>
+    <div class="dropdown-menu filter_dropdown" aria-labelledby="filterDropdown">
+        <form method="GET" id="filterForm" class="form">
+            <div class="row">
+              <div class="mb-3 col-7">
+                  {{ filterset.form.academic_year.label_tag }}
+                  {{ filterset.form.academic_year }}
+              </div>
+              <div class="mb-3 col-4">
+                  {{ filterset.form.semester.label_tag }}
+                  {{ filterset.form.semester }}
+              </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+
     </div>
     <div class="row mt-2">
       <div class="col-md-6">
@@ -232,7 +243,7 @@
           data: {
             labels: chartData.labels,
             datasets: [{
-              label: 'Sentiment Analysis',
+              label: '',
               data: chartData.data,
               backgroundColor: [
               'rgba(80, 180, 120, 1)', // Positive
@@ -246,6 +257,26 @@
             }]
           },
           options: {
+            responsive: true,
+                            plugins: {
+                                legend: {
+                                    display: true,
+                                    position: 'top',
+                                    labels: {
+                                        boxWidth: 0,  // Set box width to 0 to hide the color box
+                                        font: {
+                                            size: 14
+                                        }
+                                    }
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(tooltipItem) {
+                                            return tooltipItem.label + ': ' + tooltipItem.raw;  // Show label without color
+                                        }
+                                    }
+                                }
+                            },
             scales: {
               y: {
                 beginAtZero: true
@@ -478,6 +509,10 @@
     });
   });
 </script> 
+<!-- Include Bootstrap JS -->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+
 </body>
 
 </html>

@@ -68,7 +68,17 @@
         </tr>
         {% for user in page_obj %}
             <tr>
-                <td>{{ user.username }}</td>
+                <td>
+                    {% if user.student_name %}
+                        {{ user.student_name }}
+                    {% endif %}
+                    {% if user.faculty_name %}
+                        {{ user.faculty_name }}
+                    {% endif %}
+                    {% if user.is_superuser %}
+                        {{user.username}}
+                    {% endif %}
+                </td>
                 <td>
                     {% with groups=user_groups|get_item:user.username %}
                     {% for group in groups %}
