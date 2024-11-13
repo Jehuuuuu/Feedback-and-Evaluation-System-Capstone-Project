@@ -1,0 +1,388 @@
+{% extends "pages/facultydashboard.html" %}
+
+{% block title %}Form Details{% endblock %}
+
+{% block header %}
+
+    <h1>Evaluation Form Details</h1>
+    <hr>
+   
+{% endblock header %}
+<hr>
+{% block feature %}
+
+<div class="row table-responsive">
+    <div class="col-xl-6 mb-2" style="max-height: 400px; overflow-y: auto;">
+        <table class="table table-bordered ">
+                <tr>
+                 <th  scope="col">I. Subject Matter Content </th>
+                 <th  scope="col">Rating</th>
+            </tr>
+            </thead>
+            {% for question in questions %}
+            <tr>
+                {% if question.order == 0 %}
+                <td>{{ question.text }}</td>
+                <td> {{ faculty_evaluation_form.command_and_knowledge_of_the_subject }}</td>
+                {% endif %}
+            </tr>
+            <tr>
+                {% if question.order == 1 %}
+                <td>{{ question.text }}</td>
+                <td> {{ faculty_evaluation_form.depth_of_mastery }}</td>
+                {% endif %}
+            </tr>
+            <tr>
+                {% if question.order == 2 %}
+                <td>{{ question.text }}</td>
+                <td> {{ faculty_evaluation_form.practice_in_respective_discipline }}</td>
+                {% endif %}
+            </tr>
+            <tr>
+                {% if question.order == 3 %}
+                <td>{{ question.text }}</td>
+                <td> {{ faculty_evaluation_form.up_to_date_knowledge }}</td>
+                {% endif %}
+            </tr>
+            <tr>
+                {% if question.order == 4 %}
+                <td>{{ question.text }}</td>
+                <td> {{ faculty_evaluation_form.integrates_subject_to_practical_circumstances }}</td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+            <tr>
+                <th  scope="col">II. Organization  </th>
+                <th  scope="col">Rating</th>
+            </tr>
+            {% for question in questions %}
+            <tr>
+                {% if question.order == 5 %}
+                <td>{{ question.text }}</td>
+                <td>{{ faculty_evaluation_form.organizes_the_subject_matter }}</td>
+                {% endif %}
+            </tr>
+            <tr>
+                {% if question.order == 6 %}
+                <td>{{ question.text }}</td>
+                <td>{{ faculty_evaluation_form.provides_orientation_on_course_content }}</td>
+                {% endif %}
+            </tr>
+            <tr>
+                {% if question.order == 7 %}
+                <td>{{ question.text }}</td>
+                <td>{{ faculty_evaluation_form.efforts_of_class_preparation }}</td>
+                {% endif %}
+            </tr>
+            <tr>
+                {% if question.order == 8 %}
+                <td>{{ question.text }}</td>
+                <td>{{ faculty_evaluation_form.summarizes_main_points }}</td>
+                {% endif %}
+            </tr>
+            <tr>
+                {% if question.order == 9 %}
+                <td>{{ question.text }}</td>
+                <td>{{ faculty_evaluation_form.monitors_online_class }}</td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+            <tr>
+                <th  scope="col">III. Teacher-Student Rapport </th>
+                <th  scope="col">Rating</th>
+            </tr>
+            {% for question in questions %}
+            <tr>
+                {% if question.order == 10 %}
+                <td>{{ question.text }}</td>
+                <td>{{ faculty_evaluation_form.holds_interest_of_students }}</td>
+                {% endif %}
+            </tr>
+            <tr>
+                {% if question.order == 11 %}
+                <td>{{ question.text }}</td>
+                <td>{{ faculty_evaluation_form.provides_relevant_feedback }}</td>
+                {% endif %}
+            </tr>
+            <tr>
+                {% if question.order == 12 %}
+                <td>{{ question.text }}</td>
+                <td>{{ faculty_evaluation_form.encourages_participation }}</td>
+                {% endif %}
+            </tr>
+            <tr>
+                {% if question.order == 13 %}
+                <td>{{ question.text }}</td>
+                <td>{{ faculty_evaluation_form.shows_enthusiasm }}</td>
+                {% endif %}
+            </tr>
+            <tr>
+                {% if question.order == 14 %}
+                <td>{{ question.text }}</td>
+                <td>{{ faculty_evaluation_form.shows_sense_of_humor }}</td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+            <tr>
+                <th  scope="col">IV. Teaching Methods</th>
+                <th  scope="col">Rating</th>
+        
+        
+        
+        
+            </tr>
+            {% for question in questions %}
+            <tr>
+                {% if question.order == 15 %}
+                    <td>{{ question.text }}</td>
+                <td>{{ faculty_evaluation_form.teaching_methods }}</td>
+                {% endif %}
+            </tr>
+            <tr>
+                {% if question.order == 16 %}
+                    <td>{{ question.text }}</td>
+                <td>{{ faculty_evaluation_form.flexible_learning_strategies }}</td>
+                {% endif %}
+            </tr>
+            <tr>
+                {% if question.order == 17 %}
+                <td>{{ question.text }}</td>
+                <td>{{ faculty_evaluation_form.student_engagement }}</td>
+                {% endif %}
+            </tr>
+            <tr>
+                {% if question.order == 18 %}
+                <td>{{ question.text }}</td>
+                <td>{{ faculty_evaluation_form.clear_examples }}</td>
+                {% endif %}
+            </tr>
+            <tr>
+                {% if question.order == 19 %}
+                <td>{{ question.text }}</td>
+                <td>{{ faculty_evaluation_form.focused_on_objectives }}</td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+            <tr>
+                <th  scope="col">V. Presentation</th>
+                <th  scope="col">Rating</th>
+        
+            </tr>
+            {% for question in questions %}
+            <tr>
+                {% if question.order == 20 %}
+                    <td>{{ question.text }}</td>
+                <td>{{ faculty_evaluation_form.starts_with_motivating_activities }}</td>
+                {% endif %}
+            </tr>
+            <tr>
+                {% if question.order == 21 %}
+                    <td>{{ question.text }}</td>
+                <td>{{ faculty_evaluation_form.speaks_in_clear_and_audible_manner }}</td>
+                {% endif %}
+            </tr>
+            <tr>
+                {% if question.order == 22 %}
+                <td>{{ question.text }}</td>
+                <td>{{ faculty_evaluation_form.uses_appropriate_medium_of_instruction }}</td>
+                {% endif %}
+            </tr>
+            <tr>
+                {% if question.order == 23 %}
+                <td>{{ question.text }}</td>
+                <td>{{ faculty_evaluation_form.establishes_online_classroom_environment }}</td>
+                {% endif %}
+            </tr>
+            <tr>
+                {% if question.order == 24 %}
+                <td>{{ question.text }}</td>
+                <td>{{ faculty_evaluation_form.observes_proper_classroom_etiquette }}</td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+            <tr>
+                <th  scope="col">VI. Classroom Management</th>
+                <th  scope="col">Rating</th>
+        
+            </tr>
+            {% for question in questions %}
+            <tr>
+                {% if question.order == 25 %}
+                    <td>{{ question.text }}</td>
+                <td>{{ faculty_evaluation_form.uses_time_wisely }}</td>
+                {% endif %}
+            </tr>
+            <tr>
+                {% if question.order == 26 %}
+                <td>{{ question.text }}</td>
+                <td>{{ faculty_evaluation_form.gives_ample_time_for_students_to_prepare }}</td>
+                {% endif %}
+            </tr>
+            <tr>
+                {% if question.order == 27 %}
+                <td>{{ question.text }}</td>
+                <td>{{ faculty_evaluation_form.updates_the_students_of_their_progress }}</td>
+                {% endif %}
+            </tr>
+            <tr>
+                {% if question.order == 28 %}
+                <td>{{ question.text }}</td>
+                <td>{{ faculty_evaluation_form.demonstrates_leadership_and_professionalism }}</td>
+                {% endif %}
+            </tr>
+            <tr>
+                {% if question.order == 29 %}
+                <td>{{ question.text }}</td>
+                <td>{{ faculty_evaluation_form.understands_possible_distractions }}</td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+            <tr>
+                <th  scope="col">VII. Sensitivity and Support to Students</th>
+                <th  scope="col">Rating</th>
+        
+            </tr>
+            {% for question in questions %}
+            <tr>
+                {% if question.order == 30 %}
+                <td>{{ question.text }}</td>
+                <td>{{ faculty_evaluation_form.sensitivity_to_student_culture }}</td>
+                {% endif %}
+            </tr>
+            <tr>
+                {% if question.order == 31 %}
+                <td>{{ question.text }}</td>
+                <td>{{ faculty_evaluation_form.responds_appropriately }}</td>
+                {% endif %}
+            </tr>
+            <tr>
+                {% if question.order == 32 %}
+                <td>{{ question.text }}</td>
+                <td>{{ faculty_evaluation_form.assists_students_on_concerns }}</td>
+                {% endif %}
+            </tr>
+            <tr>
+                {% if question.order == 33 %}
+                <td>{{ question.text }}</td>
+                <td>{{ faculty_evaluation_form.guides_the_students_in_accomplishing_tasks }}</td>
+                {% endif %}
+            </tr>
+            <tr>
+                {% if question.order == 34 %}
+                <td>{{ question.text }}</td>
+                <td>{{ faculty_evaluation_form.extends_consideration_to_students }}</td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+            <tr>
+                <th  scope="col">Other Suggestions for Improvement:</th>
+                <th  scope="col">Comments</th>
+            </tr>
+            <tr>
+                <td>The course should:
+                    </td>
+                <td>{% if faculty_evaluation_form.requires_less_task_for_credit %}
+                    Require less task for the credit
+                  {% else %}
+                    Require more task for the credit
+                  {% endif %}</td>
+            </tr>
+            {% for question in questions %}
+            <tr>
+                {% if question.order == 35 %}
+                <td>{{ question.text }}</td>
+                <td>{{ faculty_evaluation_form.strengths_of_the_faculty }}</td>
+                {% endif %}
+            </tr>
+            <tr>
+                {% if question.order == 36 %}
+                <td>{{ question.text }}</td>
+                <td>{{ faculty_evaluation_form.other_suggestions_for_improvement }}</td>
+                {% endif %}
+            </tr>
+            <tr>
+                {% if question.order == 37 %}
+                <td>{{ question.text }}</td>
+                <td>{{ faculty_evaluation_form.comments }}</td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+            </table>
+        
+        
+    </div>
+
+    <div class="col-xl-6">
+        <table class="table table-bordered form-info">
+            <tr>
+                <td>Average</td>
+                <td>{{ faculty_evaluation_form.average_rating }}</td>
+            </tr>
+            <tr>
+                <td>Rating</td>
+                <td>{{ faculty_evaluation_form.get_rating_category }}</td>
+            </tr>
+            <tr>
+                <td>Academic Year</td>
+                <td>{{ faculty_evaluation_form.academic_year }}</td>
+            </tr>
+            <tr>
+                <td>Semester</td>
+                <td>{{ faculty_evaluation_form.semester }}</td>
+            </tr>
+        </table>
+
+        <canvas id="myChart" width="400" height="200"></canvas>
+        
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script>
+            var ctx = document.getElementById('myChart').getContext('2d');
+            var myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Outstanding', 'Very Satisfactory', 'Satisfactory', 'Unsatisfactory', 'Poor'],  // Add more labels if needed
+                    datasets: [{
+                        label: '# of Responses',
+                        data: [
+                            {{ outstanding_count }},
+                            {{ very_satisfactory_count }},
+                            {{ satisfactory_count }},
+                            {{ unsatisfactory_count }},
+                            {{ poor_count }},
+                            // Add other counts here
+                        ],
+                        backgroundColor: [
+                            'rgba(75, 192, 192, 0.2)',
+                            'rgba(54, 162, 235, 0.2)',
+                            'rgba(255, 206, 86, 0.2)',
+                            // Add colors for other ratings if needed
+                        ],
+                        borderColor: [
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(255, 206, 86, 1)',
+                            // Add border colors for other ratings if needed
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        x: {
+                    ticks: {
+                        autoSkip: false,  // Prevents automatic skipping of labels
+                        maxRotation: 0,   // Set maximum rotation of labels to 0 degrees (horizontal)
+                        minRotation: 0    // Set minimum rotation of labels to 0 degrees (horizontal)
+                    }
+                        },
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        </script>
+    </div>
+</div>
+
+{% endblock feature %}

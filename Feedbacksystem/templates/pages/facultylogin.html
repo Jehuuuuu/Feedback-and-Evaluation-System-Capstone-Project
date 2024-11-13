@@ -46,7 +46,7 @@
               
                 {% csrf_token %}
                 {{ login_form.as_p }}
-                <a id="resetpw" href="#">Forgot Your Password?</a>
+                <a id="resetpw" href="{% url 'password_reset' %}">Forgot Your Password?</a>
                 <button type = "Submit" name = "signin"><b>Sign In</b></button>
                 <div class="dropdown">
                     <a class="btn btn-secondary dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-expanded="false">

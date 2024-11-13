@@ -1,11 +1,11 @@
 {% extends "pages/facultydashboard.html" %}
 
-{% block title %}SET Evaluations{% endblock %}
+{% block title %}Peer-to-Peer Evaluations{% endblock %}
 
 {% block header %}
 <div class="row">
     <div class="col-md-6">
-      <h2>Student Feedback and Evaluations</h2>
+      <h2>Peer-to-Peer Evaluations</h2>
     </div>
     <div class="col-lg-5 col-md-5 mt-1 evaluations_search" style="margin-left: auto;">
       <form method="get" action="" class="d-flex" style="gap: 1em;">
@@ -40,13 +40,12 @@
   
     <!-- Search Form and Export Button -->
     <div class="col-lg-4 col-md-2">
-      <a href="{% url 'faculty_evaluations_csv' %}?{{ request.GET.urlencode }}" class="btn btn-primary">Export CSV</a>
+      <a href="{% url 'peer_to_peer_evaluations_csv' %}?{{ request.GET.urlencode }}" class="btn btn-primary">Export CSV</a>
     </div>
   </div>
     <div class="table-responsive">
         <table class="table table-bordered ">
             <tr>
-                <th scope="col">Subject</th>
                 <th scope="col">Average</th>
                 <th scope="col">Rating</th>
                 <th scope="col">Overall Impression</th>
@@ -56,9 +55,8 @@
                 <th scope="col">Options</th>
             </tr>
             
-            {% for i in teacher_evaluations %}
+            {% for i in peer_to_peer_evaluations %}
             <tr>
-                <td>{{ i.section_subject_faculty.subjects }} </td>
                 <td>{{ i.average_rating }}</td>
                 <td>{{ i.get_rating_category }}</td>
                 <td>{{ i.comments }}</td>
@@ -66,8 +64,8 @@
                 <td>{{ i.academic_year }}</td>
                 <td>{{ i.semester }}</td>
                 <td>
-                    <a href="{% url 'view_evaluation_form' i.pk %}" style=" text-decoration: none;">
-                        <button class="btn btn-outline-primary d-flex align-items-center" style=" padding:1px 2px 1px 7px">
+                    <a href="{% url 'view_peer_to_peer_evaluation_form' i.pk %}" style=" text-decoration: none;">
+                        <button class="btn btn-primary d-flex align-items-center" style=" padding:1px 2px 1px 7px">
                           <i class="bi bi-eye-fill" style="font-size:20px; margin-right: 5px;"></i></button></a>
             
                     </td>
@@ -118,8 +116,6 @@
     </div>
     <div class="modal-body">
       <form method="get" action="">
-        {{faculty_evaluation_filter.form.subject.label_tag}}
-        {{faculty_evaluation_filter.form.subject}}
         {{faculty_evaluation_filter.form.predicted_sentiment.label_tag}}
         {{faculty_evaluation_filter.form.predicted_sentiment}}
         {{faculty_evaluation_filter.form.academic_year.label_tag}}

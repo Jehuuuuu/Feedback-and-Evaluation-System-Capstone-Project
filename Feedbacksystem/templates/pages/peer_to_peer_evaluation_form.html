@@ -1,4 +1,4 @@
-{% extends "pages/home.html" %}
+{% extends "pages/facultydashboard.html" %}
 
 {% block title %}Evaluate Faculty{% endblock %}
 
@@ -7,17 +7,18 @@
 {% endblock header %}
 {% block feature %}
 <div class="container">
-    <h2>Evaluate {{ section_subject_faculty.faculty }}</h2>
-    <select id="faculty-select" onchange="redirectToEvaluation(this)">
+    <h2>Evaluate {{ peer.full_name }}</h2>
+    <select class="faculty-select" onchange="redirectToEvaluation(this)">
         <option value="">Select Faculty</option> <!-- Placeholder option -->
-        {% for i in section_subjects_faculty %}
+        {% for i in faculty_department %}
         <option 
-            value="{% url 'evaluate_subject_faculty' i.pk %}"
-            {% if i.faculty.pk in evaluated_faculty_ids %} style="color: green; font-weight: bold;" {% endif %}>
-        {{ i.faculty.full_name }}
-            {% if i.faculty.pk in evaluated_faculty_ids %} ✔️ {% endif %}
+            value="{% url 'peer_to_peer_evaluation_form' i.pk %}"
+            {% if i.pk in evaluated_faculty_ids %} style="color: green; font-weight: bold;" {% endif %}
+        >
+            {{ i.full_name }}
+            {% if i.pk in evaluated_faculty_ids %} ✔️ {% endif %}
         </option>
-        {% endfor %}
+    {% endfor %}
     
     </select>
     <script>
@@ -28,7 +29,7 @@
             }
         }
     </script>
-    {% if user_evaluations %}
+    {% if evaluated_faculty_ids %}
         <p>You have already evaluated this faculty.</p>
     {% else %}
     <form method="POST" action="">

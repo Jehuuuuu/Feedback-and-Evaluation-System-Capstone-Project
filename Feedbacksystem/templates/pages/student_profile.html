@@ -27,7 +27,7 @@
             <img src="{% static 'images/Default_avatar.webp' %}" alt="Default Profile Picture" class="card-img-top" >
             {% endif %}
             <div class="button-container">
-                <button class="btn btn-warning btn-block custom-btn" style="border-radius: 0; "><a  href="{% url 'edit_student_profile' %}" style="color: inherit;"> <i class="bi bi-pencil-square"></i> Edit</a></button>
+                <a  href="{% url 'edit_student_profile' %}" style="color: inherit;"> <button class="btn btn-warning btn-block custom-btn" style="border-radius: 0; "><i class="bi bi-pencil-square"></i> Edit</button></a>
                 </div>
             <ul class="list-group list-group-flush">
               <li class="list-group-item"><b>Student Number: </b>{{ student.student_number }}</li>

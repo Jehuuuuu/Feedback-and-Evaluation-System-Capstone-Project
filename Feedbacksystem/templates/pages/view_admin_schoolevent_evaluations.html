@@ -10,7 +10,7 @@
 {% endblock header %}
 {% block feature %}
 <div class="row">
-    <div class="col-xl-6 mb-2">
+    <div class="col-xl-6 mb-2 "style="max-height: 450px; overflow-y: auto;">
         <table class="table table-responsive table-bordered " >
                 <tr>
                  <th  scope="col" style="color:#fafafa;  background: #2a9134">I.  Overall Evaluation</th>
@@ -79,6 +79,14 @@
             <tr>
                 <td>Rating</td>
                 <td>{{ event_form_details.get_rating_category }}</td>
+            </tr>
+            <tr>
+                <td>Comment</td>
+                <td>{{ event_form_details.suggestions_and_comments }}</td>
+            </tr>
+            <tr>
+                <td>Polarity</td>
+                <td>{{ event_form_details.predicted_sentiment }}</td>
             </tr>
             <tr>
                 <td>Academic Year</td>

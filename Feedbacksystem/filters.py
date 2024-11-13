@@ -168,11 +168,25 @@ class UserFilter(django_filters.FilterSet):
         })
     )
     def filter_search(self, queryset, name, value):
-        return queryset.filter(
-            Q(username__icontains=value) |   
-             Q(groups__name__icontains=value)   
+        # Add the necessary annotations if not already in the queryset
+        queryset = queryset.annotate(
+            student_name=Concat(
+                'student__first_name', Value(' '), 'student__last_name',
+                output_field=CharField()
+            ),
+            faculty_name=Concat(
+                'faculty__first_name', Value(' '), 'faculty__last_name',
+                output_field=CharField()
+            )
         )
 
+        # Filter by username, group name, student name, or faculty name
+        return queryset.filter(
+            Q(username__icontains=value) |   
+            Q(groups__name__icontains=value) |
+            Q(student_name__icontains=value) |
+            Q(faculty_name__icontains=value)
+        )
 
     class Meta: 
         model = User
@@ -379,3 +393,62 @@ class LikertEvaluationFilter(django_filters.FilterSet):
         academic_years = LikertEvaluation.objects.order_by('academic_year').values_list('academic_year', flat=True).distinct()
         academic_year_choices = [(year, year) for year in academic_years]
         self.filters['academic_year'].extra['choices'] = academic_year_choices
+
+class PeertoPeerEvaluationFilter(django_filters.FilterSet):
+    PREDICTED_SENTIMENT_CHOICES = [
+        ('Positive', 'Positive'),
+        ('Negative', 'Negative'),
+    ]
+
+    predicted_sentiment = django_filters.ChoiceFilter(
+         choices=PREDICTED_SENTIMENT_CHOICES, 
+         label='Polarity', 
+         widget=forms.Select(attrs={'class': 'form-control'})
+    )
+
+
+    # Define choices for academic_year field dynamically
+    academic_year = django_filters.ChoiceFilter(choices=[], label='Academic Year',
+                                                widget=forms.Select(attrs={'class': 'form-control'})
+)
+
+    SEMESTER_CHOICES = [
+        ('1st', '1st'),
+        ('2nd', '2nd'),
+    ]
+    semester = django_filters.ChoiceFilter(
+         choices=SEMESTER_CHOICES, 
+         widget=forms.Select(attrs={'class': 'form-control'})
+)
+    
+  
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Populate choices for academic_year dynamically from the database
+        academic_years = LikertEvaluation.objects.order_by('academic_year').values_list('academic_year', flat=True).distinct()
+        academic_year_choices = [(year, year) for year in academic_years]
+        self.filters['academic_year'].extra['choices'] = academic_year_choices
+ 
+ 
+    search = django_filters.CharFilter(
+        method='filter_search',
+        label='',
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Search...'
+        })
+    )
+
+    # Other filters...
+
+    def filter_search(self, queryset, name, value):
+        return queryset.filter(
+            Q(comments__icontains=value) |
+            Q(predicted_sentiment__icontains=value) |
+            Q(academic_year__icontains=value) |
+            Q(semester__icontains=value)     
+        )
+
+class Meta: 
+        model = PeertoPeerEvaluation
+        fields =  ( 'predicted_sentiment' , 'academic_year', 'semester', 'search')

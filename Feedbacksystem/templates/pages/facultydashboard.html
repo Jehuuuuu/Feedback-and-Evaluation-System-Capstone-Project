@@ -46,6 +46,7 @@
           <li class="list-group-item"><b>Email: </b>{{ faculty.email }}</li>
           <li class="list-group-item"><b>Contact Number: </b>{{ faculty.contact_number }}</li>
           <li class="list-group-item"><b>Department: </b>{{ faculty.department }}</li>
+          <li class="list-group-item"><b>Role: </b>{% if is_head_of_osas %} Head of OSAS {% else %} Faculty {% endif %}</li>
       </ul>
       </div>
       <div class="modal-footer">
@@ -97,16 +98,20 @@
          </a>
    
          <!-- Dropdown for notifications -->
-         <div class="dropdown-menu dropdown-menu-end notifications_container">
-             <h6 class="dropdown-header">Notifications</h6>
+         <div class="dropdown-menu dropdown-menu-end notifications_container" style="max-height: 300px; overflow-y: auto; overflow-x: hidden;">
+             <div class="row">
+               <div class="col-6">
+                 <h6 class="dropdown-header" >Notifications</h6>
+               </div>
+               <div class="col-6"><a class="dropdown-header" href="{% url 'faculty_notifications' %}" class="dropdown-item text-center" style="text-align: right;">See All</a></div>
+             </div>
              {% if event_notifications %}
                  {% for notification in event_notifications %}
                    <a href="{% url 'faculty_events'%}" class="dropdown-item" style="white-space: normal;">
                       <b>{{ notification.verb }} </b>- {{notification.description}} {{ notification.timestamp|timesince }} ago
                      </a>
                  {% endfor %}
-                 <div class="dropdown-divider"></div>
-                 <a href="{% url 'faculty_notifications' %}" class="dropdown-item text-center">View all notifications</a>
+
              {% else %}
                  <span class="dropdown-item text-muted">No new notifications</span>
              {% endif %}
@@ -171,7 +176,10 @@
           </button>
           <div class="dropdown-menu" aria-labelledby="navbarDropdown">
               <a class="dropdown-item" href="{% url 'facultyfeedbackandevaluations' %}">SET</a>
+
               <a class="dropdown-item" href="{% url 'faculty_event_evaluations' %}">Event Evaluations</a>
+
+              <a class="dropdown-item" href="{% url 'peer_to_peer_evaluations' %}">Peer-to-Peer Evaluations</a>
       </li>
         <li class="nav-item dropdown">
           <button class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -179,7 +187,7 @@
           </button>
           <div class="dropdown-menu" aria-labelledby="navbarDropdown">
               <a class="dropdown-item" href="{% url 'faculty_events' %}">Events</a>
-              <a class="dropdown-item" href="{}">Peer to Peer</a>
+              <a class="dropdown-item" href="{% url 'peer_to_peer_evaluation' %}">Peer-to-Peer</a>
       </li>
 
 
@@ -198,13 +206,13 @@
     <div class="row ">
       <div class="col-md-6 col-sm-12 mb-2 ">
         <div class = "header_status">
-          <h5>Academic Year: 2024-2025</h5>
-          <h5>Semester: 1st</h5>
+          <h5>Academic Year: {{current_academic_year}}</h5>
+          <h5>Semester: {{current_semester}}</h5>
           <h5>Student Evaluation for Teachers:  {{current_evaluation_status}}</h5>
          </div>
       </div>
 
-      <div class="col-lg-2 col-md-3 col-sm-4 col-6 mb-2 ">
+      <div class="col-lg-2 col-md-3 col-sm-3 col-6 mb-2 ">
         <div class="card" style="width: 10rem; border: none;">
          <div class="card-body" style="text-align: center;">
            <h1 class="card-title mb-2">
@@ -218,29 +226,60 @@
        <div class="col-lg-2 col-md-3 col-sm-3 col-5 mb-2">
          <div class="card " style="width: 10rem; border: none;">
           <div class="card-body" style="text-align: center;">
-            {% if avg_rating >= 5 %}
-            <h1 class="card-title mb-2" style="color: #339933;">
+            {% if avg_rating >= 4.5 %}
+            <h1 class="card-title mb-2" data-bs-toggle="tooltip" 
+                  data-bs-placement="bottom" 
+                  title="Average rating based on student evaluations"  style="color: #339933;">
                 {{ avg_rating }}
+                <h6 class="card-subtitle" data-bs-toggle="tooltip" 
+                  data-bs-placement="bottom" 
+                  title="Overall performance is outstanding based on the ratings received"  style="color: #339933">Outstanding</h6>
             </h1>
-            {% elif avg_rating >= 4 %}
-                <h1 class="card-title mb-2" style="color: #66CC66">
+            {% elif avg_rating >= 3.5 %}
+                <h1 class="card-title mb-2" data-bs-toggle="tooltip" 
+                  data-bs-placement="bottom" 
+                  title="Average rating based on student evaluations"  style="color: #66CC66">
                     {{ avg_rating }}
+                    <h6 class="card-subtitle" data-bs-toggle="tooltip" 
+                  data-bs-placement="bottom" 
+                  title="Overall performance is very satisfactory based on the ratings received"  style="color: #66CC66">Very Satisfactory</h6>
                 </h1>
-            {% elif avg_rating >= 3 %}
-                <h1 class="card-title mb-2" style="color: #FFD700;">
+            {% elif avg_rating >= 2.5 %}
+                <h1 class="card-title mb-2" data-bs-toggle="tooltip" 
+                  data-bs-placement="bottom" 
+                  title="Average rating based on student evaluations"  style="color: #FFD700;">
                     {{ avg_rating }}
+                    <h6 class="card-subtitle"  data-bs-toggle="tooltip" 
+                  data-bs-placement="bottom" 
+                  title="Overall performance is satisfactory based on the ratings received" style="color: #FFD700">Satisfactory</h6>
                 </h1>
-            {% elif avg_rating >= 2 %}
-                <h1 class="card-title mb-2" style="color: #FF9900;">
+            {% elif avg_rating >= 1.5 %}
+                <h1 class="card-title mb-2" data-bs-toggle="tooltip" 
+                  data-bs-placement="bottom" 
+                  title="Average rating based on student evaluations" style="color: #FF9900;">
                     {{ avg_rating }}
+                <h6 class="card-subtitle" data-bs-toggle="tooltip" 
+                  data-bs-placement="bottom" 
+                  title="Overall performance is unsatisfactory based on the ratings received"  style="color: #FF9900">Unsatisfactory</h6>
                 </h1>
-            {% elif avg_rating >= 1 %}
-                <h1 class="card-title mb-2" style="color: #FF4C4C;">
-                    {{ avg_rating }}
+            {% elif avg_rating >= 1.49 %}
+                <h1 class="card-title mb-2" data-bs-toggle="tooltip" 
+                data-bs-placement="bottom" 
+                title="Average rating based on student evaluations"  style="color: #FF4C4C;">
+                  {{ avg_rating }}
+                  <h6 class="card-subtitle" data-bs-toggle="tooltip" 
+                data-bs-placement="bottom" 
+                title="Overall performance is poor based on the ratings received"  style="color: #FF4C4C">Poor</h6>
+              </h1>
+            {% else %}
+                <h1 class="card-title mb-2" data-bs-toggle="tooltip" 
+                  data-bs-placement="bottom" 
+                  title="Average rating based on student evaluations">
+                    0
+                    <h6 class="card-subtitle">Average Rating</h6>
                 </h1>
             {% endif %}
-            <h6 class="card-subtitle">Average Rating</h6>
-          </div>
+        </div>
                </div>
        </div>
        

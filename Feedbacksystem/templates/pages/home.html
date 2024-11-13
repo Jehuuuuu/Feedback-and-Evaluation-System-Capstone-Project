@@ -54,23 +54,25 @@
         </a>
   
         <!-- Dropdown for notifications -->
-        <div class="dropdown-menu dropdown-menu-end notifications_container">
-          <div class="d-flex justify-content-between align-items-center">
-            <h6 class="dropdown-header mb-0">Notifications</h6>
-            <a href="{% url 'clear_student_notifications' %}" class="btn btn-sm" style="color: #2a9134;">Clear</a>
-        </div>
-            {% if event_notifications %}
-                {% for notification in event_notifications %}
-                  <a href="{% url 'eventhub'%}" class="dropdown-item" style="white-space: normal;">
-                      <b>{{ notification.verb }} </b>- {{notification.description}} {{ notification.timestamp|timesince }} ago
-                    </a>
-                {% endfor %}
-                <div class="dropdown-divider"></div>
-                <a href="{% url 'student_notifications' %}" class="dropdown-item text-center">View all notifications</a>
-            {% else %}
-                <span class="dropdown-item text-muted">No new notifications</span>
-            {% endif %}
-        </div>
+        <div class="dropdown-menu dropdown-menu-end notifications_container" style="max-height: 300px; overflow-y: auto; overflow-x: hidden;">
+          <div class="row">
+            <div class="col-6">
+              <h6 class="dropdown-header" >Notifications</h6>
+            </div>
+            <div class="col-6"><a class="dropdown-header" href="{% url 'student_notifications' %}" class="dropdown-item text-center" style="text-align: right;">See All</a></div>
+          </div>
+          {% if event_notifications %}
+              {% for notification in event_notifications %}
+                <a href="{% url 'eventhub'%}" class="dropdown-item" style="white-space: normal;">
+                   <b>{{ notification.verb }} </b>- {{notification.description}} {{ notification.timestamp|timesince }} ago
+                  </a>
+              {% endfor %}
+
+          {% else %}
+              <span class="dropdown-item text-muted">No new notifications</span>
+          {% endif %}
+      </div>
+    </div>
           
     </div>
 </div>

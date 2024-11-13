@@ -1,26 +1,29 @@
-{% extends "pages/home.html" %}
+{% extends "pages/facultydashboard.html" %}
 
-{% block title %}Faculty Evaluation{% endblock %}
+{% block title %}Peer to Peer Evaluation{% endblock %}
 
 {% block header %}
 <div class="container">
     <div class="row pt-1">
-        <div class="col-lg-4 col-sm-8 ">
-            <h2>Faculty Evaluation</h2>
+        <div class="col-lg-5 col-sm-8">
+            <h2>Peer to Peer Evaluation</h2>
+            <p class="text-muted"> Evaluations completed: <strong>{{ evaluated_count }}</strong> {% if has_met_minimum_evaluations %} <span class="text-success"> (Minimum requirement met)</span> {% else %} <span class="text-danger"> (Minimum of {{ minimum_evaluations_required }} evaluations required)</span> {% endif %} </p>
         </div>
-{% if evaluation_status.evaluation_status == "In Progress" %} 
-        <div class="container col-lg-8 col-sm-4 ">
+
+        <div class="container col-lg-7 col-sm-4 ">
             <div style="padding: 0.2em 0;">
-                <select id="faculty-select" onchange="redirectToEvaluation(this)">
+                <select class="faculty-select" onchange="redirectToEvaluation(this)">
                     <option value="{}">Select Faculty</option> <!-- Placeholder option -->
-                    {% for i in section_subjects_faculty %}
+                    {% for i in faculty_department %}
                     <option 
-                        value="{% url 'evaluate_subject_faculty' i.pk %}"
-                        {% if i.faculty.pk in evaluated_faculty_ids %} style="color: green; font-weight: bold;" {% endif %}>
-                    {{ i.faculty.full_name }}
-                        {% if i.faculty.pk in evaluated_faculty_ids %} ✔️ {% endif %}
+                        value="{% url 'peer_to_peer_evaluation_form' i.pk %}"
+                        {% if i.pk in evaluated_faculty_ids %} style="color: green; font-weight: bold;" {% endif %}
+                    >
+                        {{ i.full_name }}
+                        {% if i.pk in evaluated_faculty_ids %} ✔️ {% endif %}
                     </option>
-                    {% endfor %}
+                {% endfor %}
+    
                 </select>
             </div>
         </div>
@@ -33,7 +36,6 @@
             }
         </script>
     </div>
-{% endif %}
     <hr>
 {% endblock header %}
 {% block feature %}
@@ -47,7 +49,7 @@
         {% endfor %}
 
 {% endif %}
-{% if evaluation_status.evaluation_status == "In Progress" %}  
+
 <div class="pt-1 pb-1 mb-2">
 <h3>General Evaluation of the Faculty</h3>
 </div>
@@ -77,10 +79,5 @@
     <div class="pt-1 pb-1  mb-2">
 <p>3. Evaluate each indicator separately without considering other characteristics or your general opinion of the teacher.
     </p>
-</div>
-    {% else %}
-
-    <p>Student Evaluations for Teachers have ended. Stay tuned for announcements regarding the next evaluation period. </p>
-    {% endif %}
 </div>
 {% endblock feature %}

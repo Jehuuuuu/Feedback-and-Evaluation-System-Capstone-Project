@@ -35,7 +35,7 @@
         <tr>
             <td> {{ i.event.title }}</td>
     
-            <td> {{ i.suggestions_and_comments }}</td>
+            <td>{{ i.suggestions_and_comments|truncatechars:50 }}</td>
     
     
             <td> {{ i.average_rating }}</td>

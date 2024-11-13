@@ -261,8 +261,8 @@ hr{
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
-  width: 20px; /* Set the width of the custom radio button */
-  height: 20px; /* Set the height of the custom radio button */
+  width: 25px; /* Set the width of the custom radio button */
+  height: 25px; /* Set the height of the custom radio button */
   border-radius: 50%; /* Make the radio button circular */
   border: 2px solid #2a9134; /* Add a border */
   outline: none;
@@ -386,6 +386,18 @@ hr{
   padding:1.5em !important;
   width: 20em !important;
 }
+
+.faculty-select {
+  border: 1px solid #000;
+  border-radius: 4px;
+  padding: 0.4em;
+  font-size: 1rem;
+  width: 100%;
+  max-width: 200px; /* Adjust as needed */
+  cursor: pointer;
+  color: #333;
+}
+
 @media (max-width:900px) {
 .header-title{
   font-size: 0.9rem;

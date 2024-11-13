@@ -2,7 +2,7 @@ from django.urls import path
 from . import views
 from django.conf import settings
 from django.conf.urls.static import static
-
+from django.contrib.auth import views as auth_views
 
 urlpatterns = [
     path('', views.signin, name="signin"),
@@ -110,6 +110,15 @@ urlpatterns = [
     path('approve_evaluation/<int:pk>/', views.approve_evaluation, name='approve_evaluation'),
     path('reject_evaluation/<int:pk>/', views.reject_evaluation, name='reject_evaluation'),
     path('approve_all_pending_evaluations', views.approve_all_pending_evaluations, name='approve_all_pending_evaluations'),
+    path('peer_to_peer_evaluation', views.peer_to_peer_evaluation, name='peer_to_peer_evaluation'),
+    path('peer_to_peer_evaluation_form/<int:pk>/', views.peer_to_peer_evaluation_form, name='peer_to_peer_evaluation_form'),
+    path('peer_to_peer_evaluations', views.peer_to_peer_evaluations, name='peer_to_peer_evaluations'),
+    path('peer_to_peer_evaluations_csv', views.peer_to_peer_evaluations_csv, name='peer_to_peer_evaluations_csv'),
+    path('view_peer_to_peer_evaluation_form/<int:pk>/', views.view_peer_to_peer_evaluation_form, name='view_peer_to_peer_evaluation_form'),
+    path('password_reset/', auth_views.PasswordResetView.as_view(template_name = 'pages/password_reset.html'), name='password_reset'),
+    path('password_reset/done/', auth_views.PasswordResetDoneView.as_view(template_name = 'pages/password_reset_sent.html'), name='password_reset_done'),
+    path('reset/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(template_name = 'pages/password_reset_form.html'), name='password_reset_confirm'),
+    path('reset/done/', auth_views.PasswordResetCompleteView.as_view(template_name = 'pages/password_reset_complete.html'), name='password_reset_complete'),
 ]
 
 if settings.DEBUG:

@@ -6,7 +6,11 @@
     
 <div class="row">
     <div class="col-md-6">
-        <h2>Manage Events</h2>
+        {% if is_head_of_osas %}
+        <h2>Manage All Events</h2>
+        {% else %}
+        <h2>Manage My Events</h2>
+        {% endif %}
     </div>
     <div class="col-lg-4 col-md-5 mt-1 evaluations_search" style="margin-left: auto;">
         <form method="get" action="" class="d-flex" style="gap: 1em;">
