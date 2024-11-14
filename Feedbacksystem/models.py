@@ -41,7 +41,7 @@ class Faculty(models.Model):
     last_name = models.CharField(max_length=100)
     gender = models.CharField(max_length=9)
     email = models.EmailField(max_length=100)
-    contact_number = models.IntegerField(null=True, blank = True)
+    contact_number = models.CharField(max_length  = 11)
     profile_picture = models.ImageField(upload_to='profile_picture/', blank=True)
     department = models.ForeignKey(Department, on_delete=models.CASCADE, null=True, blank = True) 
 
@@ -120,7 +120,7 @@ class Student(models.Model):
     email = models.EmailField(max_length = 64)  
     age = models.IntegerField()
     sex = models.CharField(max_length=6)
-    contact_no = models.CharField(max_length  = 15)
+    contact_no = models.CharField(max_length  = 11)
     status = models.CharField(max_length=20, choices=STUDENT_STATUS_CHOICES, default='Regular')
     profile_picture = models.ImageField(upload_to='profile_picture/', null=True, blank = True)
     Course = models.ForeignKey(Course, on_delete=models.CASCADE) 

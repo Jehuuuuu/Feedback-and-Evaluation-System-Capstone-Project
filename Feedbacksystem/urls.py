@@ -3,6 +3,7 @@ from . import views
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
+from .views import CustomPasswordResetConfirmView
 
 urlpatterns = [
     path('', views.signin, name="signin"),
@@ -117,8 +118,9 @@ urlpatterns = [
     path('view_peer_to_peer_evaluation_form/<int:pk>/', views.view_peer_to_peer_evaluation_form, name='view_peer_to_peer_evaluation_form'),
     path('password_reset/', auth_views.PasswordResetView.as_view(template_name = 'pages/password_reset.html'), name='password_reset'),
     path('password_reset/done/', auth_views.PasswordResetDoneView.as_view(template_name = 'pages/password_reset_sent.html'), name='password_reset_done'),
-    path('reset/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(template_name = 'pages/password_reset_form.html'), name='password_reset_confirm'),
+    path('reset/<uidb64>/<token>/', CustomPasswordResetConfirmView.as_view(), name='password_reset_confirm'),
     path('reset/done/', auth_views.PasswordResetCompleteView.as_view(template_name = 'pages/password_reset_complete.html'), name='password_reset_complete'),
+     path('edit_faculty_profile', views.edit_faculty_profile, name='edit_faculty_profile'),
 ]
 
 if settings.DEBUG:

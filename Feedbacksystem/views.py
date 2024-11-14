@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from Feedbacksystem.models import Course, Section, SectionSubjectFaculty, Faculty, Department, Student, Subject, LikertEvaluation, EvaluationStatus, Event, SchoolEventModel, FacultyEvaluationQuestions, SchoolEventQuestions, WebinarSeminarModel, WebinarSeminarQuestions, StakeholderFeedbackModel, StakeholderFeedbackQuestions, Message, PeertoPeerEvaluation, PeertoPeerEvaluationQuestions
-from .forms import TeacherForm, StudentForm, CourseForm, SectionForm, SectionSubjectFacultyForm, SubjectForm, StudentRegistrationForm, StudentLoginForm, LikertEvaluationForm, FacultyRegistrationForm, FacultyLoginForm, EvaluationStatusForm, DepartmentForm, EventCreationForm, SchoolEventForm, WebinarSeminarForm, StudentProfileForm, EditQuestionForm, EditSchoolEventQuestionForm,  WebinarSeminarForm, EditWebinarSeminarQuestionForm, StakeholderFeedbackForm, MessageForm, PeertoPeerEvaluationForm
+from .forms import TeacherForm, StudentForm, CourseForm, SectionForm, SectionSubjectFacultyForm, SubjectForm, StudentRegistrationForm, StudentLoginForm, LikertEvaluationForm, FacultyRegistrationForm, FacultyLoginForm, EvaluationStatusForm, DepartmentForm, EventCreationForm, SchoolEventForm, WebinarSeminarForm, StudentProfileForm, EditQuestionForm, EditSchoolEventQuestionForm,  WebinarSeminarForm, EditWebinarSeminarQuestionForm, StakeholderFeedbackForm, MessageForm, PeertoPeerEvaluationForm, FacultyProfileForm
 from django.contrib.auth.models import User, Group
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import UserCreationForm
@@ -31,6 +31,10 @@ from django.core.mail import EmailMessage
 from notifications.signals import notify
 from notifications.models import Notification
 from django.utils.text import Truncator
+from django.contrib.auth import views as auth_views
+from django.utils.http import urlsafe_base64_decode
+from django.contrib.auth.tokens import default_token_generator
+from django.contrib.auth.models import User
 
 ITEMS_PER_PAGE = 5
             # ------------------------------------------------------
@@ -159,6 +163,25 @@ def facultylogin(request):
     
     return render(request, 'pages/facultylogin.html', context)
 
+class CustomPasswordResetConfirmView(auth_views.PasswordResetConfirmView):
+    template_name = 'pages/password_reset_form.html'
+    
+    def dispatch(self, *args, **kwargs):
+        # Attempt to decode the user ID and validate the token
+        try:
+            uid = urlsafe_base64_decode(kwargs['uidb64']).decode()
+            user = User.objects.get(pk=uid)
+            token = kwargs['token']
+            if not default_token_generator.check_token(user, token):
+                raise ValueError("Invalid token")
+        except (User.DoesNotExist, ValueError, TypeError):
+            messages.error(self.request, "The password reset link is invalid, possibly because it has already been used.")
+            return redirect('password_reset')  # Redirect to the password reset page or home
+
+        # Proceed with default behavior if token is valid
+        return super().dispatch(*args, **kwargs)
+
+    
 def stakeholder_feedback_form(request):
     questions = StakeholderFeedbackQuestions.objects.all()
     form = StakeholderFeedbackForm()
@@ -3471,7 +3494,26 @@ def facultyprofile(request):
         'messages_unread_count': messages_unread_count,}
     return render(request, 'pages/facultyprofile.html', context)
 
-   
+@login_required(login_url='signin')
+@allowed_users(allowed_roles=['faculty', 'head of OSAS'])
+def edit_faculty_profile(request):
+    user=request.user.faculty
+    user_faculty = request.user
+    faculty = Faculty.objects.filter(email=request.user.username).first()   
+    event_notifications = Notification.objects.filter(recipient=user_faculty, level='success')
+    unread_notifications = Notification.objects.filter(recipient=user_faculty, level='success', unread=True)
+    notifications_unread_count = unread_notifications.count()
+    form = FacultyProfileForm(instance = user)
+    if request.method == 'POST':
+        form = FacultyProfileForm(request.POST, request.FILES, instance = user)
+        if form.is_valid():
+            form.save(commit=True)  # Ensure commit is set to True to save to the database
+            messages.success(request, 'Profile Updated Successfully')
+            return redirect('facultydashboard')
+
+    return render(request, 'pages/edit_faculty_profile.html', {'faculty': faculty, 'form': form, 'event_notifications': event_notifications, 'notifications_unread_count': notifications_unread_count})
+
+  
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['faculty', 'head of OSAS'])   
 def facultyfeedbackandevaluations(request):

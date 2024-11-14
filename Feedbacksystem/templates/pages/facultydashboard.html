@@ -37,7 +37,7 @@
               <img src="{% static 'images/Default_avatar.webp' %}" alt="Default Profile Picture" class="card-img-top">
           {% endif %}
           <div class="button-container text-center mt-2">
-              <button class="btn btn-warning"><a href="{}" style="color: inherit;"><i class="bi bi-pencil-square"></i> Edit</a></button>
+            <a  href="{% url 'edit_faculty_profile' %}" style="color: inherit;"> <button class="btn btn-warning btn-block custom-btn" style="border-radius: 0; "><i class="bi bi-pencil-square"></i> Edit</button></a>
           </div>
       </div>
   </div>
@@ -55,10 +55,6 @@
     </div>
   </div>
 </div>
-
-
-
-
 
   <div class="container-fluid" style="padding: 0;">
     <div class="header">
@@ -200,7 +196,15 @@
   </nav>
   <main role="main" class="content">
     <!-- Main content area -->
-    
+  {% if messages %}
+        {% for message in messages %}
+            <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+
+{% endif %}
       {% block header %}
 
     <div class="row ">

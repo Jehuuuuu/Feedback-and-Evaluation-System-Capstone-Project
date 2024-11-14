@@ -1,0 +1,24 @@
+{% extends "pages/facultydashboard.html" %}
+{% load static %}
+{% block title %}Edit Profile{% endblock %}
+
+{% block header %}
+
+    <h2> Edit Profile</h2>
+    <hr>
+    {% endblock header %}
+    {% block feature %}
+    <div class="container">
+        <div class="row justify-content-center"> <!-- Center the form -->
+            <div class="col-12 col-md-8 col-lg-6"> <!-- Adjust width on different screen sizes -->
+                <form method="post" action="" enctype="multipart/form-data" class="p-3">
+                    {% csrf_token %}
+                    {{ form }}
+                    <br>
+                    <button type="submit" class="btn custom-btn w-100">Save</button> <!-- Full-width button -->
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endblock feature %}
+

@@ -183,7 +183,14 @@ class FacultyRegistrationForm(UserCreationForm):
             self.fields[field_name].help_text = ''
 
 class StudentLoginForm(forms.Form):
-    student_number = forms.CharField(max_length=9)
+    student_number = forms.CharField(
+        max_length=9,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'inputmode': 'numeric',  # Opens numeric keypad on mobile devices
+            'pattern': '[0-9]*',     # Restrict to digits only
+        })
+    )
     password = forms.CharField(widget=forms.PasswordInput)
 
 class FacultyLoginForm(forms.Form):
@@ -462,10 +469,28 @@ class StudentProfileForm(ModelForm):
 
         widgets = {
             'email': forms.EmailInput(attrs={'class': 'form-control'}),
-            'contact_no': forms.NumberInput(attrs={'class': 'form-control'}),
+            'contact_no': forms.NumberInput(attrs={'class': 'form-control', 'inputmode': 'numeric', 'pattern': '[0-9]*',}),
             'profile_picture': forms.ClearableFileInput(attrs={'class': 'form-control'}),
         } 
         
+class FacultyProfileForm(ModelForm):
+    class Meta:
+        model = Faculty
+        fields = ['email', 'contact_number', 'profile_picture']
+
+        widgets = {
+            'email': forms.EmailInput(attrs={'class': 'form-control'}),
+            'contact_number': forms.NumberInput(attrs={'class': 'form-control', 'inputmode': 'numeric', 'pattern': '[0-9]*',}),   
+            'profile_picture': forms.ClearableFileInput(attrs={'class': 'form-control'}),
+        } 
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        # Update username based on email
+        instance.user.username = self.cleaned_data['email']
+        if commit:
+            instance.save()
+            instance.user.save()
+        return instance
 class EditQuestionForm(ModelForm):
     class Meta:
         model = FacultyEvaluationQuestions
