@@ -1,0 +1,24 @@
+{% extends "pages/facultydashboard.html" %}
+
+{% block title %}Send Message{% endblock %}
+
+{% block header %}
+
+    <h2>Message {{ faculty.first_name }} {{ faculty.last_name }}</h2>
+    <hr>
+   
+{% endblock header %}
+<hr>
+{% block feature %}
+<div class="row">
+    <div class="container col-md-6">
+    <form method="POST" action=""  enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+    
+    
+    <input type = "submit" value="Send" enctype="multipart/form-data" class="btn btn-warning custom-btn w-100">
+    </form>
+    </div>
+</div>
+{% endblock feature %}

@@ -1,4 +1,4 @@
-{% extends "pages/admin.html" %}
+{% extends "pages/facultydashboard.html" %}
 
 {% block title %}Evaluations{% endblock %}
 
@@ -12,8 +12,9 @@
 {% block feature %}
 {% if avg_rating %}
 {% endif %}
+<a href="{% url 'department_head_faculty_evaluations_csv' %}?{{ request.GET.urlencode }}" class="btn btn-primary">Export CSV</a>
 <div class="table-responsive">
-    <table class="table table-bordered table-responsive  ">
+    <table class="table table-bordered table-responsive mt-1 ">
         <tr>
             <th scope="col">Subject</th>
             <th scope="col">Average</th>
@@ -35,8 +36,9 @@
             <td>{{ i.semester }}</td>
             <td style="display: flex; flex-direction: row; align-items: center; height: 100px;">
     
-                <a style="margin-right: 10px; text-decoration: none;" href="{% url 'admin_view_evaluation_form'  i.pk  %}"><button class="btn btn-primary d-flex align-items-center" style=" padding:1px 2px 1px 7px"><i class="bi bi-eye-fill" style="font-size:20px; margin-right: 5px;"></i></button></a>
+                <a style="margin-right: 10px; text-decoration: none;" href="{% url 'department_head_view_evaluation_form'  i.pk  %}"><button class="btn btn-primary d-flex align-items-center" style=" padding:1px 2px 1px 7px"><i class="bi bi-eye-fill" style="font-size:20px; margin-right: 5px;"></i></button></a>
     
+   
     
         </td>
         </tr>

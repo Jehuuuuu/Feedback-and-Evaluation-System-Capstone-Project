@@ -1,0 +1,91 @@
+{% extends "pages/facultydashboard.html" %}
+
+{% block title %}Manage {{ department.name }}{% endblock %}
+
+{% block header %}
+
+    <h1>Manage  {{ department.name }}</h1>
+    <hr>
+   
+{% endblock header %}
+<hr>
+{% block feature %}
+
+    <div class="container">
+        <div class="row">
+            <a class="btn btn-warning custom-btn col-md-2 col-sm-4 col-12" style = "color: black;"data-bs-toggle="modal" data-bs-target="#exampleModal"> <i class="bi bi-person-plus-fill"></i> <b>Add Faculty</b></a>
+            <div class="col-md-3 col-sm-4 col-12">
+                <a href="{% url 'department_head_pending_evaluations' %}" class="btn btn-secondary" ><b>Pending Evaluations</b></a>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h1 class="modal-title fs-5" id="exampleModalLabel">Add Faculty</h1>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="POST" action="">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+    
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+              <input type = "submit" class="btn custom-btn" value="Add">
+            </form>
+            </div>
+          </div>
+        </div>
+      </div>
+        <table class="table table-responsive table-bordered mt-2">
+    
+                <tr>
+                    <th scope="col">Faculty</th>
+                    <th scope="col">Average</th>
+                    <th scope="col">Rating</th>
+                    <th scope="col" style="width: 160px;">Options</th>
+                </tr>
+    
+        </thead>
+        <tr>
+            {% for i in page_obj %}
+                <td>{{ i.first_name }} {{ i.last_name }}</td>
+                <td>{{ i.average_rating }}</td>
+                <td>{{ i.get_rating_category }}</td>
+                <td style="display: flex; flex-direction: row; gap:1em; align-items: center; width: 160px;"> <a href="{% url 'department_head_faculty_evaluations' i.pk %}" style="text-decoration: none;"><button class="btn btn-primary d-flex align-items-center" style=" padding:1px 2px 1px 7px"><i class="bi bi-eye-fill" style="font-size:20px; margin-right: 5px;"></i> </button></a>
+                    <a href="{% url 'department_head_send_message'  i.pk  %}" style="text-decoration: none;"><button class="btn btn-success d-flex align-items-center" style=" padding:1px 2px 1px 7px" title="Message Faculty"><i class="bi bi-chat-dots" style="font-size:20px; margin-right: 5px;"></i></button></a>
+                </td>
+        </tr>
+    
+        {% endfor %}
+    
+        </table>
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+                {% endif %}
+    
+                {% for num in page_obj.paginator.page_range %}
+                <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                </li>
+                {% endfor %}
+    
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+          </nav>
+{% endblock feature %}

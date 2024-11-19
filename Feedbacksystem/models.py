@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
+from django.db.models import Avg
 # Create your models here.
 
 class Course(models.Model):
@@ -40,7 +41,7 @@ class Faculty(models.Model):
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
     gender = models.CharField(max_length=9)
-    email = models.EmailField(max_length=100)
+    email = models.EmailField(unique=True)
     contact_number = models.CharField(max_length  = 11)
     profile_picture = models.ImageField(upload_to='profile_picture/', blank=True)
     department = models.ForeignKey(Department, on_delete=models.CASCADE, null=True, blank = True) 
@@ -53,13 +54,89 @@ class Faculty(models.Model):
         
     def __str__(self):
         return f"{self.first_name} {self. last_name}"
+    
+    def delete(self, *args, **kwargs):
+        if self.user:
+            self.user.delete()
+        super().delete(*args, **kwargs)
+
 
     def average_rating(self):
-        evaluations = self.evaluation_set.all()  # Assuming there's an Evaluation model related to Faculty
-        if evaluations.exists():
-            return evaluations.aggregate(average=models.Avg('rating'))['average']
-        return 0
+        evaluation_status = EvaluationStatus.objects.first()
+        current_academic_year = evaluation_status.academic_year 
+        current_semester = evaluation_status.semester
 
+        evaluations = LikertEvaluation.objects.filter(section_subject_faculty__faculty=self, academic_year=current_academic_year, semester=current_semester)
+        
+        if evaluations.exists():
+            fields_to_average = [
+                'command_and_knowledge_of_the_subject',
+                'depth_of_mastery',
+                'practice_in_respective_discipline',
+                'up_to_date_knowledge',
+                'integrates_subject_to_practical_circumstances',
+                'organizes_the_subject_matter',
+                'provides_orientation_on_course_content',
+                'efforts_of_class_preparation',
+                'summarizes_main_points',
+                'monitors_online_class',
+                'holds_interest_of_students',
+                'provides_relevant_feedback',
+                'encourages_participation',
+                'shows_enthusiasm',
+                'shows_sense_of_humor',
+                'teaching_methods',
+                'flexible_learning_strategies',
+                'student_engagement',
+                'clear_examples',
+                'focused_on_objectives',
+                'starts_with_motivating_activities',
+                'speaks_in_clear_and_audible_manner',
+                'uses_appropriate_medium_of_instruction',
+                'establishes_online_classroom_environment',
+                'observes_proper_classroom_etiquette',
+                'uses_time_wisely',
+                'gives_ample_time_for_students_to_prepare',
+                'updates_the_students_of_their_progress',
+                'demonstrates_leadership_and_professionalism',
+                'understands_possible_distractions',
+                'sensitivity_to_student_culture',
+                'responds_appropriately',
+                'assists_students_on_concerns',
+                'guides_the_students_in_accomplishing_tasks',
+                'extends_consideration_to_students',
+            ]
+            
+            # Fetch and sum up the values of these fields for each evaluation
+            ratings = []
+            for field in fields_to_average:
+                ratings.extend(evaluations.values_list(field, flat=True))
+
+            # Filter out None values and calculate average
+            ratings = [rating for rating in ratings if rating is not None]
+
+            if ratings:
+                average_rating = sum(ratings) / len(ratings)
+                return round(average_rating, 1)
+        
+        return 0.0
+
+    @property
+    def get_rating_category(self):
+        avg_rating = self.average_rating()  # Call the method here
+        if avg_rating is not None:
+            if 1.0 <= avg_rating <= 1.49:
+                return "Poor"
+            elif 1.5 <= avg_rating <= 2.49:
+                return "Unsatisfactory"
+            elif 2.5 <= avg_rating <= 3.49:
+                return "Satisfactory"
+            elif 3.5 <= avg_rating <= 4.49:
+                return "Very Satisfactory"
+            elif 4.5 <= avg_rating <= 5.0:
+                return "Outstanding"
+        return "No Rating"
+    
     def full_name(self):
         return f"{self.first_name} {self.last_name}"
     
@@ -168,8 +245,9 @@ class LikertEvaluation(models.Model):
     ]
     ADMIN_STATUS_CHOICES = [
         ('Pending', 'Pending'),
+        ('Approved to Department Head', 'Approved to Department Head'),
         ('Approved', 'Approved'),
-        ('Rejected', 'Rejected'),
+        ('Rejected', 'Rejected',),
     ]
     user = models.ForeignKey(User, on_delete=models.CASCADE) 
     section_subject_faculty = models.ForeignKey(SectionSubjectFaculty, on_delete=models.CASCADE)
@@ -269,7 +347,7 @@ class LikertEvaluation(models.Model):
     comments = models.TextField()
     predicted_sentiment = models.CharField(max_length=50)
     admin_status = models.CharField(
-        max_length=12,
+        max_length=30,
         choices=ADMIN_STATUS_CHOICES,
         default='Pending'
     
@@ -363,11 +441,11 @@ class LikertEvaluation(models.Model):
             if 1.0 <= self.average_rating <= 1.49:
                 return "Poor"
             elif 1.5 <= self.average_rating <= 2.49:
-                return "Fair"
+                return "Unsatisfactory"
             elif 2.5 <= self.average_rating <= 3.49:
-                return "Good"
+                return "Satisfactory"
             elif 3.5 <= self.average_rating <= 4.49:
-                return "Very Good"
+                return "Very Satisfactory"
             elif 4.5 <= self.average_rating <= 5.0:
                 return "Outstanding"
         return "No Rating"

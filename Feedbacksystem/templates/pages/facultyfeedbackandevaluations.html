@@ -61,7 +61,7 @@
                 <td>{{ i.section_subject_faculty.subjects }} </td>
                 <td>{{ i.average_rating }}</td>
                 <td>{{ i.get_rating_category }}</td>
-                <td>{{ i.comments }}</td>
+                <td>{{ i.comments|truncatechars:50 }}</td>
                 <td>{{ i.predicted_sentiment }}</td>
                 <td>{{ i.academic_year }}</td>
                 <td>{{ i.semester }}</td>

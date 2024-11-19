@@ -104,18 +104,34 @@ class StudentRegistrationForm(UserCreationForm):
         fields = ('student_number', 'password1', 'password2')
 
     def clean_student_number(self):
-        student_number = self.cleaned_data['student_number']
+        student_number = self.cleaned_data.get('student_number')
 
         # Check if the student number exists in the database
         existing_student = Student.objects.filter(student_number=student_number).first()
-        if existing_student:
-                # Associate the user with the existing student record
-                self.instance.student = existing_student
 
         if not existing_student:
-            raise ValidationError("Student with this student number does not exist. Please contact the admin to create an account.")
+            # If the student number does not exist, raise an error
+            self.add_error('student_number', "Student with this student number does not exist. Please contact the admin to create an account.")
+        else:
+            # If the student exists, check if they already have a user account
+            if existing_student.user:
+                # If the student number is already registered, raise an error
+                self.add_error('student_number', "This student number is already registered. Please login to continue.")
+            else:
+                # If the student number exists but is not associated with a user, associate it
+                self.instance.student = existing_student
 
         return student_number
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        password1 = cleaned_data.get("password1")
+        password2 = cleaned_data.get("password2")
+
+        if password1 and password2 and password1 != password2:
+            self.add_error('password2', "Passwords do not match.")
+
+        return cleaned_data
 
     def save(self, commit=True):
         # Save the user first
@@ -146,25 +162,37 @@ class FacultyRegistrationForm(UserCreationForm):
 
     class Meta:
         model = User
-        fields = ( 'email', 'password1', 'password2')
+        fields = ('email', 'password1', 'password2')
 
-    def clean_faculty_email(self):
-        email = self.cleaned_data['email']
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
 
         # Check if the student number exists in the database
         existing_faculty = Faculty.objects.filter(email=email).first()
 
         if not existing_faculty:
-            raise ValidationError("Faculy with this email does not exist. Please contact the admin to create an account.")
+            raise ValidationError("Faculty with this email does not exist. Please contact the admin to create an account.")
+        else: # Check if the student number is already registered with a user 
+            if existing_faculty.user: 
+                self.add_error('email', "This email is already registered.") 
 
         return email
+
+    def clean(self):
+        cleaned_data = super().clean()
+        password1 = cleaned_data.get("password1")
+        password2 = cleaned_data.get("password2")
+
+        if password1 and password2 and password1 != password2:
+            self.add_error('password2', "Passwords do not match.")
+
+        return cleaned_data
 
     def save(self, commit=True):
         # Save the user first
         user = super().save(commit=False)
 
         user.username = self.cleaned_data['email']
-
         if commit:
             user.save()
             # Link the user to the corresponding Faculty record by email

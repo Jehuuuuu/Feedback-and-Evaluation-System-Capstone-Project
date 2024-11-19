@@ -46,7 +46,7 @@
           <li class="list-group-item"><b>Email: </b>{{ faculty.email }}</li>
           <li class="list-group-item"><b>Contact Number: </b>{{ faculty.contact_number }}</li>
           <li class="list-group-item"><b>Department: </b>{{ faculty.department }}</li>
-          <li class="list-group-item"><b>Role: </b>{% if is_head_of_osas %} Head of OSAS {% else %} Faculty {% endif %}</li>
+          <li class="list-group-item"><b>Role: </b>{% if is_head_of_osas %} Head of OSAS {% elif is_department_head %} Department Head {% else %} Faculty {% endif %}</li>
       </ul>
       </div>
       <div class="modal-footer">
@@ -185,10 +185,15 @@
               <a class="dropdown-item" href="{% url 'faculty_events' %}">Events</a>
               <a class="dropdown-item" href="{% url 'peer_to_peer_evaluation' %}">Peer-to-Peer</a>
       </li>
-
-
+      {% if is_department_head %}
         <li class="nav-item">
-          <a class="nav-link" href="{% url 'studentlogout' %}">
+          <a class="nav-link" href="{% url 'department_head_view_department' %}">
+            <i class="bi bi-people-fill"></i> <b>Department</b>
+          </a>
+      </li>
+      {% endif %}
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'facultylogout' %}">
             <i class="bi bi-box-arrow-in-left nav-icon"></i> <b>Logout</b>
           </a>
       </li>

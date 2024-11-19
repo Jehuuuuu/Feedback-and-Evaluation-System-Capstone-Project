@@ -120,7 +120,18 @@ urlpatterns = [
     path('password_reset/done/', auth_views.PasswordResetDoneView.as_view(template_name = 'pages/password_reset_sent.html'), name='password_reset_done'),
     path('reset/<uidb64>/<token>/', CustomPasswordResetConfirmView.as_view(), name='password_reset_confirm'),
     path('reset/done/', auth_views.PasswordResetCompleteView.as_view(template_name = 'pages/password_reset_complete.html'), name='password_reset_complete'),
-     path('edit_faculty_profile', views.edit_faculty_profile, name='edit_faculty_profile'),
+    path('edit_faculty_profile', views.edit_faculty_profile, name='edit_faculty_profile'),
+    path('activate/<uidb64>/<token>', views.activate, name='activate'),
+    path('facultylogout', views.facultylogout, name='facultylogout'),
+    path('department_head_view_department', views.department_head_view_department, name='department_head_view_department'),
+    path('department_head_faculty_evaluations/<int:pk>/', views.department_head_faculty_evaluations, name='department_head_faculty_evaluations'),
+    path('department_head_send_message/<int:pk>/', views.department_head_send_message, name='department_head_send_message'),
+    path('department_head_pending_evaluations', views.department_head_pending_evaluations, name='department_head_pending_evaluations'),
+    path('department_head_approve_evaluation/<int:pk>/', views.department_head_approve_evaluation, name='department_head_approve_evaluation'),
+    path('department_head_reject_evaluation/<int:pk>/', views.department_head_reject_evaluation, name='department_head_reject_evaluation'),
+    path('department_head_view_evaluation_form/<int:pk>/', views.department_head_view_evaluation_form, name='department_head_view_evaluation_form'),
+    path('department_head_approve_all_pending_evaluations', views.department_head_approve_all_pending_evaluations, name='department_head_approve_all_pending_evaluations'),
+    path('department_head_faculty_evaluations_csv', views.department_head_faculty_evaluations_csv, name='department_head_faculty_evaluations_csv'),
 ]
 
 if settings.DEBUG:

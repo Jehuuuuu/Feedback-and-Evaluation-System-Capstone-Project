@@ -145,6 +145,7 @@ EMAIL_USE_SSL = False  # Set to True if using SSL; should be False if EMAIL_USE_
 EMAIL_HOST_USER = 'jehurodriguez143@gmail.com'  # Your full email address
 EMAIL_HOST_PASSWORD = 'nldj gulq sokh jnol'  # Password or app-specific password if using Gmail
 DEFAULT_FROM_EMAIL = 'Feedback and Evaluation System - CvSU Bacoor <djangoadmin@gmail.com>'  # How the sender email appears to recipients
+PASSWORD_RESET_TIMEOUT = 14400
 
 CELERY_BROKER_URL = 'redis://localhost:6379/0'  # Redis as broker
 CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'  # Redis as result backend

@@ -1,4 +1,4 @@
-{% extends "pages/admin.html" %}
+{% extends "pages/facultydashboard.html" %}
 
 {% block title %}Pending Evaluations{% endblock %}
 
@@ -22,7 +22,7 @@
     </div>
     {% endif %}
     <div class="col-md-3 col-sm-4 col-12">
-        <form method="POST" action="{% url 'approve_all_pending_evaluations' %}"> {% csrf_token %} <button type="submit" class="btn btn-success">Approve All</button> </form>
+        <form method="POST" action="{% url 'department_head_approve_all_pending_evaluations' %}"> {% csrf_token %} <button type="submit" class="btn btn-success">Approve All</button> </form>
     </div>
     <div class="table-responsive mt-2">
         <table class="table table-bordered">
@@ -54,8 +54,8 @@
                   <a href="{% url 'admin_view_evaluation_form' i.pk %}" style="margin-right: 10px; text-decoration: none;">
                     <button class="btn btn-primary d-flex align-items-center" style=" padding:1px 2px 1px 7px">
                       <i class="bi bi-eye-fill" style="font-size:20px; margin-right: 5px;"></i></button></a>
-                      <a href="{% url 'approve_evaluation' i.pk %}"><button class="btn btn-success" style="padding:1px 2px 1px 7px; margin-right: 10px;" ><i class="bi bi-check-lg" style="font-size:20px; margin-right: 5px;"></i></button></a> 
-                      <a href="{% url 'reject_evaluation' i.pk %}"><button class="btn btn-danger" style="padding:1px 2px 1px 7px"><i class="bi bi-x-lg" style="font-size:20px; margin-right: 5px;"></i></button></a> 
+                      <a href="{% url 'department_head_approve_evaluation' i.pk %}"><button class="btn btn-success" style="padding:1px 2px 1px 7px; margin-right: 10px;" ><i class="bi bi-check-lg" style="font-size:20px; margin-right: 5px;"></i></button></a> 
+                      <a href="{% url 'department_head_reject_evaluation' i.pk %}"><button class="btn btn-danger" style="padding:1px 2px 1px 7px"><i class="bi bi-x-lg" style="font-size:20px; margin-right: 5px;"></i></button></a> 
             </tr>    
             {% endfor %}
 

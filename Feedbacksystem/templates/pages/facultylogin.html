@@ -16,11 +16,10 @@
 
 <body>
     {% if messages %}
-    <div class="container  col-md-5 col-12 mt-4">
+    <div class="container  col-md-5 col-12" style="margin-top: 10em;">
         {% for message in messages %}
-        <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %} alert-dismissible fade show" role="alert">
+        <div class="alert {% if message.tags == 'error' %}alert-danger{% elif message.tags == 'success' %}alert-success{% endif %}" role="alert">
             {{ message }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
         {% endfor %}
     </div>

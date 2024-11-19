@@ -35,7 +35,13 @@ from django.contrib.auth import views as auth_views
 from django.utils.http import urlsafe_base64_decode
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth.models import User
-
+from django.template.loader import render_to_string
+from django.contrib.sites.shortcuts import get_current_site
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes, force_str
+from django.core.mail import EmailMessage
+from django.contrib.auth import get_user_model
+from .tokens import account_activation_token
 ITEMS_PER_PAGE = 5
             # ------------------------------------------------------
             #                Login-Page Views
@@ -64,30 +70,97 @@ def signin(request):
 
                 try:
                         user = User.objects.get(username=student_number)
+                        if user.is_active == False:
+                            messages.error(request, 'Your account is not activated. Please check your email to activate your account.')
+                        else:
+                            messages.error(request, 'Invalid password.')
                 except User.DoesNotExist:
                         messages.error(request, 'Student number is not registered.')
                 
-                else:
-                        messages.error(request, 'Invalid password.')
+                
                
               
         elif 'register' in request.POST:
             # Handle registration form submission
             registration_form = StudentRegistrationForm(request.POST)
             if registration_form.is_valid():
-                user = registration_form.save()
-                group = Group.objects.get(name = 'student')
+                    # Get the student number from the form
+                student_number = registration_form.cleaned_data.get('student_number')
+
+                # Fetch the student record from the database
+                student = get_object_or_404(Student, student_number=student_number)
+
+                # Create a new user and associate it with the student
+                user = registration_form.save(commit=False)
+                user.email = student.email  # Automatically set the email
+                user.is_active = False  # Deactivate account until email verification
+                user.save()
+
+                # Link the user to the student model
+                student.user = user
+                student.save()
+
+                # Assign the user to the "student" group
+                group = Group.objects.get(name='student')
                 user.groups.add(group)
-                messages.success(request, 'Registration successful!')
+
+                # Send email activation link
+                activateEmail(request, user, student.email)
                 return redirect('signin')  # Redirect to the home page or any desired URL after successful registration
             else:
-                messages.success(request, 'Student with this student number does not exist. Please contact the admin to create an account.')
-                return redirect('signin')                                      
+                for field, errors in registration_form.errors.items(): 
+                     for error in errors:
+                          if 'password' in field: 
+                               if 'match' in error: messages.error(request, 'Passwords do not match.') 
+                               elif 'too short' in error: messages.error(request, 'Password is too short. It must contain at least 8 characters.') 
+                          elif field == 'student_number': 
+                              if 'exist' in error: 
+                                messages.error(request, 'Student with this student number does not exist. Please contact the admin to create an account.') 
+                              elif 'registered' in error:
+                                messages.error(request, 'This student number is already registered. Please login to continue.')
+                return render(request, 'pages/login.html', {'registration_form': registration_form, 'login_form': login_form,})
+                                     
 
     context = {'registration_form': registration_form, 'login_form': login_form,}
     
     return render(request, 'pages/login.html', context)
 
+def activateEmail(request, user, to_email):
+    mail_subject = 'Activate your user account.'
+    message = render_to_string('pages/template_activate_account.html', {
+        'user': user.username,
+        'domain': get_current_site(request).domain,
+        'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+        'token': account_activation_token.make_token(user),
+        'protocol': 'https' if request.is_secure() else 'http'
+    })
+    email = EmailMessage(mail_subject, message, to=[to_email])
+    if email.send():
+        messages.success(request, f'A confirmation email has been sent to {to_email}. Please check your inbox and click the activation link to complete your registration. Note: If you do not see the email, please check your spam folder.')
+    else:
+        messages.error(request, f'Problem sending confirmation email to {to_email}, check if you typed it correctly.')
+
+def activate(request, uidb64, token):
+    User = get_user_model()
+    try:
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid)
+        
+    except(TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+
+    if user is not None and account_activation_token.check_token(user, token):
+        user.is_active = True
+        user.save()
+
+        messages.success(request, 'Thank you for confirming your email. You can now log in to your account.')
+        return redirect('signin')
+    else:
+        print(user)
+        messages.error(request, 'Activation link is invalid!')
+    
+    return redirect('signin')
+  
 def adminlogin(request):
     if request.method == 'POST':
         username = request.POST.get('username')
@@ -96,19 +169,18 @@ def adminlogin(request):
         try:
             user = User.objects.get(username=username)
         except User.DoesNotExist:
-            messages.error(request, "User does not exist")
+            messages.error(request, "Username does not exist")
             return render(request, 'pages/adminlogin.html', {})
 
-        if user.is_superuser:
-            user = authenticate(request, username=username, password=password)
-
-            if user is not None:
-                login(request, user)
-                return redirect('admin')
-            else:
-                messages.error(request, "Incorrect Password")
-        else:
-            messages.error(request, "You are not authorized to log in as an admin")
+        if user is not None:
+                if user.groups.filter(name="HR admin").exists():
+                    login(request, user)
+                    return redirect('stakeholderevaluations')
+                elif user.groups.filter(name="admin").exists():
+                    login(request, user)
+                    return redirect('admin')
+                else:
+                    messages.error(request, "You are not authorized to log in as an admin")
 
 
     context = {}
@@ -139,25 +211,43 @@ def facultylogin(request):
 
                 try:
                         user = User.objects.get(username=email)
+                        if user.is_active == False:
+                            messages.error(request, 'Your account is not activated. Please check your email to activate your account.')
+                        else:
+                            messages.error(request, 'Invalid password.')
                 except User.DoesNotExist:
                         messages.error(request, 'Your email is not registered.')
-                
-                else:
-                        messages.error(request, 'Invalid password.')
-               
-              
+                      
         elif 'register' in request.POST:
             # Handle registration form submission
             registration_form = FacultyRegistrationForm(request.POST)
             if registration_form.is_valid():
-                user = registration_form.save()
+                user = registration_form.save(commit=False)
+                user.is_active = False
+                user.save()
+
+                email = registration_form.cleaned_data.get('email')
+                faculty = Faculty.objects.get(email=email)
+                faculty.user = user
+                faculty.save()  # Save the faculty with the linked user
+
                 group = Group.objects.get(name = 'faculty')
                 user.groups.add(group)
-                messages.success(request, 'Registration successful!')
+                activateEmail(request, user, email)
                 return redirect('facultylogin')  # Redirect to the home page or any desired URL after successful registration
             else:
-                messages.error(request, 'Faculty with this email does not exist. Please contact the admin to create an account.')
-                return redirect('facultylogin') 
+               for field, errors in registration_form.errors.items(): 
+                     for error in errors:
+                          if 'password' in field: 
+                               if 'match' in error: messages.error(request, 'Passwords do not match.') 
+                               elif 'too short' in error: messages.error(request, 'Password is too short. It must contain at least 8 characters.') 
+                               elif 'similar' in error: messages.error(request, 'The password is too similar to the email address.') 
+                          elif field == 'email': 
+                              if 'exist' in error: 
+                                messages.error(request, 'Faculty with this email does not exist. Please contact the admin to create an account.') 
+                              elif 'registered' in error:
+                                messages.error(request, 'This email is already registered. Please login to continue.')
+                                return redirect('facultylogin') 
 
     context = {'registration_form': registration_form, 'login_form': login_form,}
     
@@ -1224,6 +1314,8 @@ def studentlogout(request):
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['admin'])
 def admin(request):
+    is_admin = request.user.groups.filter(name='admin').exists()
+    is_hr_admin = request.user.groups.filter(name='HR admin').exists()
     student = Student.objects.all()
     course = Course.objects.all()
     section = Section.objects.all()
@@ -1286,7 +1378,9 @@ def admin(request):
                 'total_user': total_user,
                 'data': data,
                 'chart_data': chart_data,
-                'filterset': filterset
+                'filterset': filterset,
+                'is_admin': is_admin,
+                'is_hr_admin': is_hr_admin
                 }
     return render(request, 'pages/admin.html', context)
 
@@ -1388,6 +1482,7 @@ def faculty_response_chart_data(request, department_id):
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['admin'])
 def adminregister(request):
+    is_admin = request.user.groups.filter(name='admin').exists()
     form = UserCreationForm()
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
@@ -1405,16 +1500,15 @@ def adminregister(request):
             
             messages.success(request, 'Admin registration successful!')
             return redirect('adminregister')
-        else:
-            messages.error(request, 'An error occurred during registration. Please try again.')
+
  
-    return render(request, 'pages/adminregister.html', {'form': form})
+    return render(request, 'pages/adminregister.html', {'form': form, 'is_admin': is_admin})
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['admin'])
 def evaluations(request):
     evaluation = LikertEvaluation.objects.filter(admin_status='Approved')
-    
+    is_admin = request.user.groups.filter(name='admin').exists()
     total_evaluations = evaluation.count()
     #filter and search
     faculty_evaluation_filter = EvaluationFilter(request.GET, queryset=evaluation)
@@ -1439,7 +1533,7 @@ def evaluations(request):
     except EmptyPage:
         page = evaluation_paginator.page(evaluation_paginator.num_pages)
  
-    context = {'evaluation': page.object_list,'total_evaluations': total_evaluations, 'faculty_evaluation_filter': faculty_evaluation_filter, 'page_obj':page, 'is_paginated': True, 'paginator':evaluation_paginator,'ordering': ordering}
+    context = {'evaluation': page.object_list,'total_evaluations': total_evaluations, 'faculty_evaluation_filter': faculty_evaluation_filter, 'page_obj':page, 'is_paginated': True, 'paginator':evaluation_paginator,'ordering': ordering, 'is_admin': is_admin}
     return render(request, 'pages/evaluations.html', context)
 
 @login_required(login_url='signin')
@@ -1470,18 +1564,19 @@ def evaluations_csv(request):
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['admin'])
 def pending_evaluations(request):
+    is_admin = request.user.groups.filter(name='admin').exists()
     evaluations = LikertEvaluation.objects.filter(admin_status='Pending').order_by('-updated')
     paginator = Paginator(evaluations, 5) 
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-    return render(request,'pages/pending_evaluations.html',{'evaluations': evaluations, 'page_obj': page_obj})
+    return render(request,'pages/pending_evaluations.html',{'evaluations': evaluations, 'page_obj': page_obj, 'is_admin': is_admin})
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['admin'])
 def approve_evaluation(request, pk):
     evaluation = get_object_or_404(LikertEvaluation, pk=pk, admin_status='Pending')
     
-    evaluation.admin_status = 'Approved'
+    evaluation.admin_status = 'Approved to Department Head'
     evaluation.save()
                 
     return redirect('pending_evaluations')
@@ -1499,7 +1594,7 @@ def reject_evaluation(request, pk):
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['admin']) 
 def approve_all_pending_evaluations(request):
-     if request.method == 'POST': LikertEvaluation.objects.filter(admin_status='Pending').update(admin_status='Approved') 
+     if request.method == 'POST': LikertEvaluation.objects.filter(admin_status='Pending').update(admin_status='Approved to Department Head') 
      messages.success(request, 'All pending evaluations have been approved.') 
      return redirect('pending_evaluations')
 
@@ -1509,7 +1604,7 @@ def approve_all_pending_evaluations(request):
 def admin_view_evaluation_form(request, pk):
     faculty_evaluation_form = get_object_or_404(LikertEvaluation, pk=pk)
     questions = FacultyEvaluationQuestions.objects.all().order_by('order')
-
+    is_admin = request.user.groups.filter(name='admin').exists()
     outstanding_count = LikertEvaluation.objects.filter(pk=pk).filter(
         command_and_knowledge_of_the_subject=5
     ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
@@ -1873,23 +1968,25 @@ def admin_view_evaluation_form(request, pk):
     ).count()    
     
 
-    return render(request, 'pages/admin_view_evaluation_form.html', {'faculty_evaluation_form': faculty_evaluation_form, 'faculty': faculty, 'questions': questions, 'outstanding_count': outstanding_count, 'very_satisfactory_count': very_satisfactory_count, 'satisfactory_count': satisfactory_count, 'unsatisfactory_count': unsatisfactory_count, 'poor_count': poor_count,})
+    return render(request, 'pages/admin_view_evaluation_form.html', {'faculty_evaluation_form': faculty_evaluation_form, 'faculty': faculty, 'questions': questions, 'outstanding_count': outstanding_count, 'very_satisfactory_count': very_satisfactory_count, 'satisfactory_count': satisfactory_count, 'unsatisfactory_count': unsatisfactory_count, 'poor_count': poor_count, 'is_admin': is_admin})
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['admin'])
 def deleteEvaluation(request, pk):
+    is_admin = request.user.groups.filter(name='admin').exists()
     evaluation = LikertEvaluation.objects.get(pk=pk)
     if request.method == 'POST':
             evaluation.delete()
             return redirect('evaluations')
 
-    return render(request, 'pages/delete.html', {'obj':evaluation})
+    return render(request, 'pages/delete.html', {'obj':evaluation, 'is_admin': is_admin})
 
 
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['admin'])
 def admin_event_list(request):
+    is_admin = request.user.groups.filter(name='admin').exists()
     events = Event.objects.filter(admin_status='Approved').order_by('-updated') 
     event_filter = EventFilter(request.GET, queryset=events)
     events = event_filter.qs 
@@ -1904,11 +2001,12 @@ def admin_event_list(request):
     paginator = Paginator(events, 5) 
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-    return render(request,'pages/admin_event_list.html',{'events': events, 'page_obj': page_obj, 'event_filter': event_filter})
+    return render(request,'pages/admin_event_list.html',{'events': events, 'page_obj': page_obj, 'event_filter': event_filter, 'is_admin': is_admin})
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['admin'])
 def admin_edit_event(request, pk):
+    is_admin = request.user.groups.filter(name='admin').exists()
     event = Event.objects.get(pk=pk)
     form = EventCreationForm(instance=event)
     if request.method == 'POST':
@@ -1918,24 +2016,26 @@ def admin_edit_event(request, pk):
             return redirect('faculty_event_evaluations')
 
            
-    context = {'event': event, 'form':form}
+    context = {'event': event, 'form':form, 'is_admin': is_admin}
     return render(request, 'pages/admin_edit_event.html', context)
 
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['admin'])
 def admin_delete_event(request, pk):
+    is_admin = request.user.groups.filter(name='admin').exists()
     event = Event.objects.get(pk=pk)
     if request.method == 'POST':
             event.delete()
             return redirect('admin_event_evaluations')
 
-    return render(request, 'pages/delete.html', {'obj':event})
+    return render(request, 'pages/delete.html', {'obj':event, 'is_admin': is_admin})
 
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['admin'])
 def admin_event_evaluations(request, pk):
+    is_admin = request.user.groups.filter(name='admin').exists()
     event = get_object_or_404(Event, pk=pk)
     # Filter evaluations from both SchoolEventModel and WebinarSeminarModel
     school_event_evaluations = list(SchoolEventModel.objects.filter(event=event))
@@ -1951,7 +2051,8 @@ def admin_event_evaluations(request, pk):
     context = {
         'event': event,
         'evaluations': evaluations,
-        'page_obj': page_obj
+        'page_obj': page_obj, 
+        'is_admin': is_admin
     }
     return render(request, 'pages/admin_event_evaluations.html', context)
 
@@ -1993,6 +2094,7 @@ def eventevaluations_csv(request):
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['admin'])
 def view_admin_schoolevent_evaluations(request, pk):
+    is_admin = request.user.groups.filter(name='admin').exists()
     # Try to get the event from SchoolEventModel or WebinarSeminarModel
     try:
         event_form_details = SchoolEventModel.objects.get(pk=pk)
@@ -2270,12 +2372,13 @@ def view_admin_schoolevent_evaluations(request, pk):
         return HttpResponse("Invalid event type.")
 
 
-    return render(request, template_name, {'event_form_details': event_form_details, 'faculty': faculty, 'questions': questions, 'excellent_count': excellent_count, 'very_satisfactory_count': very_satisfactory_count, 'satisfactory_count': satisfactory_count, 'fair_count': fair_count, 'poor_count': poor_count})
+    return render(request, template_name, {'event_form_details': event_form_details, 'faculty': faculty, 'questions': questions, 'excellent_count': excellent_count, 'very_satisfactory_count': very_satisfactory_count, 'satisfactory_count': satisfactory_count, 'fair_count': fair_count, 'poor_count': poor_count, 'is_admin': is_admin})
 
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['admin'])
+@allowed_users(allowed_roles=['admin', 'HR admin'])
 def stakeholderevaluations(request):
+    is_admin = request.user.groups.filter(name='admin').exists()
     evaluations = StakeholderFeedbackModel.objects.all()
 
            #filter and search
@@ -2291,7 +2394,7 @@ def stakeholderevaluations(request):
     paginator = Paginator(evaluations, 5)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-    context = {'evaluations': evaluations, 'page_obj': page_obj, 'stakeholder_evaluation_filter': stakeholder_evaluation_filter}
+    context = {'evaluations': evaluations, 'page_obj': page_obj, 'stakeholder_evaluation_filter': stakeholder_evaluation_filter, 'is_admin': is_admin}
     return render(request, 'pages/stakeholderevaluations.html', context)
 
 @login_required(login_url='signin')
@@ -2320,8 +2423,9 @@ def stakeholderevaluations_csv(request):
     return response
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['admin'])
+@allowed_users(allowed_roles=['admin', 'HR admin'])
 def admin_view_stakeholder_form(request, pk):
+    is_admin = request.user.groups.filter(name='admin').exists()
     stakeholder_feedback_form = StakeholderFeedbackModel.objects.get(pk=pk)
     questions = StakeholderFeedbackQuestions.objects.all().order_by('order')
 
@@ -2395,24 +2499,27 @@ def admin_view_stakeholder_form(request, pk):
             comfort=1
         ).count()
     
-    return render(request, 'pages/admin_view_stakeholder_form.html', {'stakeholder_feedback_form': stakeholder_feedback_form, 'questions': questions, 'highly_satisfied_count': highly_satisfied_count, 'very_satisfied_count': very_satisfied_count, 'moderately_satisfied_count': moderately_satisfied_count, 'barely_satisfied_count': barely_satisfied_count, 'not_satisfied_count': not_satisfied_count})
+    return render(request, 'pages/admin_view_stakeholder_form.html', {'stakeholder_feedback_form': stakeholder_feedback_form, 'questions': questions, 'highly_satisfied_count': highly_satisfied_count, 'very_satisfied_count': very_satisfied_count, 'moderately_satisfied_count': moderately_satisfied_count, 'barely_satisfied_count': barely_satisfied_count, 'not_satisfied_count': not_satisfied_count, 'is_admin': is_admin})
 
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['admin'])
 def forms(request):
-
-    return render(request, 'pages/forms.html')
+    is_admin = request.user.groups.filter(name='admin').exists()
+    context = {'is_admin': is_admin}
+    return render(request, 'pages/forms.html', context)
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['admin'])
 def edit_faculty_evaluation_form(request):
+    is_admin = request.user.groups.filter(name='admin').exists()
     questions = FacultyEvaluationQuestions.objects.all()
-    return render(request, 'pages/edit_faculty_evaluation_form.html', {'questions': questions} )
+    return render(request, 'pages/edit_faculty_evaluation_form.html', {'questions': questions, 'is_admin': is_admin} )
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['admin'])
 def edit_faculty_evaluation_form_question(request, pk):
+    is_admin = request.user.groups.filter(name='admin').exists()
     question = FacultyEvaluationQuestions.objects.get(pk=pk)
     if request.method == 'POST':
         form = EditQuestionForm(request.POST, instance=question)  # Use EditQuestionForm
@@ -2422,18 +2529,20 @@ def edit_faculty_evaluation_form_question(request, pk):
             return redirect('edit_faculty_evaluation_form')  # Redirect to success view
     else:
         form = EditQuestionForm(instance=question)  # Pre-populate form with existing data
-    context = {'form': form}
+    context = {'form': form, 'is_admin': is_admin}
     return render(request, 'pages/edit_faculty_evaluation_form_question.html', context)
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['admin'])
 def edit_school_event_form(request):
+    is_admin = request.user.groups.filter(name='admin').exists()
     questions = SchoolEventQuestions.objects.all()
-    return render(request, 'pages/edit_school_event_form.html', {'questions': questions} )
+    return render(request, 'pages/edit_school_event_form.html', {'questions': questions, 'is_admin': is_admin} )
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['admin'])
 def edit_school_event_form_question(request, pk):
+    is_admin = request.user.groups.filter(name='admin').exists()
     question = SchoolEventQuestions.objects.get(pk=pk)
     if request.method == 'POST':
         form = EditSchoolEventQuestionForm(request.POST, instance=question)  # Use EditQuestionForm
@@ -2443,18 +2552,20 @@ def edit_school_event_form_question(request, pk):
             return redirect('edit_school_event_form')  # Redirect to success view
     else:
         form = EditSchoolEventQuestionForm(instance=question)  # Pre-populate form with existing data
-    context = {'form': form}
+    context = {'form': form, 'is_admin': is_admin}
     return render(request, 'pages/edit_school_event_form_question.html', context)
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['admin'])
 def edit_webinar_seminar_form(request):
+    is_admin = request.user.groups.filter(name='admin').exists()
     questions = WebinarSeminarQuestions.objects.all()
-    return render(request, 'pages/edit_webinar_seminar_form.html', {'questions': questions} )
+    return render(request, 'pages/edit_webinar_seminar_form.html', {'questions': questions, 'is_admin': is_admin} )
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['admin'])
 def edit_webinar_seminar_form_question(request, pk):
+    is_admin = request.user.groups.filter(name='admin').exists()
     question = WebinarSeminarQuestions.objects.get(pk=pk)
     if request.method == 'POST':
         form = EditWebinarSeminarQuestionForm(request.POST, instance=question)  # Use EditQuestionForm
@@ -2464,12 +2575,13 @@ def edit_webinar_seminar_form_question(request, pk):
             return redirect('edit_webinar_seminar_form')  # Redirect to success view
     else:
         form = EditWebinarSeminarQuestionForm(instance=question)  # Pre-populate form with existing data
-    context = {'form': form}
+    context = {'form': form, 'is_admin': is_admin}
     return render(request, 'pages/edit_webinar_seminar_form_question.html', context)
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['admin'])
 def faculty(request):
+    is_admin = request.user.groups.filter(name='admin').exists()
     faculty = Faculty.objects.all()  
         #filtering functionality
     faculty_filter = FacultyFilter(request.GET, queryset=faculty)
@@ -2542,24 +2654,26 @@ def faculty(request):
     paginator = Paginator(faculty, 5)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-    context = {'faculty': faculty, 'form': form, 'page_obj': page_obj, 'faculty_filter': faculty_filter}
+    context = {'faculty': faculty, 'form': form, 'page_obj': page_obj, 'faculty_filter': faculty_filter, 'is_admin': is_admin}
 
     return render(request, 'pages/faculty.html', context)
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['admin'])
 def facultyevaluations(request, pk):
+    is_admin = request.user.groups.filter(name='admin').exists()
     teacher = get_object_or_404(Faculty, pk=pk)
     teacher_evaluations = LikertEvaluation.objects.filter(section_subject_faculty__faculty=teacher)
 
 
-    context = {'teacher': teacher, 'teacher_evaluations':  teacher_evaluations}
+    context = {'teacher': teacher, 'teacher_evaluations':  teacher_evaluations, 'is_admin': is_admin}
 
     return render(request, 'pages/facultyevaluations.html', context)
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['admin'])
 def editteacher(request, pk):
+    is_admin = request.user.groups.filter(name='admin').exists()
     faculty = Faculty.objects.get(pk=pk)
     form = TeacherForm(instance=faculty)
     if request.method == 'POST':
@@ -2569,12 +2683,13 @@ def editteacher(request, pk):
             messages.success(request, 'Faculty updated successfully')
             return redirect('faculty')
 
-    context = {'form':form}
+    context = {'form':form, 'is_admin': is_admin}
     return render(request, 'pages/editteacher.html', context)
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['admin'])
 def send_message(request, pk):
+    is_admin = request.user.groups.filter(name='admin').exists()
     user = request.user
     faculty = get_object_or_404(Faculty, pk=pk)
     faculty_user = faculty.user
@@ -2606,23 +2721,25 @@ def send_message(request, pk):
             return redirect('faculty')
     else:
         form = MessageForm()
-    return render(request, 'pages/send_message.html', {'form': form, 'faculty': faculty})
+    return render(request, 'pages/send_message.html', {'form': form, 'faculty': faculty, 'is_admin': is_admin})
 
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['admin'])
 def deleteTeacher(request, pk):
+    is_admin = request.user.groups.filter(name='admin').exists()
     faculty = Faculty.objects.get(pk=pk)
     if request.method == 'POST':
             faculty.delete()
             messages.success(request, 'Faculty deleted successfully')
             return redirect('faculty')
 
-    return render(request, 'pages/delete.html', {'obj':faculty})
+    return render(request, 'pages/delete.html', {'obj':faculty, 'is_admin': is_admin})
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['admin'])
 def department(request):
+    is_admin = request.user.groups.filter(name='admin').exists()
     department = Department.objects.all()
     form = DepartmentForm()
     if request.method == 'POST':
@@ -2635,7 +2752,7 @@ def department(request):
     paginator = Paginator(department, 5)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-    context = {'department': department, 'form': form, 'page_obj': page_obj}
+    context = {'department': department, 'form': form, 'page_obj': page_obj, 'is_admin': is_admin}
 
     return render(request, 'pages/departments.html', context)
 
@@ -2643,6 +2760,7 @@ def department(request):
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['admin'])
 def view_department(request, pk):
+    is_admin = request.user.groups.filter(name='admin').exists()
     department = Department.objects.get(pk=pk)
     faculties = department.faculty_set.all()  # Retrieve all faculties in the department
     paginator = Paginator(faculties, 5)
@@ -2651,7 +2769,8 @@ def view_department(request, pk):
     context = {
         'department': department,
         'faculties': faculties,
-        'page_obj': page_obj
+        'page_obj': page_obj, 
+        'is_admin': is_admin
     }
 
     return render(request, 'pages/view_department.html', context)
@@ -2660,6 +2779,7 @@ def view_department(request, pk):
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['admin'])
 def edit_department(request, pk):
+    is_admin = request.user.groups.filter(name='admin').exists()
     department = Department.objects.get(pk=pk)
     form = DepartmentForm(instance=department)
     if request.method == 'POST':
@@ -2669,24 +2789,26 @@ def edit_department(request, pk):
             messages.success(request, 'Department updated successfully')
             return redirect('department')
 
-    context = {'form':form}
+    context = {'form':form, 'is_admin': is_admin}
     return render(request, 'pages/edit_department.html', context)
 
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['admin'])
 def delete_department(request, pk):
+    is_admin = request.user.groups.filter(name='admin').exists()
     department = Department.objects.get(pk=pk)
     if request.method == 'POST':
             department.delete()
             messages.success(request, 'Department deleted successfully')
             return redirect('department')
 
-    return render(request, 'pages/delete.html', {'obj':department})
+    return render(request, 'pages/delete.html', {'obj':department, 'is_admin': is_admin})
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['admin'])
 def students(request):
+        is_admin = request.user.groups.filter(name='admin').exists()
         students = Student.objects.all()
         student_filter = StudentFilter(request.GET, queryset=students)
         students = student_filter.qs
@@ -2765,13 +2887,14 @@ def students(request):
         paginator = Paginator(students, 5) 
         page_number = request.GET.get('page')
         page_obj = paginator.get_page(page_number)
-        context = {'students': students, 'form': form, 'page_obj': page_obj, 'student_filter': student_filter}
+        context = {'students': students, 'form': form, 'page_obj': page_obj, 'student_filter': student_filter, 'is_admin': is_admin}
         return render(request, 'pages/students.html',  context)
         
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['admin'])
 def editstudent(request, pk):
+    is_admin = request.user.groups.filter(name='admin').exists()
     student = Student.objects.get(pk=pk)
     form = StudentForm(instance=student)
     if request.method == 'POST':
@@ -2781,25 +2904,27 @@ def editstudent(request, pk):
             messages.success(request, 'Student updated successfully')
             return redirect('students')
 
-    context = {'form':form}
+    context = {'form':form, 'is_admin': is_admin}
     return render(request, 'pages/editstudent.html', context)
 
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['admin'])
 def deleteStudent(request, pk):
+    is_admin = request.user.groups.filter(name='admin').exists()
     student = Student.objects.get(pk=pk)
     if request.method == 'POST':
             student.delete()
             messages.success(request, 'Student deleted successfully')
             return redirect('students')
 
-    return render(request, 'pages/delete.html', {'obj':student})
+    return render(request, 'pages/delete.html', {'obj':student, 'is_admin': is_admin})
 
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['admin'])
 def courses(request):
+    is_admin = request.user.groups.filter(name='admin').exists()
     course = Course.objects.all()
     student = Student.objects.all()
     
@@ -2815,7 +2940,8 @@ def courses(request):
     context = {'course': course,
                'total_students': total_students,
               'student': student,
-              'form':form}
+              'form':form, 
+              'is_admin': is_admin}
    
 
    
@@ -2824,7 +2950,7 @@ def courses(request):
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['admin'])
 def editcourse(request, pk):
-    
+    is_admin = request.user.groups.filter(name='admin').exists()
     course = Course.objects.get(pk=pk)
 
     form = CourseForm(instance=course)
@@ -2835,23 +2961,25 @@ def editcourse(request, pk):
             messages.success(request, 'Course updated successfully')
             return redirect('courses')
 
-    context = {'form':form, 'course': course}
+    context = {'form':form, 'course': course, 'is_admin': is_admin}
     return render(request, 'pages/editcourse.html', context)
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['admin'])
 def deleteCourse(request, pk):
+    is_admin = request.user.groups.filter(name='admin').exists()
     course = Course.objects.get(pk=pk)
     if request.method == 'POST':
             course.delete()
             messages.success(request, 'Course deleted successfully')
             return redirect('courses')
 
-    return render(request, 'pages/delete.html', {'obj':course})
+    return render(request, 'pages/delete.html', {'obj':course, 'is_admin': is_admin})
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['admin'])
 def sections(request):
+    is_admin = request.user.groups.filter(name='admin').exists()
     sections = Section.objects.all()
 
     section_filter = SectionFilter(request.GET, queryset=sections)
@@ -2893,14 +3021,14 @@ def sections(request):
     paginator = Paginator(section_data, 5) 
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-    context = {'sections': sections, 'form':form, 'page_obj': page_obj, 'section_filter': section_filter }
+    context = {'sections': sections, 'form':form, 'page_obj': page_obj, 'section_filter': section_filter, 'is_admin': is_admin }
    
     return render(request, 'pages/sections.html',  context)
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['admin'])
 def editsection(request, pk):
-    
+    is_admin = request.user.groups.filter(name='admin').exists()
     section = Section.objects.get(pk=pk)
 
     form = SectionForm(instance=section)
@@ -2911,23 +3039,25 @@ def editsection(request, pk):
             messages.success(request, 'Section updated successfully')
             return redirect('sections')
 
-    context = {'form':form}
+    context = {'form':form, 'is_admin': is_admin}
     return render(request, 'pages/editsection.html', context)
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['admin'])
 def deleteSection(request, pk):
+    is_admin = request.user.groups.filter(name='admin').exists()
     section = Section.objects.get(pk=pk)
     if request.method == 'POST':
             section.delete()
             messages.success(request, 'Section deleted successfully')
             return redirect('sections')
 
-    return render(request, 'pages/delete.html', {'obj':section})
+    return render(request, 'pages/delete.html', {'obj':section, 'is_admin': is_admin})
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['admin'])
 def section_details(request, pk):
+    is_admin = request.user.groups.filter(name='admin').exists()
     section = Section.objects.get(pk=pk)
     section = get_object_or_404(Section, pk=pk) #get the primary key of the selected section
     form = SectionSubjectFacultyForm(initial={'section': section}) # pass the instance of the section attribute to the section that is selected to add subjects
@@ -2995,39 +3125,14 @@ def section_details(request, pk):
 
         else:
                 messages.info(request, 'Please upload a valid Excel file.')
-
-
-
-@login_required(login_url='signin')
-@allowed_users(allowed_roles=['admin'])
-def section_details(request, pk):
-    section = Section.objects.get(pk=pk)
-    section = get_object_or_404(Section, pk=pk) #get the primary key of the selected section
-    form = SectionSubjectFacultyForm(initial={'section': section}) # pass the instance of the section attribute to the section that is selected to add subjects
-    if request.method == 'POST':
-        form = SectionSubjectFacultyForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('section_details', pk=pk)
-        
-@login_required(login_url='signin')
-@allowed_users(allowed_roles=['admin'])
-def section_details(request, pk):
-    section = Section.objects.get(pk=pk)
-    section = get_object_or_404(Section, pk=pk) #get the primary key of the selected section
-    form = SectionSubjectFacultyForm(initial={'section': section}) # pass the instance of the section attribute to the section that is selected to add subjects
-    if request.method == 'POST':
-        form = SectionSubjectFacultyForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('section_details', pk=pk)
         
     subjects_faculty = SectionSubjectFaculty.objects.filter(section=section)
-    return render(request, 'pages/section_details.html', {'section': section, 'subjects_faculty': subjects_faculty, 'form': form})
+    return render(request, 'pages/section_details.html', {'section': section, 'subjects_faculty': subjects_faculty, 'form': form, 'is_admin': is_admin})
     
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['admin'])
 def deleteSub_Section(request, pk):
+    is_admin = request.user.groups.filter(name='admin').exists()
     subject = SectionSubjectFaculty.objects.get(pk=pk)
     section_pk = subject.section.pk  # Get the primary key of the related section
     
@@ -3036,12 +3141,13 @@ def deleteSub_Section(request, pk):
             messages.success(request, 'Subject and Faculty deleted successfully')
             return redirect('section_details', pk=section_pk)
 
-    return render(request, 'pages/delete.html', {'obj':subject})
+    return render(request, 'pages/delete.html', {'obj':subject, 'is_admin': is_admin})
 
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['admin'])
 def subjects(request):
+    is_admin = request.user.groups.filter(name='admin').exists()
     subject = Subject.objects.all()
 
     #filtering functionality
@@ -3067,13 +3173,14 @@ def subjects(request):
     paginator = Paginator(subject, 5) 
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-    context = {'subject': subject, 'form': form, 'page_obj': page_obj, 'subject_filter': subject_filter}
+    context = {'subject': subject, 'form': form, 'page_obj': page_obj, 'subject_filter': subject_filter,
+            'is_admin': is_admin}
     return render(request, 'pages/subjects.html', context)
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['admin'])
 def editsubject(request, pk):
-    
+    is_admin = request.user.groups.filter(name='admin').exists()
     subject = Subject.objects.get(pk=pk)
 
     form = SubjectForm(instance=subject)
@@ -3084,30 +3191,30 @@ def editsubject(request, pk):
             messages.success(request, 'Subject updated successfully')
             return redirect('subjects')
 
-    context = {'form':form}
+    context = {'form':form,
+            'is_admin': is_admin}
     return render(request, 'pages/editsubject.html', context)
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['admin'])
 def deleteSubject(request, pk):
+    is_admin = request.user.groups.filter(name='admin').exists()
     subject = Subject.objects.get(pk=pk)
     if request.method == 'POST':
             subject.delete()
             messages.success(request, 'Subject deleted successfully')
             return redirect('subjects')
 
-    return render(request, 'pages/delete.html', {'obj':subject})
+    return render(request, 'pages/delete.html', {'obj':subject,
+            'is_admin': is_admin})
 
-
-def adminlogout(request):
-    logout(request)
-    return redirect('adminlogin')
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['admin'])
 def users(request):
+    is_admin = request.user.groups.filter(name='admin').exists()
 # Get all users
-    users = User.objects.all().order_by('-date_joined')
+    users = User.objects.filter(is_active=True).order_by('-date_joined')
     user_filter = UserFilter(request.GET, queryset=users)
     users = user_filter.qs
 
@@ -3140,40 +3247,72 @@ def users(request):
     paginator = Paginator(users, 5) 
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-    context = {'user_groups': user_groups, 'page_obj': page_obj, 'user_filter': user_filter}
+    context = {'user_groups': user_groups, 'page_obj': page_obj, 'user_filter': user_filter,
+            'is_admin': is_admin}
     return render(request, 'pages/users.html', context)
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['admin'])
 def edit_user_group(request, user_id):
-    if request.method == 'POST':
-        user = User.objects.get(username=user_id)
-        group_name = request.POST.get('group_name')
-        group = Group.objects.get(name=group_name)
-        user.groups.clear()
-        user.groups.add(group)
-        messages.success(request, 'User role updated successfully.')
-        return redirect('users')  # Redirect to users page after updating group
+    is_admin = request.user.groups.filter(name='admin').exists()
+    user = User.objects.get(username=user_id)
+    user_groups = user.groups.all()
+
+    # Define the allowed groups for the user
+    if user_groups.filter(name__in=['student', 'society president']).exists():
+        allowed_groups = Group.objects.filter(name__in=['student', 'society president'])
+        allow_multiple_selection = False  # Only single selection allowed for students
+    elif user_groups.filter(name__in=['faculty', 'head of OSAS', 'department head']).exists():
+        allowed_groups = Group.objects.filter(name__in=['faculty', 'head of OSAS', 'department head'])
+        allow_multiple_selection = True  # Multiple selection allowed for faculty and head of OSAS
+    elif user_groups.filter(name__in=['admin', 'HR admin']).exists():
+        allowed_groups = Group.objects.filter(name__in=['admin', 'HR admin'])
+        allow_multiple_selection = False  # Only single selection allowed for admins
     else:
-        user = User.objects.get(username=user_id)
-        user_groups = user.groups.all()
-        all_groups = Group.objects.all()
+        # Handle any other cases as needed
+        allowed_groups = Group.objects.all()
+        allow_multiple_selection = False
+
+    if request.method == 'POST':
+        if allow_multiple_selection:
+            group_names = request.POST.getlist('group_name')  # Get multiple selected groups
+            groups = Group.objects.filter(name__in=group_names)  # Retrieve the groups from the database
+        else:
+            group_name = request.POST.get('group_name')  # Get a single group name
+            groups = Group.objects.filter(name=group_name)  # Retrieve the group
+
+        user.groups.clear()  # Clear existing groups
+        user.groups.add(*groups)  # Add the selected groups
+
+        messages.success(request, 'User roles updated successfully.')
+        return redirect('users')  # Redirect to the users page after updating groups
+
+    else:
         context = {
             'user_id': user_id,
             'user_groups': user_groups,
-            'all_groups': all_groups
+            'allowed_groups': allowed_groups,
+            'allow_multiple_selection': allow_multiple_selection,
+            'is_admin': is_admin
         }
         return render(request, 'pages/edit_user_group.html', context)
+
+
+
+def adminlogout(request):
+    logout(request)
+    return redirect('adminlogin')
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['admin'])
 def delete_user(request, user_id):
+    is_admin = request.user.groups.filter(name='admin').exists()
     user = User.objects.get(username=user_id)
     if request.method == 'POST':
             user.delete()
             return redirect('users')
 
-    return render(request, 'pages/delete.html', {'obj':user})
+    return render(request, 'pages/delete.html', {'obj':user, 'is_admin': is_admin})
 
 
             # ------------------------------------------------------
@@ -3182,9 +3321,10 @@ def delete_user(request, user_id):
 
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['faculty', 'head of OSAS'])
+@allowed_users(allowed_roles=['faculty', 'head of OSAS', 'department head'])
 def facultydashboard(request):
     is_head_of_osas = request.user.groups.filter(name='head of OSAS').exists() 
+    is_department_head = request.user.groups.filter(name='department head').exists()
     user=request.user
     faculty = Faculty.objects.filter(email=request.user.username).first()   
     event_notifications = Notification.objects.filter(recipient=user, level='success')
@@ -3381,7 +3521,8 @@ def facultydashboard(request):
         'negative_evaluations': negative_evaluations,
         'current_academic_year': current_academic_year,
         'current_semester': current_semester,
-        'is_head_of_osas': is_head_of_osas 
+        'is_head_of_osas': is_head_of_osas,
+        'is_department_head': is_department_head
     }
 
     return render(request, 'pages/facultydashboard.html', context)
@@ -3403,7 +3544,7 @@ def get_evaluation_data(request):
     return JsonResponse(data)
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['student', 'faculty', 'head of OSAS'])
+@allowed_users(allowed_roles=['student', 'faculty', 'head of OSAS', 'department head'])
 def mark_notifications_read(request):
     if request.method == 'POST':
         # Mark all notifications as read for the current user
@@ -3412,9 +3553,10 @@ def mark_notifications_read(request):
     return JsonResponse({'status': 'error'}, status=400)
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['faculty', 'head of OSAS'])
+@allowed_users(allowed_roles=['faculty', 'head of OSAS', 'department head'])
 def faculty_notifications(request):
     user=request.user
+    is_department_head = request.user.groups.filter(name='department head').exists()
     faculty = Faculty.objects.filter(email=request.user.username).first()   
     event_notifications = Notification.objects.filter(recipient=user, level='success')
     messages_notifications = Notification.objects.filter(recipient=user, level='info')
@@ -3428,12 +3570,13 @@ def faculty_notifications(request):
     return render(request, 'pages/faculty_notifications.html', {'faculty': faculty, 'notifications': notifications, 'event_notifications': event_notifications,
         'notifications_unread_count': notifications_unread_count,
         'messages_notifications': messages_notifications,
-        'messages_unread_count': messages_unread_count })  # Return the response
+        'messages_unread_count': messages_unread_count, 'is_department_head': is_department_head })  # Return the response
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['faculty', 'head of OSAS'])
+@allowed_users(allowed_roles=['faculty', 'head of OSAS', 'department head'])
 def inbox(request):
     user=request.user
+    is_department_head = request.user.groups.filter(name='department head').exists()
     faculty = Faculty.objects.filter(email=request.user.username).first()   
     event_notifications = Notification.objects.filter(recipient=user, level='success')
     messages_notifications = Notification.objects.filter(recipient=user, level='info')
@@ -3447,12 +3590,13 @@ def inbox(request):
     return render(request, 'pages/inbox.html', {'faculty': faculty, 'messages': messages, 'event_notifications': event_notifications,
         'notifications_unread_count': notifications_unread_count,
         'messages_notifications': messages_notifications,
-        'messages_unread_count': messages_unread_count, })  # Return the response
+        'messages_unread_count': messages_unread_count,'is_department_head': is_department_head })  # Return the response
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['faculty', 'head of OSAS'])
+@allowed_users(allowed_roles=['faculty', 'head of OSAS', 'department head'])
 def view_message(request, notification_id):
     user=request.user
+    is_department_head = request.user.groups.filter(name='department head').exists()
     faculty = Faculty.objects.filter(email=request.user.username).first()   
 
     event_notifications = Notification.objects.filter(recipient=user, level='success')
@@ -3471,15 +3615,15 @@ def view_message(request, notification_id):
     return render(request, 'pages/view_message.html', {'faculty': faculty, 'message': message,'event_notifications': event_notifications,
         'notifications_unread_count': notifications_unread_count,
         'messages_notifications': messages_notifications,
-        'messages_unread_count': messages_unread_count,  })  # Return the response
+        'messages_unread_count': messages_unread_count, 'is_department_head': is_department_head })  # Return the response
 
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['faculty', 'head of OSAS'])
+@allowed_users(allowed_roles=['faculty', 'head of OSAS', 'department head'])
 def facultyprofile(request):
     user=request.user
     faculty = Faculty.objects.filter(email=request.user.username).first()   
-
+    is_department_head = request.user.groups.filter(name='department head').exists()
     event_notifications = Notification.objects.filter(recipient=user, level='success')
     messages_notifications = Notification.objects.filter(recipient=user, level='info')
     unread_notifications = Notification.objects.filter(recipient=user, level='success', unread=True)
@@ -3491,13 +3635,14 @@ def facultyprofile(request):
     context = {'faculty': faculty, 'event_notifications': event_notifications,
         'notifications_unread_count': notifications_unread_count,
         'messages_notifications': messages_notifications,
-        'messages_unread_count': messages_unread_count,}
+        'messages_unread_count': messages_unread_count,'is_department_head': is_department_head}
     return render(request, 'pages/facultyprofile.html', context)
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['faculty', 'head of OSAS'])
+@allowed_users(allowed_roles=['faculty', 'head of OSAS', 'department head'])
 def edit_faculty_profile(request):
     user=request.user.faculty
+    is_department_head = request.user.groups.filter(name='department head').exists()
     user_faculty = request.user
     faculty = Faculty.objects.filter(email=request.user.username).first()   
     event_notifications = Notification.objects.filter(recipient=user_faculty, level='success')
@@ -3511,15 +3656,16 @@ def edit_faculty_profile(request):
             messages.success(request, 'Profile Updated Successfully')
             return redirect('facultydashboard')
 
-    return render(request, 'pages/edit_faculty_profile.html', {'faculty': faculty, 'form': form, 'event_notifications': event_notifications, 'notifications_unread_count': notifications_unread_count})
+    return render(request, 'pages/edit_faculty_profile.html', {'faculty': faculty, 'form': form, 'event_notifications': event_notifications, 'notifications_unread_count': notifications_unread_count, 'is_department_head': is_department_head})
 
   
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['faculty', 'head of OSAS'])   
+@allowed_users(allowed_roles=['faculty', 'head of OSAS', 'department head'])   
 def facultyfeedbackandevaluations(request):
     user=request.user
+    is_department_head = request.user.groups.filter(name='department head').exists()
     faculty = Faculty.objects.filter(email=request.user.username).first()   
-
+    is_department_head = request.user.groups.filter(name='department head').exists()
     event_notifications = Notification.objects.filter(recipient=user, level='success')
     messages_notifications = Notification.objects.filter(recipient=user, level='info')
     unread_notifications = Notification.objects.filter(recipient=user, level='success', unread=True)
@@ -3527,6 +3673,9 @@ def facultyfeedbackandevaluations(request):
 
     notifications_unread_count = unread_notifications.count()
     messages_unread_count = unread_messages.count()
+    evaluation_status = EvaluationStatus.objects.first()
+    current_academic_year = evaluation_status.academic_year 
+    current_semester = evaluation_status.semester
 
     email = request.user.email
     teacher_evaluations = LikertEvaluation.objects.filter(section_subject_faculty__faculty=faculty, admin_status='Approved')
@@ -3563,12 +3712,12 @@ def facultyfeedbackandevaluations(request):
     context = {'faculty': faculty, 'teacher': teacher, 'teacher_evaluations': page.object_list, 'faculty_evaluation_filter': faculty_evaluation_filter, 'page_obj':page, 'is_paginated': True, 'paginator':evaluation_paginator,'ordering': ordering, 'event_notifications': event_notifications,
         'notifications_unread_count': notifications_unread_count,
         'messages_notifications': messages_notifications,
-        'messages_unread_count': messages_unread_count, }
+        'messages_unread_count': messages_unread_count, 'is_department_head': is_department_head}
 
     return render(request, 'pages/facultyfeedbackandevaluations.html', context)
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['faculty', 'head of OSAS'])
+@allowed_users(allowed_roles=['faculty', 'head of OSAS', 'department head'])
 def faculty_evaluations_csv(request):
     faculty = Faculty.objects.filter(email=request.user.username).first()
     response = HttpResponse(content_type='text/csv')
@@ -3595,9 +3744,10 @@ def faculty_evaluations_csv(request):
 
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['faculty', 'head of OSAS'])
+@allowed_users(allowed_roles=['faculty', 'head of OSAS', 'department head'])
 def view_evaluation_form(request, pk):
     user=request.user
+    is_department_head = request.user.groups.filter(name='department head').exists()
     faculty = Faculty.objects.filter(email=request.user.username).first()   
 
     event_notifications = Notification.objects.filter(recipient=user, level='success')
@@ -3975,12 +4125,13 @@ def view_evaluation_form(request, pk):
     return render(request, 'pages/view_evaluation_form.html', {'faculty_evaluation_form': faculty_evaluation_form, 'faculty': faculty, 'outstanding_count': outstanding_count, 'very_satisfactory_count': very_satisfactory_count, 'satisfactory_count': satisfactory_count, 'unsatisfactory_count': unsatisfactory_count, 'poor_count': poor_count, 'questions': questions, 'event_notifications': event_notifications,
         'notifications_unread_count': notifications_unread_count,
         'messages_notifications': messages_notifications,
-        'messages_unread_count': messages_unread_count,})
+        'messages_unread_count': messages_unread_count,'is_department_head': is_department_head})
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['faculty', 'head of OSAS'])
+@allowed_users(allowed_roles=['faculty', 'head of OSAS', 'department head'])
 def faculty_event_evaluations(request):
      user=request.user
+     is_department_head = request.user.groups.filter(name='department head').exists()
      faculty = Faculty.objects.filter(email=request.user.username).first()   
      is_head_of_osas = request.user.groups.filter(name='head of OSAS').exists() 
      event_notifications = Notification.objects.filter(recipient=user, level='success')
@@ -4037,20 +4188,21 @@ def faculty_event_evaluations(request):
      context = {'event': event, 'faculty': faculty, 'form':form, 'event_notifications': event_notifications,
         'notifications_unread_count': notifications_unread_count,
         'messages_notifications': messages_notifications,
-        'messages_unread_count': messages_unread_count, 'is_head_of_osas': is_head_of_osas, 'page_obj': page_obj, 'event_filter': event_filter}
+        'messages_unread_count': messages_unread_count, 'is_head_of_osas': is_head_of_osas, 'page_obj': page_obj, 'event_filter': event_filter, 'is_department_head': is_department_head}
      return render(request, 'pages/faculty_event_evaluations.html', context)
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['head of OSAS'])
+@allowed_users(allowed_roles=['head of OSAS', 'department head'])
 def pending_events(request):
     events = Event.objects.filter(admin_status='Pending').order_by('-updated')
+    is_department_head = request.user.groups.filter(name='department head').exists()
     paginator = Paginator(events, 5) 
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-    return render(request,'pages/pending_events.html',{'events': events, 'page_obj': page_obj})
+    return render(request,'pages/pending_events.html',{'events': events, 'page_obj': page_obj,'is_department_head': is_department_head})
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['head of OSAS'])
+@allowed_users(allowed_roles=['head of OSAS', 'department head'])
 def approve_event(request, event_id):
     user=request.user
     event = get_object_or_404(Event, id=event_id, admin_status='Pending')
@@ -4085,7 +4237,7 @@ def approve_event(request, event_id):
     return redirect('pending_events')
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['head of OSAS'])
+@allowed_users(allowed_roles=['head of OSAS', 'department head'])
 def reject_event(request, event_id):
     event = get_object_or_404(Event, id=event_id, admin_status='Pending')
     event.admin_status = 'Rejected'
@@ -4094,10 +4246,11 @@ def reject_event(request, event_id):
     return redirect('pending_events')
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['faculty', 'head of OSAS'])
+@allowed_users(allowed_roles=['faculty', 'head of OSAS', 'department head'])
 def view_faculty_event_evaluations(request, pk):
     user=request.user
     faculty = Faculty.objects.filter(email=request.user.username).first()   
+    is_department_head = request.user.groups.filter(name='department head').exists()
 
     event_notifications = Notification.objects.filter(recipient=user, level='success')
     messages_notifications = Notification.objects.filter(recipient=user, level='info')
@@ -4127,15 +4280,17 @@ def view_faculty_event_evaluations(request, pk):
         'notifications_unread_count': notifications_unread_count,
         'messages_notifications': messages_notifications,
         'messages_unread_count': messages_unread_count,
+        'is_department_head': is_department_head
     }
     return render(request, 'pages/view_faculty_event_evaluations.html', context)
 
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['faculty', 'head of OSAS'])
+@allowed_users(allowed_roles=['faculty', 'head of OSAS', 'department head'])
 def faculty_view_event_evaluations(request, pk):
     user=request.user
     faculty = Faculty.objects.filter(email=request.user.username).first()   
+    is_department_head = request.user.groups.filter(name='department head').exists()
 
     event_notifications = Notification.objects.filter(recipient=user, level='success')
     messages_notifications = Notification.objects.filter(recipient=user, level='info')
@@ -4444,13 +4599,14 @@ def faculty_view_event_evaluations(request, pk):
     return render(request, template_name, {'event_form_details': event_form_details, 'faculty': faculty, 'questions': questions, 'excellent_count': excellent_count, 'very_satisfactory_count': very_satisfactory_count, 'satisfactory_count': satisfactory_count, 'fair_count': fair_count, 'poor_count': poor_count, 'faculty': faculty, 'event_notifications': event_notifications,
         'notifications_unread_count': notifications_unread_count,
         'messages_notifications': messages_notifications,
-        'messages_unread_count': messages_unread_count,})
+        'messages_unread_count': messages_unread_count,'is_department_head': is_department_head})
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['faculty' , 'head of OSAS'])
+@allowed_users(allowed_roles=['faculty' , 'head of OSAS', 'department head'])
 def edit_faculty_events(request, pk):
     user=request.user
     faculty = Faculty.objects.filter(email=request.user.username).first()   
+    is_department_head = request.user.groups.filter(name='department head').exists()
 
     event_notifications = Notification.objects.filter(recipient=user, level='success')
     messages_notifications = Notification.objects.filter(recipient=user, level='info')
@@ -4471,14 +4627,15 @@ def edit_faculty_events(request, pk):
     context = {'event': event, 'faculty': faculty, 'form':form, 'event_notifications': event_notifications,
         'notifications_unread_count': notifications_unread_count,
         'messages_notifications': messages_notifications,
-        'messages_unread_count': messages_unread_count,}
+        'messages_unread_count': messages_unread_count,'is_department_head': is_department_head}
     return render(request, 'pages/edit_faculty_events.html', context)
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['faculty', 'head of OSAS'])
+@allowed_users(allowed_roles=['faculty', 'head of OSAS', 'department head'])
 def delete_faculty_events(request, pk):
     user=request.user
     faculty = Faculty.objects.filter(email=request.user.username).first()   
+    is_department_head = request.user.groups.filter(name='department head').exists()
 
     event_notifications = Notification.objects.filter(recipient=user, level='success')
     messages_notifications = Notification.objects.filter(recipient=user, level='info')
@@ -4495,13 +4652,14 @@ def delete_faculty_events(request, pk):
     return render(request, 'pages/faculty_delete_form.html', {'obj':event, 'faculty': faculty, 'event_notifications': event_notifications,
         'notifications_unread_count': notifications_unread_count,
         'messages_notifications': messages_notifications,
-        'messages_unread_count': messages_unread_count,})
+        'messages_unread_count': messages_unread_count,'is_department_head': is_department_head})
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['faculty' , 'head of OSAS'])
+@allowed_users(allowed_roles=['faculty' , 'head of OSAS', 'department head'])
 def faculty_events(request):
     user=request.user
-    faculty = Faculty.objects.filter(email=request.user.username).first()   
+    faculty = Faculty.objects.filter(email=request.user.username).first()
+    is_department_head = request.user.groups.filter(name='department head').exists()
 
     event_notifications = Notification.objects.filter(recipient=user, level='success')
     messages_notifications = Notification.objects.filter(recipient=user, level='info')
@@ -4531,13 +4689,14 @@ def faculty_events(request):
     return render(request, 'pages/faculty_events.html', {'faculty': faculty, 'unevaluated_events': unevaluated_events, 'past_events': past_events, 'upcoming_events': upcoming_events, 'event_notifications': event_notifications,
         'notifications_unread_count': notifications_unread_count,
         'messages_notifications': messages_notifications,
-        'messages_unread_count': messages_unread_count,})
+        'messages_unread_count': messages_unread_count,'is_department_head': is_department_head})
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['faculty', 'head of OSAS'])
+@allowed_users(allowed_roles=['faculty', 'head of OSAS', 'department head'])
 def faculty_events_upcoming(request):
     user=request.user
     faculty = Faculty.objects.filter(email=request.user.username).first()   
+    is_department_head = request.user.groups.filter(name='department head').exists()
 
     event_notifications = Notification.objects.filter(recipient=user, level='success')
     messages_notifications = Notification.objects.filter(recipient=user, level='info')
@@ -4555,13 +4714,14 @@ def faculty_events_upcoming(request):
     return render(request, 'pages/faculty_events_upcoming.html', {'faculty': faculty,'upcoming_events': upcoming_events, 'event_notifications': event_notifications,
         'notifications_unread_count': notifications_unread_count,
         'messages_notifications': messages_notifications,
-        'messages_unread_count': messages_unread_count,})
+        'messages_unread_count': messages_unread_count,'is_department_head': is_department_head})
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['faculty', 'head of OSAS'])
+@allowed_users(allowed_roles=['faculty', 'head of OSAS', 'department head'])
 def faculty_events_evaluated(request):
     user=request.user
     faculty = Faculty.objects.filter(email=request.user.username).first()   
+    is_department_head = request.user.groups.filter(name='department head').exists()
 
     event_notifications = Notification.objects.filter(recipient=user, level='success')
     messages_notifications = Notification.objects.filter(recipient=user, level='info')
@@ -4587,13 +4747,14 @@ def faculty_events_evaluated(request):
     return render(request, 'pages/faculty_events_evaluated.html', {'faculty': faculty, 'evaluated_events': evaluated_events, 'event_notifications': event_notifications,
         'notifications_unread_count': notifications_unread_count,
         'messages_notifications': messages_notifications,
-        'messages_unread_count': messages_unread_count,})
+        'messages_unread_count': messages_unread_count, 'is_department_head': is_department_head})
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['faculty', 'head of OSAS'])
+@allowed_users(allowed_roles=['faculty', 'head of OSAS', 'department head'])
 def faculty_events_closed(request):
     user=request.user
-    faculty = Faculty.objects.filter(email=request.user.username).first()   
+    faculty = Faculty.objects.filter(email=request.user.username).first()
+    is_department_head = request.user.groups.filter(name='department head').exists()
 
     event_notifications = Notification.objects.filter(recipient=user, level='success')
     messages_notifications = Notification.objects.filter(recipient=user, level='info')
@@ -4612,13 +4773,14 @@ def faculty_events_closed(request):
     return render(request, 'pages/faculty_events_closed.html', {'faculty': faculty, 'past_events': past_events, 'event_notifications': event_notifications,
         'notifications_unread_count': notifications_unread_count,
         'messages_notifications': messages_notifications,
-        'messages_unread_count': messages_unread_count,})
+        'messages_unread_count': messages_unread_count, 'is_department_head': is_department_head})
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['faculty', 'head of OSAS'])
+@allowed_users(allowed_roles=['faculty', 'head of OSAS', 'department head'])
 def faculty_event_detail(request, pk):
     user=request.user
     faculty = Faculty.objects.filter(email=request.user.username).first()   
+    is_department_head = request.user.groups.filter(name='department head').exists()
 
     event_notifications = Notification.objects.filter(recipient=user, level='success')
     messages_notifications = Notification.objects.filter(recipient=user, level='info')
@@ -4664,7 +4826,7 @@ def faculty_event_detail(request, pk):
         return render(request, 'pages/faculty_school_event_form.html', context = {'event': event, 'form': form, 'faculty': faculty, 'questions': questions, 'event_notifications': event_notifications,
         'notifications_unread_count': notifications_unread_count,
         'messages_notifications': messages_notifications,
-        'messages_unread_count': messages_unread_count,})
+        'messages_unread_count': messages_unread_count, 'is_department_head': is_department_head})
     
     elif event.event_type.name == 'Webinar/Seminar':
         questions = WebinarSeminarQuestions.objects.all().order_by('order')
@@ -4763,21 +4925,23 @@ def faculty_event_detail(request, pk):
         return render(request, 'pages/faculty_webinar_seminar_form.html', context={'event': event, 'form': form, 'faculty': faculty, 'questions': questions, 'event_notifications': event_notifications,
         'notifications_unread_count': notifications_unread_count,
         'messages_notifications': messages_notifications,
-        'messages_unread_count': messages_unread_count,})
+        'messages_unread_count': messages_unread_count, 'is_department_head': is_department_head})
     else:
         # Handle other event types
         pass
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['faculty', 'head of OSAS'])
+@allowed_users(allowed_roles=['faculty', 'head of OSAS', 'department head'])
 def peer_to_peer_evaluation(request):
     evaluation_status = EvaluationStatus.objects.first()
     user=request.user
+    is_department_head = request.user.groups.filter(name='department head').exists()
     faculty = Faculty.objects.filter(email=request.user.username).first()   
     event_notifications = Notification.objects.filter(recipient=user, level='success')
     messages_notifications = Notification.objects.filter(recipient=user, level='info')
     unread_notifications = Notification.objects.filter(recipient=user, level='success', unread=True)
     unread_messages = Notification.objects.filter(recipient=user, level='info', unread=True)
+    
 
     notifications_unread_count = unread_notifications.count()
     messages_unread_count = unread_messages.count()
@@ -4792,12 +4956,13 @@ def peer_to_peer_evaluation(request):
     minimum_evaluations_required = 6 
     has_met_minimum_evaluations = evaluated_count >= minimum_evaluations_required
 
-    return render(request, 'pages/peer_to_peer_evaluation.html', {'faculty': faculty, 'messages_notifications': messages_notifications, 'evaluation_status': evaluation_status, 'messages_unread_count': messages_unread_count, 'event_notifications': event_notifications, 'notifications_unread_count': notifications_unread_count, 'faculty_department': faculty_department, 'evaluated_faculty_ids': user_evaluations, 'has_met_minimum_evaluations': has_met_minimum_evaluations, 'evaluated_count': evaluated_count, 'minimum_evaluations_required': minimum_evaluations_required})
+    return render(request, 'pages/peer_to_peer_evaluation.html', {'faculty': faculty, 'messages_notifications': messages_notifications, 'evaluation_status': evaluation_status, 'messages_unread_count': messages_unread_count, 'event_notifications': event_notifications, 'notifications_unread_count': notifications_unread_count, 'faculty_department': faculty_department, 'evaluated_faculty_ids': user_evaluations, 'has_met_minimum_evaluations': has_met_minimum_evaluations, 'evaluated_count': evaluated_count, 'minimum_evaluations_required': minimum_evaluations_required, 'is_department_head': is_department_head})
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['faculty', 'head of OSAS'])
+@allowed_users(allowed_roles=['faculty', 'head of OSAS', 'department head'])
 def peer_to_peer_evaluation_form(request,pk):
     user=request.user
+    is_department_head = request.user.groups.filter(name='department head').exists()
     faculty = Faculty.objects.filter(email=request.user.username).first()   
     peer = get_object_or_404(Faculty, pk=pk)
     event_notifications = Notification.objects.filter(recipient=user, level='success')
@@ -4943,14 +5108,15 @@ def peer_to_peer_evaluation_form(request,pk):
     else:
         form = PeertoPeerEvaluationForm()
 
-    context = { 'form': form, 'faculty_department': faculty_department, 'messages_notifications': messages_notifications, 'faculty': faculty, 'questions': questions, 'evaluated_faculty_ids': user_evaluations, 'event_notifications': event_notifications, 'notifications_unread_count': notifications_unread_count, 'messages_unread_count': messages_unread_count, 'peer': peer}
+    context = { 'form': form, 'faculty_department': faculty_department, 'messages_notifications': messages_notifications, 'faculty': faculty, 'questions': questions, 'evaluated_faculty_ids': user_evaluations, 'event_notifications': event_notifications, 'notifications_unread_count': notifications_unread_count, 'messages_unread_count': messages_unread_count, 'peer': peer, 'is_department_head': is_department_head}
     return render(request, 'pages/peer_to_peer_evaluation_form.html', context)
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['faculty', 'head of OSAS'])
+@allowed_users(allowed_roles=['faculty', 'head of OSAS', 'department head'])
 def peer_to_peer_evaluations(request):
     evaluation_status = EvaluationStatus.objects.first()
     user=request.user
+    is_department_head = request.user.groups.filter(name='department head').exists()
     faculty = Faculty.objects.filter(email=request.user.username).first()   
     event_notifications = Notification.objects.filter(recipient=user, level='success')
     messages_notifications = Notification.objects.filter(recipient=user, level='info')
@@ -4985,10 +5151,10 @@ def peer_to_peer_evaluations(request):
     except EmptyPage:
         page = evaluation_paginator.page(evaluation_paginator.num_pages)
 
-    return render(request, 'pages/peer_to_peer_evaluations.html', {'faculty': faculty, 'messages_notifications': messages_notifications, 'evaluation_status': evaluation_status, 'messages_unread_count': messages_unread_count, 'event_notifications': event_notifications, 'notifications_unread_count': notifications_unread_count, 'peer_to_peer_evaluations': peer_to_peer_evaluations, 'faculty_evaluation_filter': faculty_evaluation_filter, 'page_obj':page, 'is_paginated': True, 'paginator':evaluation_paginator,'ordering': ordering})
+    return render(request, 'pages/peer_to_peer_evaluations.html', {'faculty': faculty, 'messages_notifications': messages_notifications, 'evaluation_status': evaluation_status, 'messages_unread_count': messages_unread_count, 'event_notifications': event_notifications, 'notifications_unread_count': notifications_unread_count, 'peer_to_peer_evaluations': peer_to_peer_evaluations, 'faculty_evaluation_filter': faculty_evaluation_filter, 'page_obj':page, 'is_paginated': True, 'paginator':evaluation_paginator,'ordering': ordering, 'is_department_head': is_department_head})
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['faculty', 'head of OSAS'])
+@allowed_users(allowed_roles=['faculty', 'head of OSAS', 'department head'])
 def peer_to_peer_evaluations_csv(request):
     faculty = Faculty.objects.filter(email=request.user.username).first()
     response = HttpResponse(content_type='text/csv')
@@ -5014,9 +5180,10 @@ def peer_to_peer_evaluations_csv(request):
     return response
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['faculty', 'head of OSAS'])
+@allowed_users(allowed_roles=['faculty', 'head of OSAS', 'department head'])
 def view_peer_to_peer_evaluation_form(request, pk):
     user=request.user
+    is_department_head = request.user.groups.filter(name='department head').exists()
     faculty = Faculty.objects.filter(email=request.user.username).first()   
 
     event_notifications = Notification.objects.filter(recipient=user, level='success')
@@ -5394,4 +5561,595 @@ def view_peer_to_peer_evaluation_form(request, pk):
     return render(request, 'pages/view_peer_to_peer_evaluation_form.html', {'faculty_evaluation_form': faculty_evaluation_form, 'faculty': faculty, 'outstanding_count': outstanding_count, 'very_satisfactory_count': very_satisfactory_count, 'satisfactory_count': satisfactory_count, 'unsatisfactory_count': unsatisfactory_count, 'poor_count': poor_count, 'questions': questions, 'event_notifications': event_notifications,
         'notifications_unread_count': notifications_unread_count,
         'messages_notifications': messages_notifications,
+        'messages_unread_count': messages_unread_count,'is_department_head': is_department_head})
+
+
+@login_required(login_url='signin')
+@allowed_users(allowed_roles=['head of OSAS', 'department head'])
+def department_head_view_department(request):
+    user=request.user
+    
+    is_department_head = request.user.groups.filter(name='department head').exists()
+    faculty = Faculty.objects.filter(email=request.user.username).first()   
+    event_notifications = Notification.objects.filter(recipient=user, level='success')
+    messages_notifications = Notification.objects.filter(recipient=user, level='info')
+    unread_notifications = Notification.objects.filter(recipient=user, level='success', unread=True)
+    unread_messages = Notification.objects.filter(recipient=user, level='info', unread=True)
+
+    notifications_unread_count = unread_notifications.count()
+    messages_unread_count = unread_messages.count()
+    department = Department.objects.get(name=faculty.department)
+    faculties = department.faculty_set.all()  # Retrieve all faculties in the department
+
+    form = TeacherForm()
+    if request.method == 'POST':
+        form = TeacherForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Faculty added successfully')
+            return redirect('department_head_view_department')
+    paginator = Paginator(faculties, 5)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    context = {
+        'department': department,
+        'faculties': faculties,
+        'page_obj': page_obj, 
+        'is_department_head': is_department_head,
+        'event_notifications': event_notifications,
+        'messages_notifications': messages_notifications,
+        'notifications_unread_count': notifications_unread_count,
+        'messages_unread_count': messages_unread_count,
+        'faculty': faculty,
+        'form': form
+
+    }
+
+    return render(request, 'pages/department_head_view_department.html', context)
+
+@login_required(login_url='signin')
+@allowed_users(allowed_roles=['head of OSAS', 'department head'])
+def department_head_faculty_evaluations(request, pk):
+    user = request.user
+    is_department_head = request.user.groups.filter(name='department head').exists()
+    faculty = Faculty.objects.filter(email=request.user.username).first()   
+    event_notifications = Notification.objects.filter(recipient=user, level='success')
+    messages_notifications = Notification.objects.filter(recipient=user, level='info')
+    unread_notifications = Notification.objects.filter(recipient=user, level='success', unread=True)
+    unread_messages = Notification.objects.filter(recipient=user, level='info', unread=True)
+
+    notifications_unread_count = unread_notifications.count()
+    messages_unread_count = unread_messages.count()
+    evaluation_status = EvaluationStatus.objects.first()
+    current_academic_year = evaluation_status.academic_year 
+    current_semester = evaluation_status.semester
+
+    teacher = get_object_or_404(Faculty, pk=pk)
+    teacher_evaluations = LikertEvaluation.objects.filter(section_subject_faculty__faculty=teacher,academic_year=current_academic_year, semester=current_semester)
+
+
+
+    context = {'teacher': teacher, 'teacher_evaluations':  teacher_evaluations, 'is_department_head': is_department_head, 'event_notifications': event_notifications,
+        'messages_notifications': messages_notifications,
+        'notifications_unread_count': notifications_unread_count,
+        'messages_unread_count': messages_unread_count,
+        'faculty': faculty}
+
+    return render(request, 'pages/department_head_faculty_evaluations.html', context)
+
+@login_required(login_url='signin')
+@allowed_users(allowed_roles=['head of OSAS', 'department head'])
+def department_head_send_message(request, pk):
+    user = request.user
+    is_department_head = request.user.groups.filter(name='department head').exists()
+    faculty = Faculty.objects.filter(email=request.user.username).first()   
+    event_notifications = Notification.objects.filter(recipient=user, level='success')
+    messages_notifications = Notification.objects.filter(recipient=user, level='info')
+    unread_notifications = Notification.objects.filter(recipient=user, level='success', unread=True)
+    unread_messages = Notification.objects.filter(recipient=user, level='info', unread=True)
+
+    notifications_unread_count = unread_notifications.count()
+    messages_unread_count = unread_messages.count()
+    faculty = get_object_or_404(Faculty, pk=pk)
+    faculty_user = faculty.user
+    if request.method == 'POST':
+        form = MessageForm(request.POST, request.FILES)
+        if form.is_valid():
+            message = form.save(commit=False)
+            message.sender = user
+            message.recipient = faculty_user
+            message.save()
+
+            # Send email with attachment if it exists
+            email = EmailMessage(
+                subject=f'New Message: {message.subject}',
+                body=message.content,
+                from_email='your-email@example.com',
+                to=[faculty.email],
+            )
+            if message.attachment:
+                email.attach(message.attachment.name, message.attachment.read())
+            email.send()
+
+            notify.send(
+                sender=user,
+                recipient=faculty_user,
+                verb=message.subject,
+                description=message.content
+            )
+            return redirect('faculty')
+    else:
+        form = MessageForm()
+    return render(request, 'pages/department_head_send_message.html', {'form': form, 'faculty': faculty, 'is_department_head': is_department_head, 'event_notifications': event_notifications,
+        'messages_notifications': messages_notifications,
+        'notifications_unread_count': notifications_unread_count,
+        'messages_unread_count': messages_unread_count,
+        'faculty': faculty})
+
+@login_required(login_url='signin')
+@allowed_users(allowed_roles=['head of OSAS', 'department head'])
+def department_head_pending_evaluations(request):
+    user = request.user
+    is_department_head = request.user.groups.filter(name='department head').exists()
+    faculty = Faculty.objects.filter(email=request.user.username).first()   
+    event_notifications = Notification.objects.filter(recipient=user, level='success')
+    messages_notifications = Notification.objects.filter(recipient=user, level='info')
+    unread_notifications = Notification.objects.filter(recipient=user, level='success', unread=True)
+    unread_messages = Notification.objects.filter(recipient=user, level='info', unread=True)
+
+    notifications_unread_count = unread_notifications.count()
+    messages_unread_count = unread_messages.count()
+    evaluations = LikertEvaluation.objects.filter(admin_status='Approved to Department Head',  section_subject_faculty__faculty__department=faculty.department).order_by('-updated')
+    paginator = Paginator(evaluations, 5) 
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    return render(request,'pages/department_head_pending_evaluations.html',{'evaluations': evaluations, 'page_obj': page_obj, 'faculty': faculty, 'is_department_head': is_department_head, 'event_notifications': event_notifications,
+        'messages_notifications': messages_notifications,
+        'notifications_unread_count': notifications_unread_count,
+        'messages_unread_count': messages_unread_count,
+        'faculty': faculty})
+
+@login_required(login_url='signin')
+@allowed_users(allowed_roles=['head of OSAS','department head'])
+def department_head_approve_evaluation(request, pk):
+    evaluation = get_object_or_404(LikertEvaluation, pk=pk, admin_status='Approved to Department Head')
+    
+    evaluation.admin_status = 'Approved'
+    evaluation.save()
+                
+    return redirect('department_head_pending_evaluations')
+
+@login_required(login_url='signin')
+@allowed_users(allowed_roles=['head of OSAS','department head'])
+def department_head_reject_evaluation(request, pk):
+    evaluation = get_object_or_404(LikertEvaluation, pk=pk, admin_status='Pending')
+    
+    evaluation.admin_status = 'Rejected'
+    evaluation.save()
+                
+    return redirect('department_head_pending_evaluations')
+
+@login_required(login_url='signin')
+@allowed_users(allowed_roles=['head of OSAS','department head']) 
+def department_head_approve_all_pending_evaluations(request):
+     if request.method == 'POST': LikertEvaluation.objects.filter(admin_status='Approved to Department Head').update(admin_status='Approved') 
+     messages.success(request, 'All pending evaluations have been approved.') 
+     return redirect('department_head_pending_evaluations')
+
+@login_required(login_url='signin')
+@allowed_users(allowed_roles=['head of OSAS', 'department head'])
+def department_head_faculty_evaluations_csv(request):
+    faculty = Faculty.objects.filter(email=request.user.username).first()
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename=faculty_evaluations.csv'
+
+    # Create a csv writer
+    writer = csv.writer(response)
+    evaluation_status = EvaluationStatus.objects.first()
+    current_academic_year = evaluation_status.academic_year 
+    current_semester = evaluation_status.semester
+
+    # Apply filters from the EvaluationFilter based on the request data
+    evaluation_filter = EvaluationFilter(request.GET, queryset=LikertEvaluation.objects.filter(section_subject_faculty__faculty=faculty, academic_year=current_academic_year, semester=current_semester))
+
+    # Get the filtered queryset
+    filtered_evaluations = evaluation_filter.qs
+
+    # Add column headings to csv file
+
+    writer.writerow(['Subject', 'Faculty', 'Average', 'Rating', 'Overall Impression', 'Polarity', 'Academic Year', 'Semester'])
+
+    # Loop thru and output
+    for i in filtered_evaluations:
+        writer.writerow([i.section_subject_faculty.subjects, i.section_subject_faculty.faculty, i.average_rating, i.get_rating_category(), i.comments, i.predicted_sentiment, i.academic_year, i.semester ])
+
+    return response
+
+@login_required(login_url='signin')
+@allowed_users(allowed_roles=['head of OSAS','department head'])
+def department_head_view_evaluation_form(request, pk):
+    faculty_evaluation_form = get_object_or_404(LikertEvaluation, pk=pk)
+    questions = FacultyEvaluationQuestions.objects.all().order_by('order')
+    user = request.user
+    is_department_head = request.user.groups.filter(name='department head').exists()
+    faculty = Faculty.objects.filter(email=request.user.username).first()   
+    event_notifications = Notification.objects.filter(recipient=user, level='success')
+    messages_notifications = Notification.objects.filter(recipient=user, level='info')
+    unread_notifications = Notification.objects.filter(recipient=user, level='success', unread=True)
+    unread_messages = Notification.objects.filter(recipient=user, level='info', unread=True)
+
+    notifications_unread_count = unread_notifications.count()
+    messages_unread_count = unread_messages.count()
+    outstanding_count = LikertEvaluation.objects.filter(pk=pk).filter(
+        command_and_knowledge_of_the_subject=5
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        depth_of_mastery=5
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(pk=pk).filter(
+        practice_in_respective_discipline=5
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        up_to_date_knowledge=5
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        integrates_subject_to_practical_circumstances=5
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        organizes_the_subject_matter=5
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        provides_orientation_on_course_content=5
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        efforts_of_class_preparation=5
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        summarizes_main_points=5
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        monitors_online_class=5
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        holds_interest_of_students=5
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        provides_relevant_feedback=5
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        encourages_participation=5
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        shows_enthusiasm=5
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        shows_sense_of_humor=5
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        teaching_methods=5
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        flexible_learning_strategies=5
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        student_engagement=5
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        clear_examples=5
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        focused_on_objectives=5
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        starts_with_motivating_activities=5
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        speaks_in_clear_and_audible_manner=5
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        uses_appropriate_medium_of_instruction=5
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        establishes_online_classroom_environment=5
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        observes_proper_classroom_etiquette=5
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        uses_time_wisely=5
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        gives_ample_time_for_students_to_prepare=5
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        updates_the_students_of_their_progress=5
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        demonstrates_leadership_and_professionalism=5
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        understands_possible_distractions=5
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        sensitivity_to_student_culture=5
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        responds_appropriately=5
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        assists_students_on_concerns=5
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        guides_the_students_in_accomplishing_tasks=5
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        extends_consideration_to_students=5
+    ).count()    
+    
+    # Continue for other fields
+    
+    very_satisfactory_count = LikertEvaluation.objects.filter(pk=pk).filter(
+        command_and_knowledge_of_the_subject=4
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        depth_of_mastery=4
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        practice_in_respective_discipline=4
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        up_to_date_knowledge=4
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        integrates_subject_to_practical_circumstances=4
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        organizes_the_subject_matter=4
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        provides_orientation_on_course_content=4
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        efforts_of_class_preparation=4
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        summarizes_main_points=4
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        monitors_online_class=4
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        holds_interest_of_students=4
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        provides_relevant_feedback=4
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        encourages_participation=4
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        shows_enthusiasm=4
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        shows_sense_of_humor=4
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        teaching_methods=4
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        flexible_learning_strategies=4
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        student_engagement=4
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        clear_examples=4
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        focused_on_objectives=4
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        starts_with_motivating_activities=4
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        speaks_in_clear_and_audible_manner=4
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        uses_appropriate_medium_of_instruction=4
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        establishes_online_classroom_environment=4
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        observes_proper_classroom_etiquette=4
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        uses_time_wisely=4
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        gives_ample_time_for_students_to_prepare=4
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        updates_the_students_of_their_progress=4
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        demonstrates_leadership_and_professionalism=4
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        understands_possible_distractions=4
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        sensitivity_to_student_culture=4
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        responds_appropriately=4
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        assists_students_on_concerns=4
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        guides_the_students_in_accomplishing_tasks=4
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        extends_consideration_to_students=4
+    ).count()    
+    
+    satisfactory_count = LikertEvaluation.objects.filter(pk=pk).filter(
+        command_and_knowledge_of_the_subject=3
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        depth_of_mastery=3
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        practice_in_respective_discipline=3
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        up_to_date_knowledge=3
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        integrates_subject_to_practical_circumstances=3
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        organizes_the_subject_matter=3
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        provides_orientation_on_course_content=3
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        efforts_of_class_preparation=3
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        summarizes_main_points=3
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        monitors_online_class=3
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        holds_interest_of_students=3
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        provides_relevant_feedback=3
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        encourages_participation=3
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        shows_enthusiasm=3
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        shows_sense_of_humor=3
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        teaching_methods=3
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        flexible_learning_strategies=3
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        student_engagement=3
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        clear_examples=3
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        focused_on_objectives=3
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        starts_with_motivating_activities=3
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        speaks_in_clear_and_audible_manner=3
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        uses_appropriate_medium_of_instruction=3
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        establishes_online_classroom_environment=3
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        observes_proper_classroom_etiquette=3
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        uses_time_wisely=3
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        gives_ample_time_for_students_to_prepare=3
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        updates_the_students_of_their_progress=3
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        demonstrates_leadership_and_professionalism=3
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        understands_possible_distractions=3
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        sensitivity_to_student_culture=3
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        responds_appropriately=3
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        assists_students_on_concerns=3
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        guides_the_students_in_accomplishing_tasks=3
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        extends_consideration_to_students=3
+    ).count()    
+    
+    unsatisfactory_count = LikertEvaluation.objects.filter(pk=pk).filter(
+        command_and_knowledge_of_the_subject=2
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        depth_of_mastery=2
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        practice_in_respective_discipline=2
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        up_to_date_knowledge=2
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        integrates_subject_to_practical_circumstances=2
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        organizes_the_subject_matter=2
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        provides_orientation_on_course_content=2
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        efforts_of_class_preparation=2
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        summarizes_main_points=2
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        monitors_online_class=2
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        holds_interest_of_students=2
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        provides_relevant_feedback=2
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        encourages_participation=2
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        shows_enthusiasm=2
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        shows_sense_of_humor=2
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        teaching_methods=2
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        flexible_learning_strategies=2
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        student_engagement=2
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        clear_examples=2
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        focused_on_objectives=2
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        starts_with_motivating_activities=2
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        speaks_in_clear_and_audible_manner=2
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        uses_appropriate_medium_of_instruction=2
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        establishes_online_classroom_environment=2
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        observes_proper_classroom_etiquette=2
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        uses_time_wisely=2
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        gives_ample_time_for_students_to_prepare=2
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        updates_the_students_of_their_progress=2
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        demonstrates_leadership_and_professionalism=2
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        understands_possible_distractions=2
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        sensitivity_to_student_culture=2
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        responds_appropriately=2
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        assists_students_on_concerns=2
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        guides_the_students_in_accomplishing_tasks=2
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        extends_consideration_to_students=2
+    ).count()    
+
+    poor_count = LikertEvaluation.objects.filter(pk=pk).filter(
+        command_and_knowledge_of_the_subject=1
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        depth_of_mastery=1
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        practice_in_respective_discipline=1
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        up_to_date_knowledge=1
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        integrates_subject_to_practical_circumstances=1
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        organizes_the_subject_matter=1
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        provides_orientation_on_course_content=1
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        efforts_of_class_preparation=1
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        summarizes_main_points=1
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        monitors_online_class=1
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        holds_interest_of_students=1
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        provides_relevant_feedback=1
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        encourages_participation=1
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        shows_enthusiasm=1
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        shows_sense_of_humor=1
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        teaching_methods=1
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        flexible_learning_strategies=1
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        student_engagement=1
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        clear_examples=1
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        focused_on_objectives=1
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        starts_with_motivating_activities=1
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        speaks_in_clear_and_audible_manner=1
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        uses_appropriate_medium_of_instruction=1
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        establishes_online_classroom_environment=1
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        observes_proper_classroom_etiquette=1
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        uses_time_wisely=1
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        gives_ample_time_for_students_to_prepare=1
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        updates_the_students_of_their_progress=1
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        demonstrates_leadership_and_professionalism=1
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        understands_possible_distractions=1
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        sensitivity_to_student_culture=1
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        responds_appropriately=1
+    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
+        assists_students_on_concerns=1
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        guides_the_students_in_accomplishing_tasks=1
+    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
+        extends_consideration_to_students=1
+    ).count()    
+    
+
+    return render(request, 'pages/department_head_view_evaluation_form.html', {'faculty_evaluation_form': faculty_evaluation_form, 'faculty': faculty, 'questions': questions, 'outstanding_count': outstanding_count, 'very_satisfactory_count': very_satisfactory_count, 'satisfactory_count': satisfactory_count, 'unsatisfactory_count': unsatisfactory_count, 'poor_count': poor_count, 'faculty': faculty, 'is_department_head': is_department_head, 'event_notifications': event_notifications,
+        'messages_notifications': messages_notifications,
+        'notifications_unread_count': notifications_unread_count,
         'messages_unread_count': messages_unread_count,})
+
+
+def facultylogout(request):
+    logout(request)
+    return redirect('facultylogin')

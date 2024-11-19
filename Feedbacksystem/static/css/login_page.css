@@ -422,6 +422,18 @@ h5{
 .feedback-note{
     font-size: 0.7rem;
 }
+
+form { 
+    width: 80%; 
+}
+.form-group { 
+    margin-bottom: 1.5rem; 
+}
+input { 
+    padding: 0.4rem;
+    font-size: 0.9rem; 
+}
+}
 @media only screen and (max-width:461px) {
     .container-body{
         width: 23em;

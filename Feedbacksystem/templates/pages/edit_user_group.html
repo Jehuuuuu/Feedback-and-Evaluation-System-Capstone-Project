@@ -10,19 +10,28 @@
 {% endblock header %}
 
 {% block feature %}
-
 <div class="row justify-content-center">
     <div class="col-md-6">
         <form method="post">
             {% csrf_token %}
             <label for="group_name">Select Role:</label>
-            <select name="group_name" id="group_name"  class="form-select">
-                {% for group in all_groups %}
+            <select name="group_name" id="group_name" class="form-select" {% if allow_multiple_selection %} multiple {% endif %}>
+                {% for group in allowed_groups %}
                 <option value="{{ group.name }}" {% if group in user_groups %} selected {% endif %}>{{ group.name }}</option>
                 {% endfor %}
             </select>
+            
+            {% if allow_multiple_selection %}
+            <small class="form-text text-muted mt-1">
+                Hold <strong>Ctrl</strong> (or <strong>Cmd</strong> on Mac) to select multiple roles.
+            </small>
+            {% endif %}
+            
             <button type="submit" class="btn custom-btn mt-2">Update</button>
         </form>
     </div>
 </div>
+
+
+
 {% endblock feature %}
