@@ -42,7 +42,6 @@ INSTALLED_APPS = [
     'django_filters',
     'import_export',
     'notifications',
-    'django_celery_beat',
 ]
 
 MIDDLEWARE = [
@@ -146,7 +145,3 @@ EMAIL_HOST_USER = 'jehurodriguez143@gmail.com'  # Your full email address
 EMAIL_HOST_PASSWORD = 'nldj gulq sokh jnol'  # Password or app-specific password if using Gmail
 DEFAULT_FROM_EMAIL = 'Feedback and Evaluation System - CvSU Bacoor <djangoadmin@gmail.com>'  # How the sender email appears to recipients
 PASSWORD_RESET_TIMEOUT = 14400
-
-CELERY_BROKER_URL = 'redis://localhost:6379/0'  # Redis as broker
-CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'  # Redis as result backend
-CELERYD_POOL = 'solo'

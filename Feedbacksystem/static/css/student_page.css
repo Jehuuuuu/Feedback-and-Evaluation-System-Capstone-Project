@@ -199,7 +199,7 @@ main {
     background-color: #ffffff;
     padding: 1em;
     border-radius:  0.25rem;
-    height: 9em;
+    height: 10.5em;
     max-width: 550px;
   }
 
@@ -262,18 +262,16 @@ main {
 /* Custom margin class */
 
 .custom-text-input {
-  width: 100%; /* Adjust the width as needed */
-  height: 40px; /* Adjust the height as needed */
-  border: none;
-  border-bottom: 1px solid #333;
-  padding: 10px; /* Adjust padding if needed */
-  font-size: 1rem; /* Adjust the font size if needed */
-  text-wrap: wrap;
+  width: 100%; /* Makes the textarea take full width of the parent container */
+  height: auto; /* Ensures height is controlled by the 'rows' attribute */
+
+  padding: 10px; /* Adds padding inside the textarea */
+  font-size: 1rem; /* Adjusts font size */
+  resize: vertical; /* Allows vertical resizing (remove this to disable resizing) */
+  overflow-wrap: break-word; /* Ensures long text wraps appropriately */
 }
-.custom-text-input:focus {
-  outline: none; /* Remove the default focus outline */
-  border-bottom: 1px solid #333; /* Change the bottom border color on focus */
-}
+
+
 
 .about{
   padding: 0.7em;
@@ -420,7 +418,7 @@ iframe{
 }
 #eval{
   width: 330px;
-  height: 9em;
+  height: 12em;
 }
 #eval h3{
   font-size: 1.3rem;

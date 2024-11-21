@@ -1,0 +1,92 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Summary List of SET Ratings</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #dddddd;
+            text-align: left;
+            padding:10px 8px 10px 3px;
+            word-wrap: break-word; /* Ensure long text breaks within the cell */
+            font-size: 0.8rem;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        th, td {
+            white-space: nowrap; /* Prevent text from wrapping */
+        }
+    </style>
+</head>
+<body>
+    <h1>Summary List of SET Ratings for the current {{current_semester}} Sem. AY {{current_academic_year}}</h1>
+    <h3>CvSU Bacoor Campus</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Faculty</th>
+                <th>Sample Size</th>
+                <th>Subject Matter Content</th>
+                <th>Organization</th>
+                <th>Teacher-Student Rapport</th>
+                <th>Teaching Methods</th>
+                <th>Presentation</th>
+                <th>Classroom Management</th>
+                <th>Sensitivity and Support to Students</th>
+                <th>Numerical</th>
+                <th>Adjectival</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in summary_data %}
+            <tr>
+                <td>{{ item.faculty }}</td>
+                <td>{{ item.num_evaluators }}</td>
+                <td>{{ item.subject_matter_content_avg }}</td>
+                <td>{{ item.organization_avg }}</td>
+                <td>{{ item.teacher_student_rapport_avg }}</td>
+                <td>{{ item.teaching_methods_avg }}</td>
+                <td>{{ item.presentation_avg }}</td>
+                <td>{{ item.classroom_management_avg }}</td>
+                <td>{{ item.sensitivity_support_students_avg }}</td>
+                <td>{{ item.overall_avg }}</td>
+                <td>{{ item.rating_category }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <div style="page-break-before: always;"></div> 
+    <h2>Part II: Suggestions for Improvement</h2> 
+    <table> 
+        <thead>
+             <tr> 
+                <th>Faculty</th> 
+                <th>The course should: </th> 
+                <th>Strengths of the Faculty</th> 
+                <th>Other Suggestions for Improvement</th>
+                <th>Comments</th>
+             </tr>
+             </thead> 
+             <tbody>
+                 {% for item in comments_data %} 
+                 <tr>
+                     <td>{{ item.faculty }}</td> 
+                     <td>{% if item.requires_less_task_for_credit == True %} a. Require less talk for the credit {% else %} b. Require more talk for the credit {% endif %}</td> 
+                     <td>{% if item.strengths_of_the_faculty %} {{ item.strengths_of_the_faculty }} {% else %} N/A {% endif %}</td> 
+                     <td>{% if item.other_suggestions_for_improvement %} {{ item.other_suggestions_for_improvement }} {% else %} N/A {% endif %}</td>
+                     <td>{{ item.comments }}</td> </tr> 
+                 {% endfor %} 
+             </tbody> 
+    </table>
+</body>
+</html>

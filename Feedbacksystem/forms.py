@@ -59,10 +59,11 @@ class CourseForm(ModelForm):
 class SectionForm(ModelForm):
     class Meta:
         model = Section
-        fields = ['name']
+        fields = ['name', 'course']
 
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'course': forms.Select(attrs={'class': 'form-control'}),
         }
 
 class SectionSubjectFacultyForm(ModelForm):
@@ -88,12 +89,19 @@ class EvaluationStatusForm(ModelForm):
     class Meta:
         model = EvaluationStatus
         fields = '__all__'
-
+        labels = {
+            'academic_year': 'Academic Year',
+            'semester': 'Semester',
+            'evaluation_status': 'Evaluations Status',
+            'evaluation_end_date': 'Evaluation End Date',
+            'evaluation_release_date': 'Evaluation Release Date',
+        }
         widgets = {
             'academic_year': forms.TextInput(attrs={'class': 'form-control'}),
             'semester': forms.Select(attrs={'class': 'form-control'}),
             'evaluation_status': forms.Select(attrs={'class': 'form-control'}),
-
+            'evaluation_end_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'evaluation_release_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
         }
 
 class StudentRegistrationForm(UserCreationForm):
@@ -354,9 +362,38 @@ class LikertEvaluationForm(forms.Form):
 
     )
 
-    strengths_of_the_faculty = forms.CharField(required=False,widget=forms.TextInput(attrs={'size': 60, 'class': 'custom-text-input'}))  # Adjust size as needed
-    other_suggestions_for_improvement = forms.CharField(required=False,widget=forms.TextInput(attrs={'size': 60, 'class': 'custom-text-input'}))  # Adjust size as needed
-    comments = forms.CharField(required=True, widget=forms.TextInput(attrs={'size': 60, 'class': 'custom-text-input'}))  # Adjust size as needed
+    strengths_of_the_faculty = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={
+            'rows': 4,  # Controls the height
+            'cols': 60,  # Controls the width
+            'class': 'custom-text-input'
+        })
+    )
+    other_suggestions_for_improvement = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={
+            'rows': 4,  # Adjust height
+            'cols': 60,  # Adjust width
+            'class': 'custom-text-input'
+        })
+    )
+    other_suggestions_for_improvement = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={
+            'rows': 4,  # Adjust height
+            'cols': 60,  # Adjust width
+            'class': 'custom-text-input'
+        })
+    )
+    comments = forms.CharField(
+        required=True,
+        widget=forms.Textarea(attrs={
+            'rows': 4,  # Adjust height
+            'cols': 60,  # Adjust width
+            'class': 'custom-text-input'
+        })
+    )
 
 LikertEvaluationFormSet = formset_factory(LikertEvaluationForm, extra=1)
 
@@ -463,7 +500,23 @@ class WebinarSeminarForm(forms.Form):
 
 class StakeholderFeedbackForm(forms.Form):
     name = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs={'class': 'form-control'}))
-    agency = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs={'class': 'form-control'}))
+    agency = forms.ChoiceField(
+        choices=[
+            ('', 'Select Agency'),  # Default placeholder
+            ('Cashier', 'Cashier'),
+            ('Clinic', 'Clinic'),
+            ('GAD', 'GAD'),
+            ('Guidance', 'Guidance'),
+            ('HRDO', 'HRDO'),
+            ('Library', 'Library'),
+            ('OSAS', 'OSAS'),
+            ('RDE', 'RDE'),
+            ('Registrar', 'Registrar'),
+            ('Supply Office', 'Supply Office'),
+        ],
+        required=True,
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
     email = forms.EmailField(max_length=100, required=False, widget=forms.TextInput(attrs={'class': 'form-control'}))
     purpose = forms.CharField(max_length=100, widget=forms.TextInput(attrs={'class': 'form-control'}))
     date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}))

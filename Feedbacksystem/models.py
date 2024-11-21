@@ -117,7 +117,7 @@ class Faculty(models.Model):
 
             if ratings:
                 average_rating = sum(ratings) / len(ratings)
-                return round(average_rating, 1)
+                return round(average_rating, 2)
         
         return 0.0
 
@@ -157,6 +157,7 @@ class Subject(models.Model):
 
 class Section(models.Model):
     name = models.CharField(max_length=50)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='sections')
     subjects = models.ManyToManyField(Subject, through="SectionSubjectFaculty")
 
     updated = models.DateTimeField(auto_now = True, null=True, blank = True)
@@ -232,8 +233,11 @@ class EvaluationStatus(models.Model):
     evaluation_status = models.CharField(
         max_length=12,
         choices=EVALUATION_STATUS_CHOICES,
-        default='in_progress'
+        default='In Progress'
     )   
+    evaluation_end_date = models.DateField(default='2024-11-20')
+    evaluation_release_date = models.DateField(default='2024-11-20')
+
     def __str__(self):
         return f"{self.academic_year} - {self.semester}"
 
@@ -409,9 +413,69 @@ class LikertEvaluation(models.Model):
         ratings = [int(rating) for rating in ratings]
 
         average_rating = sum(ratings) / len(ratings) if ratings else None
-        return round(average_rating, 1) 
+        return round(average_rating, 2) 
 
 
+    def calculate_category_averages(self):
+        categories = {
+            'Subject Matter Content': [
+                'command_and_knowledge_of_the_subject',
+                'depth_of_mastery',
+                'practice_in_respective_discipline',
+                'up_to_date_knowledge',
+                'integrates_subject_to_practical_circumstances',
+            ],
+            'Organization': [
+                'organizes_the_subject_matter',
+                'provides_orientation_on_course_content',
+                'efforts_of_class_preparation',
+                'summarizes_main_points',
+                'monitors_online_class',
+            ],
+            'Teacher-Student Rapport': [
+                'holds_interest_of_students',
+                'provides_relevant_feedback',
+                'encourages_participation',
+                'shows_enthusiasm',
+                'shows_sense_of_humor',
+            ],
+            'Teaching Methods': [
+                'teaching_methods',
+                'flexible_learning_strategies',
+                'student_engagement',
+                'clear_examples',
+                'focused_on_objectives',
+            ],
+            'Presentation': [
+                'starts_with_motivating_activities',
+                'speaks_in_clear_and_audible_manner',
+                'uses_appropriate_medium_of_instruction',
+                'establishes_online_classroom_environment',
+                'observes_proper_classroom_etiquette',
+            ],
+            'Classroom Management': [
+                'uses_time_wisely',
+                'gives_ample_time_for_students_to_prepare',
+                'updates_the_students_of_their_progress',
+                'demonstrates_leadership_and_professionalism',
+                'understands_possible_distractions',
+            ],
+            'Sensitivity and Support to Students': [
+                'sensitivity_to_student_culture',
+                'responds_appropriately',
+                'assists_students_on_concerns',
+                'guides_the_students_in_accomplishing_tasks',
+                'extends_consideration_to_students',
+            ]
+        }
+
+        category_averages = {}
+        for category, fields in categories.items():
+            ratings = [getattr(self, field) for field in fields if getattr(self, field) is not None]
+            ratings = [int(rating) for rating in ratings]  # Ensure ratings are integers
+            category_averages[category] = round(sum(ratings) / len(ratings), 2) if ratings else None
+
+        return category_averages
 
     def sentiment_label(self):
         if self.predicted_sentiment == 1:
@@ -770,9 +834,15 @@ class WebinarSeminarQuestions(models.Model):
             self.order = 1 if not last_question else last_question.order + 1
         super().save(*args, **kwargs)
 
+class StakeholderAgency(models.Model):
+    name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.name
+
 class StakeholderFeedbackModel(models.Model):
     name = models.CharField(max_length=100, null=True, blank=True) 
-    agency = models.CharField(max_length=100, null=True, blank=True) 
+    agency = models.ForeignKey(StakeholderAgency, on_delete=models.CASCADE) 
     email = models.EmailField(max_length=100, null=True, blank=True) 
     purpose = models.CharField(max_length=100, null=True, blank=True) 
     date = models.DateField(null=True, blank=True) 

@@ -60,7 +60,7 @@
           <i class="bi bi-chat-left-fill nav-icon"></i> <b>Evaluations</b>
         </button>
         <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-            <a class="dropdown-item" href="{% url 'facultyevaluations' %}">Faculty Evaluations</a>
+            <a class="dropdown-item" href="{% url 'admin_faculty_evaluations' %}">Faculty Evaluations</a>
             <a class="dropdown-item" href="{% url 'admin_event_evaluations' %}">Event Evaluations</a>
             <a class="dropdown-item" href="{% url 'stakeholderevaluations' %}">Stakeholder Evaluations</a>
           </div>
@@ -114,12 +114,15 @@
         <!-- Main content area -->
         {% if messages %}
  
-        {% for message in messages %}
-            <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %} alert-dismissible fade show" role="alert">
-                {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        {% endfor %}
+        <div class="container  col-md-5 col-12" >
+          {% for message in messages %}
+          <div class="alert alert-dismissible {% if message.tags == 'error' %}alert-danger{% elif message.tags == 'success' %}alert-success{% endif %}" role="alert">
+              {{ message }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>    
+              </div>
+
+          {% endfor %}
+      </div>
 
         {% endif %}
             <div class="row">
@@ -127,6 +130,8 @@
                 <h5 style="font-weight: bold">Academic Year: {{evaluation_status.academic_year}}</h5>
                 <h5 style="font-weight: bold;">{{ evaluation_status.semester }} Semester</h5>
                 <h5>Student Evaluation for Teachers Status: {{evaluation_status.evaluation_status}}</h5>
+                <h6>Evaluation End Date: {{evaluation_status.evaluation_end_date}}</h6>
+                <h6>Evaluation Release Date: {{evaluation_status.evaluation_release_date}}</h6>
                 <button type="button" class="btn btn-warning custom-btn mt-2"  style = "color: black; text-decoration: none; "data-bs-toggle="modal" data-bs-target="#exampleModal"><i class="bi bi-pencil-square"></i>
                   <b>Edit</b>              
                 </button>
@@ -178,7 +183,32 @@
             <div class="modal-body">
             <form method="POST" action="">
               {% csrf_token %}
-            {{ form.as_p }}
+              <div class="form-group">
+                {{ form.academic_year.label_tag }}
+                {{ form.academic_year }}
+                </div>
+                <div class="form-group">
+                {{ form.semester.label_tag }}
+                {{ form.semester }}
+                </div>
+                <div class="form-group">
+                {{ form.evaluation_status.label_tag }}
+                {{ form.evaluation_status }}
+                </div>
+                <div class="form-group">
+                {{ form.evaluation_end_date.label_tag }}
+                {{ form.evaluation_end_date }}
+                <small class="form-text text-muted mt-1">
+                  The date on which evaluations will be closed.
+              </small>
+                </div>
+                <div class="form-group">
+                {{ form.evaluation_release_date.label_tag }}
+                {{ form.evaluation_release_date }}
+                <small class="form-text text-muted mt-1">
+                  The date on which evaluations will be released to faculty members.
+                </small>
+                </div>
             </div>
         <div class="modal-footer">
         <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>

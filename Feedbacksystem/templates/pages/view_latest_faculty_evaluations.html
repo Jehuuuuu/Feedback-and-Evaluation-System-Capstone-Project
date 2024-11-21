@@ -1,0 +1,180 @@
+{% extends "pages/admin.html" %}
+
+{% block title %}Evaluations{% endblock %}
+
+{% block header %}
+<div class="row">
+  <div class="col-md-6">
+    <h2>Faculty Evaluations</h2>
+  </div>
+  <div class="col-lg-5 col-md-5 mt-1 evaluations_search" style="margin-left: auto;">
+    <form method="get" action="" class="d-flex" style="gap: 1em;">
+        {{faculty_evaluation_filter.form.search.label_tag}}
+        {{faculty_evaluation_filter.form.search}}
+    <button type="submit" class="btn custom-btn"><i class="bi bi-search"></i></button>
+      </form>
+    </div>
+</div>
+<hr>
+{% endblock header %}
+
+{% block feature %}
+
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+  <div class="modal-content">
+  <div class="modal-header">
+    <h1 class="modal-title fs-5" id="exampleModalLabel">Filter Options</h1>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+  </div>
+  <div class="modal-body">
+    <form method="get" action="">
+      {{faculty_evaluation_filter.form.subject.label_tag}}
+      {{faculty_evaluation_filter.form.subject}}
+      {{faculty_evaluation_filter.form.section_subject_faculty.label_tag}}
+      {{faculty_evaluation_filter.form.section_subject_faculty}}
+      {{faculty_evaluation_filter.form.predicted_sentiment.label_tag}}
+      {{faculty_evaluation_filter.form.predicted_sentiment}}
+      {{faculty_evaluation_filter.form.academic_year.label_tag}}
+      {{faculty_evaluation_filter.form.academic_year}}
+      {{faculty_evaluation_filter.form.semester.label_tag}}
+      {{faculty_evaluation_filter.form.semester}}
+      <button type="button" class="btn btn-secondary" onclick="clearFilters()" style="margin-top: 1em;">Clear All</button>
+  </div>
+<div class="modal-footer">
+<button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+<input type = "submit" value="Save Changes" class="btn btn-success">
+</form>
+</div>
+</div>
+</div>
+</div>
+
+<!-- For making sorting functionality -->
+<div class="row g-0 ">
+  <!-- Filter Options Button -->
+  <div class="col-lg-2 col-md-3 col-sm-4 col-12 mb-1">
+    <button type="button" class="btn btn-warning custom-btn" data-bs-toggle="modal" data-bs-target="#exampleModal">
+      <i class="bi bi-pencil-square"></i> <b>Filter Options</b>
+    </button>
+  </div>
+  
+  <!-- Sort Dropdown -->
+  <div class="col-lg-3 col-md-5 col-sm-7 col-12 mb-1" style="margin-right: 0.5em;">
+    <select class="form-select" name="sort" id="sort-list" onchange="location = finalurl();">
+      <option value="" id="placeholder" disabled selected hidden>Sort</option>
+      <option id="average_rating" value="average_rating">Average Rating: Ascending</option>
+      <option id="-average_rating" value="-average_rating">Average Rating: Descending</option>
+      <option id="created" value="created">Date Submitted: Ascending</option>
+      <option id="-created" value="-created">Date Submitted: Descending</option>
+    </select>
+  </div>
+
+  <!-- Search Form and Export Button -->
+  <div class="col-lg-2 col-md-2 mb-1">
+    <a href="{% url 'evaluations_csv' %}?{{ request.GET.urlencode }}" class="btn btn-primary">Export to CSV</a>
+  </div>
+
+</div>
+  <div class="table-responsive mt-2 evaluations_table">
+    <table class="table table-bordered ">
+        <tr>
+          <th scope="col">Section</th>
+          <th scope="col">Subject</th>
+          <th scope="col">Faculty</th>
+          <th scope="col">Average</th>
+          <th scope="col">Rating</th>
+          <th scope="col">Overall Impression</th>
+          <th scope="col">Polarity</th>
+          <th scope="col">Academic Year</th>
+          <th scope="col">Semester</th>
+          <th scope="col">Options</th>
+          
+        </tr>
+        {% for i in evaluation %}
+        <tr>
+            <td>{{ i.user.student.Section.name }} </td>
+            <td>{{ i.section_subject_faculty.subjects }} </td>
+            <td>{{ i.section_subject_faculty.faculty }}</td>
+            <td>{{ i.average_rating }}</td>
+            <td>{{ i.get_rating_category }}</td>
+            <td>{{ i.comments|truncatechars:20 }}</td>
+            <td>{{ i.predicted_sentiment }}</td>
+            <td>{{ i.academic_year }}</td>
+            <td>{{ i.semester }}</td>
+            <td style="display: flex; flex-direction: row; align-items: center; height: 100px;" class="options_column">
+
+              <a href="{% url 'admin_view_evaluation_form' i.pk %}" style="margin-right: 10px; text-decoration: none;">
+                <button class="btn btn-primary d-flex align-items-center" style=" padding:1px 2px 1px 7px">
+                  <i class="bi bi-eye-fill" style="font-size:20px; margin-right: 5px;"></i></button></a>
+    
+        </tr>
+        {% endfor %}
+    </table>
+  </div>
+      {% if is_paginated %}
+      <nav class="pagination justify-content-center" aria-label="...">
+        <ul class="pagination">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}&{{ request.GET.urlencode|cut:'page=' }}">Previous</a>
+            </li>
+            {% endif %}
+    
+            {% for i in paginator.page_range %}
+            {% if i == page_obj.number %}
+            <li class="page-item active" aria-current="page">
+                <a class="page-link" href="?page={{ i }}&{{ request.GET.urlencode|cut:'page=' }}">{{ i }}</a>
+            </li>
+            {% else %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ i }}&{{ request.GET.urlencode|cut:'page=' }}">{{ i }}</a>
+            </li>
+            {% endif %}
+            {% endfor %}
+    
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}&{{ request.GET.urlencode|cut:'page=' }}">Next</a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+ <script>
+  // for getting the sorting status to be displayed in sorting dropdown placeholder
+  function get(name) {
+   if (name = (new RegExp('[?&]' + encodeURIComponent(name) + '=([^&]*)')).exec(location.search))  //location.search give query sling part
+     return decodeURIComponent(name[1]);
+ }
+ if(get('ordering'))
+ document.getElementById('placeholder').innerHTML = "Sort: " + document.getElementById(get('ordering')).innerHTML;
+
+  // for getting url after applying ordering
+ function finalurl() {
+   var url = new URL(window.location.href);
+   var search_params = url.searchParams;
+   search_params.set('ordering', document.getElementById("sort-list").value);
+   url.search = search_params.toString();
+   var new_url = url.toString();
+   return new_url
+ }
+ function clearFilters() {
+    // Get all filter inputs within the form
+    var filterInputs = document.querySelectorAll('#exampleModal form select, #exampleModal form input[type="text"]');
+    
+    // Loop through each input and clear its value
+    filterInputs.forEach(function(input) {
+      if (input.tagName === 'SELECT') {
+        // For select elements, set the selected index to the default (first) option
+        input.selectedIndex = 0;
+      } else {
+        // For text inputs, clear the value
+        input.value = '';
+      }
+    });
+  }
+
+</script>
+{% endblock feature %}
+

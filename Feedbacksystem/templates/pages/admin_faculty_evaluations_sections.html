@@ -1,0 +1,102 @@
+{% extends "pages/admin.html" %}
+
+{% block title %}Evaluations{% endblock %}
+
+{% block header %}
+
+    <h2>Faculty Evaluations per Section</h2>
+
+
+<hr>
+{% endblock header %}
+
+{% block feature %}
+  <div class="table-responsive mt-2 evaluations_table">
+    <table class="table table-bordered ">
+        <tr>
+          <th scope="col">Section</th>
+          <th scope="col">Number of Evaluators</th>
+          <th scope="col">Options</th>
+          
+        </tr>
+        {% for i in page_obj.object_list %}
+        <tr>
+            <td>{{ i.section.name }}</td> <!-- Assuming the Section model has a 'name' field -->
+            <td>{{ i.evaluation_count }}</td>
+            <td>
+                <a href="{% url 'admin_faculty_evaluations_sections_view_forms' i.section.pk %}" style="text-decoration: none;">
+                    <button class="btn btn-primary d-flex align-items-center" style="padding: 1px 7px;">
+                        <i class="bi bi-eye-fill" style="font-size: 20px;;"></i>
+                    </button>
+                </a>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+  </div>
+      {% if is_paginated %}
+      <nav class="pagination justify-content-center" aria-label="...">
+        <ul class="pagination">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}&{{ request.GET.urlencode|cut:'page=' }}">Previous</a>
+            </li>
+            {% endif %}
+    
+            {% for i in paginator.page_range %}
+            {% if i == page_obj.number %}
+            <li class="page-item active" aria-current="page">
+                <a class="page-link" href="?page={{ i }}&{{ request.GET.urlencode|cut:'page=' }}">{{ i }}</a>
+            </li>
+            {% else %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ i }}&{{ request.GET.urlencode|cut:'page=' }}">{{ i }}</a>
+            </li>
+            {% endif %}
+            {% endfor %}
+    
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}&{{ request.GET.urlencode|cut:'page=' }}">Next</a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+ <script>
+  // for getting the sorting status to be displayed in sorting dropdown placeholder
+  function get(name) {
+   if (name = (new RegExp('[?&]' + encodeURIComponent(name) + '=([^&]*)')).exec(location.search))  //location.search give query sling part
+     return decodeURIComponent(name[1]);
+ }
+ if(get('ordering'))
+ document.getElementById('placeholder').innerHTML = "Sort: " + document.getElementById(get('ordering')).innerHTML;
+
+  // for getting url after applying ordering
+ function finalurl() {
+   var url = new URL(window.location.href);
+   var search_params = url.searchParams;
+   search_params.set('ordering', document.getElementById("sort-list").value);
+   url.search = search_params.toString();
+   var new_url = url.toString();
+   return new_url
+ }
+ function clearFilters() {
+    // Get all filter inputs within the form
+    var filterInputs = document.querySelectorAll('#exampleModal form select, #exampleModal form input[type="text"]');
+    
+    // Loop through each input and clear its value
+    filterInputs.forEach(function(input) {
+      if (input.tagName === 'SELECT') {
+        // For select elements, set the selected index to the default (first) option
+        input.selectedIndex = 0;
+      } else {
+        // For text inputs, clear the value
+        input.value = '';
+      }
+    });
+  }
+
+</script>
+{% endblock feature %}
+

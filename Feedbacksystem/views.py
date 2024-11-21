@@ -15,7 +15,7 @@ from django.contrib.auth.decorators import login_required
 from .decorators import allowed_users
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 from django.http import JsonResponse, HttpResponse
-from django.db.models import Count
+from django.db.models import Count, F
 import json
 from django.core.exceptions import ObjectDoesNotExist
 import csv
@@ -23,7 +23,7 @@ from django.utils import timezone
 from django.db.models.functions import Concat
 import qrcode
 from django.utils.timezone import now
-from datetime import timedelta
+from datetime import timedelta, datetime
 from collections import defaultdict
 from statistics import mean
 from django.db import models  
@@ -42,6 +42,16 @@ from django.utils.encoding import force_bytes, force_str
 from django.core.mail import EmailMessage
 from django.contrib.auth import get_user_model
 from .tokens import account_activation_token
+from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.triggers.date import DateTrigger
+from xhtml2pdf import pisa
+from django.templatetags.static import static
+import os
+from django.conf import settings
+
+scheduler = BackgroundScheduler()
+scheduler.start()
+
 ITEMS_PER_PAGE = 5
             # ------------------------------------------------------
             #                Login-Page Views
@@ -264,10 +274,8 @@ class CustomPasswordResetConfirmView(auth_views.PasswordResetConfirmView):
             token = kwargs['token']
             if not default_token_generator.check_token(user, token):
                 raise ValueError("Invalid token")
-        except (User.DoesNotExist, ValueError, TypeError):
-            messages.error(self.request, "The password reset link is invalid, possibly because it has already been used.")
-            return redirect('password_reset')  # Redirect to the password reset page or home
-
+        except:
+            pass
         # Proceed with default behavior if token is valid
         return super().dispatch(*args, **kwargs)
 
@@ -1310,7 +1318,6 @@ def studentlogout(request):
             #                Admin-Page Views
             # ------------------------------------------------------
 
-
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['admin'])
 def admin(request):
@@ -1337,9 +1344,41 @@ def admin(request):
     
     if request.method == 'POST':
         form = EvaluationStatusForm(request.POST, instance=evaluation_status)
+        evaluation_release_date_str = request.POST.get("evaluation_release_date")  # Format: YYYY-MM-DD
+        evaluation_end_date_str = request.POST.get("evaluation_end_date")  # Format: YYYY-MM-DD
+
+        # Get today's date for comparison
+        today = datetime.today().date()
+        print(today)
+        if evaluation_end_date_str:
+            end_date = datetime.strptime(evaluation_end_date_str, "%Y-%m-%d").date()
+
+            # Check if the end date exceeds today's date
+            if end_date > today:
+                # Schedule the task if the date is valid
+                trigger = DateTrigger(run_date=end_date)  # Change the timing as needed
+                scheduler.add_job(close_evaluations, trigger=trigger)
+            else:
+                # Display an error if the date exceeds today
+                messages.error(request, "The end date cannot be in the past.")
+                return redirect('admin')
+
+        if evaluation_release_date_str:
+            release_date = datetime.strptime(evaluation_release_date_str, "%Y-%m-%d").date()
+
+            # Check if the release date exceeds today's date
+            if release_date > today:
+                # Schedule the task if the date is valid
+                trigger = DateTrigger(run_date=release_date)
+                scheduler.add_job(approve_pending_evaluations, trigger=trigger)
+            else:
+                # Display an error if the date exceeds today
+                messages.error(request, "The release date cannot be in the past.")
+                return redirect('admin')
         if form.is_valid():
             form.save()
             messages.success(request, 'Status updated successfully')
+
     else:
         form = EvaluationStatusForm(instance=evaluation_status)
     
@@ -1383,6 +1422,18 @@ def admin(request):
                 'is_hr_admin': is_hr_admin
                 }
     return render(request, 'pages/admin.html', context)
+
+def close_evaluations():
+        """Close the evaluations."""
+        updated_evaluation_status = EvaluationStatus.objects.filter(evaluation_status='In Progress').update(evaluation_status='Closed')
+        print(updated_evaluation_status)
+
+def approve_pending_evaluations():
+    """Approve all pending evaluations."""
+    today = datetime.today().date()
+    updated_count = LikertEvaluation.objects.filter(admin_status='Pending').update(admin_status='Approved')
+    print(f"{updated_count} evaluations approved on {today}.")
+
 
 def evaluation_response_chart_data(request):
     # Retrieve data from the model
@@ -1506,8 +1557,105 @@ def adminregister(request):
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['admin'])
-def evaluations(request):
+def admin_faculty_evaluations(request):
+    is_admin = request.user.groups.filter(name='admin').exists()
+    evaluation_status = EvaluationStatus.objects.first()  # Assuming there's only one status entry
+    current_academic_year = evaluation_status.academic_year 
+    current_semester = evaluation_status.semester
+
+    evaluation = LikertEvaluation.objects.filter(academic_year=current_academic_year, semester=current_semester)
+
+       # Count evaluations per course
+    evaluations_per_course = evaluation.values(
+        'user__student__Course__name'
+    ).annotate(total=Count('id'), pk=F('user__student__Course__pk'))
+
+    total_evaluations = evaluation.count()
+
+    #pagination
+    page_number = request.GET.get('page', 1)
+    evaluation_paginator = Paginator(evaluation, ITEMS_PER_PAGE)
+   
+
+    try:
+        page = evaluation_paginator.page(page_number)
+    except EmptyPage:
+        page = evaluation_paginator.page(evaluation_paginator.num_pages)
+ 
+    context = {'evaluation': page.object_list,'total_evaluations': total_evaluations, 'page_obj':page, 'is_paginated': True, 'paginator':evaluation_paginator,'is_admin': is_admin, 'evaluations_per_course': evaluations_per_course, 'current_academic_year': current_academic_year, 'current_semester': current_semester }
+    return render(request, 'pages/admin_faculty_evaluations.html', context)
+
+@login_required(login_url='signin')
+@allowed_users(allowed_roles=['admin'])
+def admin_faculty_evaluations_sections(request, pk):
+    is_admin = request.user.groups.filter(name='admin').exists()
+    evaluation_status = EvaluationStatus.objects.first()  # Assuming there's only one status entry
+    current_academic_year = evaluation_status.academic_year 
+    current_semester = evaluation_status.semester
+
+
+    evaluation_course = get_object_or_404(Course, pk=pk)
+       # Count evaluations per course
+    sections = Section.objects.filter(course=evaluation_course)
+    section_evaluation_counts = []
+    for section in sections: 
+        evaluation_count = LikertEvaluation.objects.filter( user__student__Section=section, academic_year=current_academic_year, semester=current_semester).count() 
+        section_evaluation_counts.append({ 'section': section, 'evaluation_count': evaluation_count })
+    #pagination
+    page_number = request.GET.get('page', 1)
+    evaluation_paginator = Paginator(section_evaluation_counts, ITEMS_PER_PAGE)
+    print(section_evaluation_counts, pk)
+
+    try:
+        page = evaluation_paginator.page(page_number)
+    except EmptyPage:
+        page = evaluation_paginator.page(evaluation_paginator.num_pages)
+ 
+    context = {'evaluation': page.object_list, 'page_obj':page, 'is_paginated': True, 'paginator':evaluation_paginator,'is_admin': is_admin,'evaluation_course': evaluation_course }
+    return render(request, 'pages/admin_faculty_evaluations_sections.html', context)
+
+@login_required(login_url='signin')
+@allowed_users(allowed_roles=['admin'])
+def admin_faculty_evaluations_sections_view_forms(request, pk):
+    is_admin = request.user.groups.filter(name='admin').exists()
+    evaluation_status = EvaluationStatus.objects.first()  # Assuming there's only one status entry
+    current_academic_year = evaluation_status.academic_year 
+    current_semester = evaluation_status.semester
+
+
+    selected_section = get_object_or_404(Section, pk=pk)
+       # Count evaluations per course
+    evaluations = LikertEvaluation.objects.filter(academic_year=current_academic_year, semester=current_semester, user__student__Section=selected_section)
+
+     #filter and search
+    faculty_evaluation_filter = EvaluationFilter(request.GET, queryset=evaluations)
+    evaluations = faculty_evaluation_filter.qs
+    
+
+    # ordering functionality
+   
+    ordering = request.GET.get('ordering', "")
+
+     
+    if ordering:
+        evaluations = evaluations.order_by(ordering) 
+
+    page_number = request.GET.get('page', 1)
+    evaluation_paginator = Paginator(evaluations, ITEMS_PER_PAGE)
+
+    try:
+        page = evaluation_paginator.page(page_number)
+    except EmptyPage:
+        page = evaluation_paginator.page(evaluation_paginator.num_pages)
+ 
+    context = {'evaluation': page.object_list, 'page_obj':page, 'is_paginated': True, 'paginator':evaluation_paginator,'is_admin': is_admin,'selected_section': selected_section, 'faculty_evaluation_filter': faculty_evaluation_filter }
+    return render(request, 'pages/admin_faculty_evaluations_sections_view_forms.html', context)
+
+@login_required(login_url='signin')
+@allowed_users(allowed_roles=['admin'])
+def view_latest_faculty_evaluations(request):
     evaluation = LikertEvaluation.objects.filter(admin_status='Approved')
+
     is_admin = request.user.groups.filter(name='admin').exists()
     total_evaluations = evaluation.count()
     #filter and search
@@ -1534,7 +1682,7 @@ def evaluations(request):
         page = evaluation_paginator.page(evaluation_paginator.num_pages)
  
     context = {'evaluation': page.object_list,'total_evaluations': total_evaluations, 'faculty_evaluation_filter': faculty_evaluation_filter, 'page_obj':page, 'is_paginated': True, 'paginator':evaluation_paginator,'ordering': ordering, 'is_admin': is_admin}
-    return render(request, 'pages/evaluations.html', context)
+    return render(request, 'pages/view_latest_faculty_evaluations.html', context)
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['admin'])
@@ -1559,6 +1707,113 @@ def evaluations_csv(request):
     for i in filtered_evaluations:
         writer.writerow([i.section_subject_faculty.subjects, i.section_subject_faculty.faculty, i.average_rating, i.get_rating_category(), i.comments, i.predicted_sentiment, i.academic_year, i.semester ])
 
+    return response
+
+@login_required(login_url='signin')
+@allowed_users(allowed_roles=['admin'])
+def faculty_evaluations_summary_report_pdf(request):
+    """
+    Generates a PDF summary report of faculty evaluations.
+
+    Args:
+        request: The HTTP request object.
+
+    Returns:
+        An HTTP response containing the PDF report.
+    """
+    image_path = os.path.join(settings.BASE_DIR, static('images/cvsulogo.png'))
+    evaluation_status = EvaluationStatus.objects.first()  # Assuming there's only one status entry
+    current_academic_year = evaluation_status.academic_year 
+    current_semester = evaluation_status.semester
+
+    # Apply filters from the EvaluationFilter based on the request data
+    evaluation_filter = EvaluationFilter(request.GET, queryset=LikertEvaluation.objects.filter(academic_year=current_academic_year, semester=current_semester))
+    filtered_evaluations = evaluation_filter.qs
+
+    # Get all faculty
+    faculties = SectionSubjectFaculty.objects.values('faculty').distinct()
+
+    summary_data = []
+    comments_data = []
+
+    # Loop through each faculty and calculate the required aggregates
+    for faculty in faculties:
+        faculty_id = faculty['faculty']
+        faculty_instance = Faculty.objects.get(id=faculty_id)
+        faculty_name = faculty_instance.full_name()  
+        evaluations = filtered_evaluations.filter(section_subject_faculty__faculty=faculty_id)
+        num_evaluators = evaluations.count()
+
+        if num_evaluators > 0:
+            category_sums = {
+                'Subject Matter Content': 0,
+                'Organization': 0,
+                'Teacher-Student Rapport': 0,
+                'Teaching Methods': 0,
+                'Presentation': 0,
+                'Classroom Management': 0,
+                'Sensitivity and Support to Students': 0,
+                'Overall': 0
+            }
+
+            for evaluation in evaluations:
+                category_averages = evaluation.calculate_category_averages()
+                for category, average in category_averages.items():
+                    if average is not None:
+                        category_sums[category] += average
+                category_sums['Overall'] += evaluation.average_rating
+
+            # Calculate averages
+            category_averages = {category: round(total / num_evaluators, 2) for category, total in category_sums.items()}
+            avg_rating = category_averages['Overall']
+
+            if avg_rating is not None:
+                if 1.0 <= avg_rating <= 1.49:
+                    rating_category = "Poor"
+                elif 1.5 <= avg_rating <= 2.49:
+                    rating_category = "Unsatisfactory"
+                elif 2.5 <= avg_rating <= 3.49:
+                    rating_category = "Satisfactory"
+                elif 3.5 <= avg_rating <= 4.49:
+                    rating_category = "Very Satisfactory"
+                elif 4.5 <= avg_rating <= 5.0:
+                    rating_category = "Outstanding"
+                else:
+                    rating_category = "No Rating"
+            else:
+                rating_category = "No Rating"
+
+            summary_data.append({
+                'faculty': faculty_name,
+                'num_evaluators': num_evaluators,
+                'subject_matter_content_avg': category_averages['Subject Matter Content'],
+                'organization_avg': category_averages['Organization'],
+                'teacher_student_rapport_avg': category_averages['Teacher-Student Rapport'],
+                'teaching_methods_avg': category_averages['Teaching Methods'],
+                'presentation_avg': category_averages['Presentation'],
+                'classroom_management_avg': category_averages['Classroom Management'],
+                'sensitivity_support_students_avg': category_averages['Sensitivity and Support to Students'],
+                'overall_avg': category_averages['Overall'],
+                'rating_category': rating_category
+            })
+
+            for evaluation in evaluations: 
+                comments_data.append({ 'faculty': faculty_name, 
+                                      'requires_less_task_for_credit': evaluation.requires_less_task_for_credit, 
+                                      'strengths_of_the_faculty': evaluation.strengths_of_the_faculty,
+                                    'other_suggestions_for_improvement': evaluation.other_suggestions_for_improvement,
+                                    'comments': evaluation.comments })
+
+    # Render the summary data to an HTML template
+    html = render_to_string('pages/faculty_evaluations_summary_report.html', {'summary_data': summary_data, 'image_path': image_path, 'comments_data': comments_data, 'current_academic_year': current_academic_year, 'current_semester': current_semester})
+
+    # Create the PDF
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="faculty_evaluations_summary.pdf"'
+    pisa_status = pisa.CreatePDF(html, dest=response)
+
+    if pisa_status.err:
+        return HttpResponse('We had some errors with code %s' % pisa_status.err)
     return response
 
 @login_required(login_url='signin')
