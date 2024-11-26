@@ -126,12 +126,17 @@
   <main role="main" class="content">
     <!-- Main content area -->
       {% block header %}
-    <div id="eval" class = "container">
-      <h3>Academic Year: {{ evaluation_status.academic_year }}</h3>
-      <h4>Semester: {{ evaluation_status.semester }}</h4>
-      <h4>Student Evaluation for Teachers: {{evaluation_status.evaluation_status}} </h4>
-      <h5>Evaluation End Date: {{evaluation_status.evaluation_end_date}} </h5>
-     </div>
+      <div id="" class="container">
+        <div class="card p-3 shadow-sm">
+            <div class="card-body">
+                <h3 class="card-title">Academic Year: {{ evaluation_status.academic_year }}</h3>
+                <h4 class="card-subtitle mb-2 text-muted">Semester: {{ evaluation_status.semester }}</h4>
+                <h4 class="card-subtitle mb-2 text-muted">Student Evaluation for Teachers: {{ evaluation_status.evaluation_status }}</h4>
+                <h5 class="card-text">Evaluation End Date: {{ evaluation_status.evaluation_end_date }}</h5>
+            </div>
+        </div>
+    </div>
+    
     {% endblock header %}
    
     {% block feature %}
@@ -144,7 +149,7 @@
               <img src="{% static 'images/cvsu_thumbnail.jpg' %}" class="card-img-top" alt="Default Image">
               <div class="card-body">
                   <h5 class="card-title">Faculty Evaluated: </h5>
-                  <p class="card-text"> {{ completed_count }} / {{ total_faculty }}</p>
+                  <p class="card-title"> {{ completed_count }} / {{ total_faculty }}</p>
                   <a href="{% url 'facultyeval' %}" class="card-link btn custom-btn">Evaluate Now</a>
               </div>
           </div>
@@ -160,11 +165,37 @@
                   {% endif %}
                   <div class="card-body">
                       <h5 class="card-title">{{ event.title }}</h5>
+                      <p class="card-subtitle"><small>{{ event.date }}</small></p>
                       <p class="card-text">{{ event.description|slice:":70" }}...</p>
-                      <p class="card-text"><small>{{ event.date }}</small></p>
                       {% if event.evaluation_status %}
-                      <a href="{% url 'event_detail' event.pk %}" class="card-link btn custom-btn">Evaluate</a>
+                      <div class="d-flex " style="gap: 0.1em;" >
+                        <a href="{% url 'event_detail' event.pk %}" class="card-link btn custom-btn">Evaluate</a>
+                        <a href="#" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#eventModal{{ event.id }}">View Details</a>
+                      </div>
                       {% endif %}
+                      <!-- Modal -->
+                        <div class="modal fade" id="eventModal{{ event.id }}" tabindex="-1" aria-labelledby="eventModalLabel{{ event.id }}" aria-hidden="true">
+                          <div class="modal-dialog">
+                            <div class="modal-content">
+                              <div class="modal-header">
+                                <h1 class="modal-title fs-5" id="eventModalLabel{{ event.id }}">{{event.title}}</h1>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                              </div>
+                              <div class="modal-body">
+                                  <p><b>Date:</b> {{ event.date }}</p>
+                                  <p><b>Time:</b> {{ event.time }}</p>
+                                  <p><b>Location:</b> {{ event.location }}</p>
+                                  <p><b>Description:</b> {{ event.description }}</p>
+                                  <p><b>Evaluation Status:</b> {{event.evaluation_identifier }}</p>
+                                  <p><b>Created by:</b> {{ event.get_author_name }}</p>
+                              </div>
+                              <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>  
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
                   </div>
               </div>
           </div>
@@ -205,7 +236,7 @@
   
   <footer>
     <div class="footer__socials">
-      <a href="https://www.facebook.com/cvsuimusofficial"><img src="{% static 'images/Facebook.svg' %}"  alt="Facebook Logo" class="footer__socials__logo"
+      <a href="https://www.facebook.com/CvSUBacoorCityCampus"><img src="{% static 'images/Facebook.svg' %}"  alt="Facebook Logo" class="footer__socials__logo"
         class="footer__socials__logo"></a>
       <a href="https://www.youtube.com/@tatakcvsubacoor545"><img src="{% static 'images/Youtube.svg' %}"  alt="Youtube Logo" class="footer__socials__logo"
         class="footer__socials__logo"></a>
@@ -223,7 +254,6 @@
  
 
 
-  <!-- Content goes here -->
 
 
   <!-- Bootstrap JavaScript Libraries -->

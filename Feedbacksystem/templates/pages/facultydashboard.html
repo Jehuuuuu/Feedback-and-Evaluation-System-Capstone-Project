@@ -81,15 +81,14 @@
           {% endif %}
             <a href="{% url 'facultyprofile' %}" style="font-weight: 500;"> <p id="profile_name" style="color: #fafafa; display: inline-block;">{{ faculty.first_name }} {{ faculty.last_name }}</p> </a>
         </div>
-<div class="row" style="margin-right: 2em; gap: 1em;">
- <div class="col-4">
-   
+<div class="row" style=" gap: 1em;">
+ <div class="col-4">  
                       <!-- Notification bell and dropdown for notifications -->
        <div class="notification-container" style="position: relative;">
          <a href="#" class="notification-bell" data-bs-toggle="dropdown" aria-expanded="false">
            <i class="bi bi-bell-fill"></i>
-             {% if notifications_unread_count > 0 %}
-                 <span id="notification-badge" class="badge">{{ notifications_unread_count }}</span>
+             {% if total_unread_notifications_count > 0 %}
+                 <span id="notification-badge" class="badge">{{ total_unread_notifications_count }}</span>
              {% endif %}
          </a>
    
@@ -101,47 +100,18 @@
                </div>
                <div class="col-6"><a class="dropdown-header" href="{% url 'faculty_notifications' %}" class="dropdown-item text-center" style="text-align: right;">See All</a></div>
              </div>
-             {% if event_notifications %}
-                 {% for notification in event_notifications %}
-                   <a href="{% url 'faculty_events'%}" class="dropdown-item" style="white-space: normal;">
-                      <b>{{ notification.verb }} </b>- {{notification.description}} {{ notification.timestamp|timesince }} ago
-                     </a>
-                 {% endfor %}
-
+             {% if all_notifications %}
+             {% for notification in all_notifications %}
+                 <p class="dropdown-item" style="white-space: normal;">
+                     <b>{{ notification.verb }}</b> - {{ notification.description }} {{ notification.timestamp|timesince }} ago
+                 </p>
+             {% endfor %}
              {% else %}
                  <span class="dropdown-item text-muted">No new notifications</span>
              {% endif %}
          </div>
        </div>
  </div>
-<div class="col-4">
-  
-       <!-- Message Icon and dropdown for messages -->
-      <div class="notification-container" style="position: relative;">
-        <a href="#" class="notification-bell" data-bs-toggle="dropdown" aria-expanded="false">
-          <i class="bi bi-envelope-fill"></i>
-            {% if messages_unread_count > 0 %}
-                <span  id="notification-badge" class="badge">{{ messages_unread_count }}</span>
-            {% endif %}
-        </a>
-  
-        <!-- Dropdown for Messages -->
-        <div class="dropdown-menu dropdown-menu-end notifications_container">
-            <h6 class="dropdown-header">Messages</h6>
-            {% if messages_notifications %}
-                {% for message in messages_notifications %}
-                    <a href="{% url 'view_message' message.id %}" class="dropdown-item" style="white-space: normal;">
-                      {{ message.actor }} - <b>{{ message.verb }}</b> {{ message.timestamp|timesince }} ago
-                    </a>
-                {% endfor %}
-                <div class="dropdown-divider"></div>
-                <a href="{% url 'inbox' %}" class="dropdown-item text-center">View all messages</a>
-            {% else %}
-                <span class="dropdown-item text-muted">No new messages</span>
-            {% endif %}
-        </div>
-      </div>
-</div>
 </div>
 
 
@@ -214,20 +184,25 @@
 
     <div class="row ">
       <div class="col-md-6 col-sm-12 mb-2 ">
-        <div class = "header_status">
-          <h5>Academic Year: {{current_academic_year}}</h5>
-          <h5>Semester: {{current_semester}}</h5>
-          <h5>Student Evaluation for Teachers:  {{current_evaluation_status}}</h5>
-         </div>
+        <div class="card p-3 shadow-sm">
+          <div class="card-body">
+              <h3 class="card-title">Academic Year: {{ evaluation_status.academic_year }}</h3>
+              <h4 class="card-subtitle mb-2 text-muted">Semester: {{ evaluation_status.semester }}</h4>
+              <h4 class="card-subtitle mb-2 text-muted">Student Evaluation for Teachers: {{ evaluation_status.evaluation_status }}</h4>
+              <h5 class="card-text">Evaluation End Date: {{ evaluation_status.evaluation_end_date }}</h5>
+          </div>
+      </div>
       </div>
 
       <div class="col-lg-2 col-md-3 col-sm-3 col-6 mb-2 ">
         <div class="card" style="width: 10rem; border: none;">
          <div class="card-body" style="text-align: center;">
-           <h1 class="card-title mb-2">
+           <h1 class="card-title mb-2" data-bs-toggle="tooltip" 
+           data-bs-placement="bottom" 
+           title="Number of evaluators this semester ">
                {{ total_evaluations }}
            </h1>
-           <h6 class="card-subtitle">Total Evaluations</h6>
+           <h6 class="card-subtitle"><small>Evaluators</small></h6>
          </div>
               </div>
       </div>
@@ -235,59 +210,59 @@
        <div class="col-lg-2 col-md-3 col-sm-3 col-5 mb-2">
          <div class="card " style="width: 10rem; border: none;">
           <div class="card-body" style="text-align: center;">
-            {% if avg_rating >= 4.5 %}
-            <h1 class="card-title mb-2" data-bs-toggle="tooltip" 
-                  data-bs-placement="bottom" 
-                  title="Average rating based on student evaluations"  style="color: #339933;">
-                {{ avg_rating }}
-                <h6 class="card-subtitle" data-bs-toggle="tooltip" 
-                  data-bs-placement="bottom" 
-                  title="Overall performance is outstanding based on the ratings received"  style="color: #339933">Outstanding</h6>
-            </h1>
-            {% elif avg_rating >= 3.5 %}
-                <h1 class="card-title mb-2" data-bs-toggle="tooltip" 
-                  data-bs-placement="bottom" 
-                  title="Average rating based on student evaluations"  style="color: #66CC66">
-                    {{ avg_rating }}
-                    <h6 class="card-subtitle" data-bs-toggle="tooltip" 
-                  data-bs-placement="bottom" 
-                  title="Overall performance is very satisfactory based on the ratings received"  style="color: #66CC66">Very Satisfactory</h6>
-                </h1>
-            {% elif avg_rating >= 2.5 %}
-                <h1 class="card-title mb-2" data-bs-toggle="tooltip" 
-                  data-bs-placement="bottom" 
-                  title="Average rating based on student evaluations"  style="color: #FFD700;">
-                    {{ avg_rating }}
-                    <h6 class="card-subtitle"  data-bs-toggle="tooltip" 
-                  data-bs-placement="bottom" 
-                  title="Overall performance is satisfactory based on the ratings received" style="color: #FFD700">Satisfactory</h6>
-                </h1>
-            {% elif avg_rating >= 1.5 %}
-                <h1 class="card-title mb-2" data-bs-toggle="tooltip" 
-                  data-bs-placement="bottom" 
-                  title="Average rating based on student evaluations" style="color: #FF9900;">
-                    {{ avg_rating }}
-                <h6 class="card-subtitle" data-bs-toggle="tooltip" 
-                  data-bs-placement="bottom" 
-                  title="Overall performance is unsatisfactory based on the ratings received"  style="color: #FF9900">Unsatisfactory</h6>
-                </h1>
-            {% elif avg_rating >= 1.49 %}
-                <h1 class="card-title mb-2" data-bs-toggle="tooltip" 
-                data-bs-placement="bottom" 
-                title="Average rating based on student evaluations"  style="color: #FF4C4C;">
-                  {{ avg_rating }}
-                  <h6 class="card-subtitle" data-bs-toggle="tooltip" 
-                data-bs-placement="bottom" 
-                title="Overall performance is poor based on the ratings received"  style="color: #FF4C4C">Poor</h6>
-              </h1>
-            {% else %}
-                <h1 class="card-title mb-2" data-bs-toggle="tooltip" 
-                  data-bs-placement="bottom" 
-                  title="Average rating based on student evaluations">
-                    0
-                    <h6 class="card-subtitle">Average Rating</h6>
-                </h1>
-            {% endif %}
+          {% if avg_rating >= 5.0 %}
+    <h1 class="card-title mb-2" data-bs-toggle="tooltip" 
+        data-bs-placement="bottom" 
+        title="Average rating based on student evaluations" style="color: #339933;">
+        {{ avg_rating }}
+        <h6 class="card-subtitle" data-bs-toggle="tooltip" 
+            data-bs-placement="bottom" 
+            title="Overall performance is outstanding based on the ratings received" style="color: #339933"><small>Outstanding</small></h6>
+    </h1>
+{% elif avg_rating >= 4.0 %}
+    <h1 class="card-title mb-2" data-bs-toggle="tooltip" 
+        data-bs-placement="bottom" 
+        title="Average rating based on student evaluations" style="color: #66CC66">
+        {{ avg_rating }}
+        <h6 class="card-subtitle" data-bs-toggle="tooltip" 
+            data-bs-placement="bottom" 
+            title="Overall performance is very satisfactory based on the ratings received" style="color: #66CC66"><small>Very Satisfactory</small></h6>
+    </h1>
+{% elif avg_rating >= 3.0 %}
+    <h1 class="card-title mb-2" data-bs-toggle="tooltip" 
+        data-bs-placement="bottom" 
+        title="Average rating based on student evaluations" style="color: #FFD700;">
+        {{ avg_rating }}
+        <h6 class="card-subtitle" data-bs-toggle="tooltip" 
+            data-bs-placement="bottom" 
+            title="Overall performance is satisfactory based on the ratings received" style="color: #FFD700"><small>Satisfactory</small></h6>
+    </h1>
+{% elif avg_rating >= 2.0 %}
+    <h1 class="card-title mb-2" data-bs-toggle="tooltip" 
+        data-bs-placement="bottom" 
+        title="Average rating based on student evaluations" style="color: #FF9900;">
+        {{ avg_rating }}
+        <h6 class="card-subtitle" data-bs-toggle="tooltip" 
+            data-bs-placement="bottom" 
+            title="Overall performance is unsatisfactory based on the ratings received" style="color: #FF9900"><small>Unsatisfactory</small></h6>
+    </h1>
+{% elif avg_rating >= 1.0 %}
+    <h1 class="card-title mb-2" data-bs-toggle="tooltip" 
+        data-bs-placement="bottom" 
+        title="Average rating based on student evaluations" style="color: #cc0000;">
+        {{ avg_rating }}
+        <h6 class="card-subtitle" data-bs-toggle="tooltip" 
+            data-bs-placement="bottom" 
+            title="Overall performance is unsatisfactory based on the ratings received" style="color: #cc0000"><small>Poor</small></h6>
+    </h1>
+{% else %}
+    <h1 class="card-title mb-2" data-bs-toggle="tooltip" 
+        data-bs-placement="bottom" 
+        title="Average rating based on student evaluations">
+        0
+        <h6 class="card-subtitle"><small>Average Rating</small></h6>
+    </h1>
+{% endif %}
         </div>
                </div>
        </div>
@@ -295,7 +270,7 @@
        <div class="col-lg-2 col-md-3 col-sm-4 col-6 mb-2">
         <div class="card" style="width: 10rem; border: none;">
             <div class="card-body" style="text-align: center;">
-                <h1 class="card-title mb-2">
+                <h1 class="card-title" style="margin-bottom: 0.5em;">
                     {{ rounded_sentiment_score }}
                 </h1>
                 <h6 class="card-subtitle" style="font-size: 0.937em;">Sentiment Score <i class="bi bi-info-circle-fill " data-bs-toggle="tooltip" 
@@ -313,26 +288,30 @@
 
  </div>
 <!-- Button with Form Dropdown -->
-<div class="dropdown mb-2">
-  <button class="btn btn-primary dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-      Filter Data
-  </button>
-  <div class="dropdown-menu filter_dropdown" aria-labelledby="filterDropdown">
-      <form method="GET" id="filterForm" class="form">
-          <div class="row">
-            <div class="mb-3 col-7">
-                {{ filterset.form.academic_year.label_tag }}
-                {{ filterset.form.academic_year }}
+<div class="d-flex" style="gap: 1em;">
+  <div class="dropdown mb-2">
+    <button class="btn btn-primary dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+        Filter Data
+    </button>
+    <div class="dropdown-menu filter_dropdown" aria-labelledby="filterDropdown">
+        <form method="GET" id="filterForm" class="form">
+            <div class="row">
+              <div class="mb-3 col-7">
+                  {{ filterset.form.academic_year.label_tag }}
+                  {{ filterset.form.academic_year }}
+              </div>
+              <div class="mb-3 col-4">
+                  {{ filterset.form.semester.label_tag }}
+                  {{ filterset.form.semester }}
+              </div>
             </div>
-            <div class="mb-3 col-4">
-                {{ filterset.form.semester.label_tag }}
-                {{ filterset.form.semester }}
-            </div>
-          </div>
-      </form>
+        </form>
+    </div>
   </div>
+  {% if faculty.email_sent == True %}
+  <a href="{% url 'faculty_evaluations_individual_summary_report_pdf' %}" class="btn custom-btn mb-2" ><b>View Summary Report</b></a>
+  {% endif %}
 </div>
-
     <div class="row">
       <div class=" col-lg-8 mb-2">
         <div class="chart-container">
@@ -351,12 +330,12 @@
           <tr>
             {% if i.predicted_sentiment == 'Positive' %}
             <td class="text-success">
-                {{ i.comments }}
+                {{ i.comments | truncatechars:40 }}
             </td>
             {% endif %}
             {% if i.predicted_sentiment == 'Negative' %}
             <td class="text-danger">
-                {{ i.comments }}
+                {{ i.comments | truncatechars:40 }}
             </td>
             {% endif %}
           </tr>

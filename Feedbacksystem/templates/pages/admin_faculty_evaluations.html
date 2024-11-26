@@ -11,9 +11,71 @@
 {% endblock header %}
 
 {% block feature %}
-<a href="{% url 'view_latest_faculty_evaluations' %}" class="btn btn-primary" ><b>View Latest Evaluations</b></a>
-<a href="{% url 'faculty_evaluations_summary_report_pdf' %}" class="btn custom-btn" ><b>View Summary Report</b></a>
-  <div class="table-responsive mt-2 evaluations_table">
+{% if messages %}
+<div>
+    {% for message in messages %}
+    <div class="alert {% if message.tags == 'error' %}alert-danger{% elif message.tags == 'success' %}alert-success{% endif %}" role="alert">
+        {{ message }}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+<a href="{% url 'view_latest_faculty_evaluations' %}" class="btn btn-primary">
+  <i class="bi bi-file-earmark-text"></i> <b>View Latest Evaluations</b>
+</a>
+
+{% if current_evaluation_status == 'Closed' %}
+  <a href="{% url 'faculty_evaluations_summary_report_pdf' %}" class="btn custom-btn">
+      <i class="bi bi-file-earmark-pdf"></i> <b>View Summary Report</b>
+  </a>
+  <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#sendReportModal">
+      <i class="bi bi-send"></i> <b>Send Summary Report</b>
+  </button>
+{% endif %}
+
+<!-- Modal for Sending Report -->
+<div class="modal fade" id="sendReportModal" tabindex="-1" aria-labelledby="sendReportModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="sendReportModalLabel">Send Summary Report</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form method="post" action="{% url 'admin_send_report_to_department_heads' %}">
+          {% csrf_token %}
+          <!-- Departments Section -->
+          <div class="mb-3">
+            <label class="form-label"><strong>Select Department(s):</strong></label>
+            <div>
+              {% for department in departments %}
+                <div class="form-check">
+                  <input 
+                    class="form-check-input" 
+                    type="checkbox" 
+                    name="departments" 
+                    id="department_{{ department.id }}" 
+                    value="{{ department.id }}" 
+                    checked> <!-- Default checked -->
+                  <label class="form-check-label" for="department_{{ department.id }}">
+                    {{ department.name }}
+                  </label>
+                </div>
+              {% endfor %}
+            </div>
+            <button type="button" class="btn btn-danger mt-2" id="clearDepartmentsBtn">Clear Selections</button> <!-- Clear Selections Button -->
+          </div>
+          <!-- Submit Button -->
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-primary">Send Report</button></div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="table-responsive mt-2 evaluations_table">
     <table class="table table-bordered ">
         <tr>
           <th scope="col">Course</th>
@@ -103,6 +165,18 @@
     });
   }
 
+</script>
+<!-- JavaScript to Clear Checkboxes -->
+<script>
+  document.getElementById('clearDepartmentsBtn').addEventListener('click', function() {
+      // Get all department checkboxes inside the modal
+      const checkboxes = document.querySelectorAll('#sendReportModal .form-check-input');
+      
+      // Uncheck all checkboxes
+      checkboxes.forEach(function(checkbox) {
+          checkbox.checked = false;
+      });
+  });
 </script>
 {% endblock feature %}
 

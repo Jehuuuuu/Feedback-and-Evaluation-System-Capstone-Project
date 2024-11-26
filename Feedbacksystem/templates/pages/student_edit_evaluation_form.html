@@ -1,45 +1,12 @@
 {% extends "pages/home.html" %}
 
-{% block title %}Evaluate Faculty{% endblock %}
+{% block title %}Edit Evaluation{% endblock %}
 
 {% block header %}
-
+<h1>Edit Evaluation</h1>
 {% endblock header %}
 {% block feature %}
-{% if messages %}
-<div class="container  col-md-5 col-12">
-    {% for message in messages %}
-    <div class="alert {% if message.tags == 'error' %}alert-danger{% elif message.tags == 'success' %}alert-success{% endif %}" role="alert">
-        {{ message }}
-    </div>
-    {% endfor %}
-</div>
-{% endif %}
-<div class="container">
-    <h2>Evaluate {{ section_subject_faculty.faculty }}</h2>
-    <select id="faculty-select" onchange="redirectToEvaluation(this)">
-        <option value="">Select Faculty</option> <!-- Placeholder option -->
-        {% for i in section_subjects_faculty %}
-        <option 
-            value="{% url 'evaluate_subject_faculty' i.pk %}"
-            {% if i.faculty.pk in evaluated_faculty_ids %} style="color: green; font-weight: bold;" {% endif %}>
-        {{ i.faculty.full_name }}
-            {% if i.faculty.pk in evaluated_faculty_ids %} ✔️ {% endif %}
-        </option>
-        {% endfor %}
-    
-    </select>
-    <script>
-        function redirectToEvaluation(selectElement) {
-            var selectedValue = selectElement.value;
-            if (selectedValue) {
-                window.location.href = selectedValue;
-            }
-        }
-    </script>
-    {% if user_evaluations %}
-        <p>You have already evaluated this faculty.</p>
-    {% else %}
+{% if form_type == 'SET' %}
     <form method="POST" action="">
         {% csrf_token %}
 
@@ -55,10 +22,10 @@
                         <div style="width: 100%; margin-right: 2.4em;">Poor</div> </th>
                 </tr>
                 {% for question in questions %}
-              
+            
                 <tr>
                     {% if question.order == 0 %}
-                   
+                
                         <td class="sticky-col">{{ question.text }}</td>
 
                     <td>{{ form.command_and_knowledge_of_the_subject }}</td>
@@ -92,7 +59,7 @@
                 
                 </table>
         </div>
-    
+
     <div class="table-responsive faculty_evaluation_table">
         <table class="table table-bordered table-responsive  " style="margin-top: 1em;">
             <tr>
@@ -369,29 +336,30 @@
             {% endfor %}
         </table>
     </div>
-    
-    
-    
+
+
+
     <h3> Suggestions for Improvement</h3>
-    
+
    
-    <div style="margin-top: 1em; margin-bottom: 1em;">
-        <h4>The course should:</h4>
-        <div class="custom-choice-radio">
-            {% for choice in form.requires_less_task_for_credit %}
-                <div class="form-check">
-                    {{ choice.tag }}
-                    <label class="form-check-label">{{ choice.choice_label }}</label>
-                </div>
-            {% endfor %}
+<div style="margin-top: 1em; margin-bottom: 1em;">
+    <h4>The course should:</h4>
+    <div class="custom-choice-radio">
+        {% for choice in form.requires_less_task_for_credit %}
+            <div class="form-check">
+                {{ choice.tag }}
+                <label class="form-check-label">{{ choice.choice_label }}</label>
+            </div>
+        {% endfor %}
     </div>
- 
+</div>
+
+
     
-    
-    
+
     {% for question in questions %}
-       <!-- Strengths of the Faculty -->
-       <div class="" style="margin-top: 1em;">
+    <!-- Strengths of the Faculty -->
+    <div class="" style="margin-top: 2em;">
         {% if question.order == 35 %}
         <label for="strengths_of_the_faculty">{{ question.text }}</label>
         {{ form.strengths_of_the_faculty }}
@@ -400,7 +368,7 @@
     {% endfor %}
     {% for question in questions %}
     <!-- Other Suggestions for Improvement -->
-    <div class="" style="margin-top: 1em;">
+    <div class="" style="margin-top: 2em;">
         {% if question.order == 36 %}
         <label for="other_suggestions_for_improvement">{{ question.text }}</label>
         {{ form.other_suggestions_for_improvement }}
@@ -409,16 +377,271 @@
     {% endfor %}
     {% for question in questions %}
     <!-- Comments -->
-    <div class="" style="margin-top: 1em;">
+    <div class="" style="margin-top: 2em;">
         {% if question.order == 37 %}
         <label for="comments">{{ question.text }}</label>
         {{ form.comments }}
         {% endif %}
     </div>
     {% endfor %}
-      <br>
-      <div class=" mx-auto"><input type="submit"  class="btn btn-warning custom-btn" value="Submit" style="font-weight: bold; width: 100%; text-align: center; max-width: 1500px;"></div>
+    <br>
+    <div class=""><input type="submit"  class="btn btn-warning custom-btn" value="Submit" style="font-weight: bold; width: 100%;"></div>
     </form>
-</div>
+    </div>
+{% elif form_type == 'School Event' %}
+<div class="container">
+    <form method="POST" action="">
+        {% csrf_token %}
+        <div class="table-responsive faculty_evaluation_table">
+            <table class="table table-bordered table-responsive mt-1">
+                <tr>
+                    <th  scope="col"></th>
+                    <th  scope="col">
+                        <div style="display: flex; white-space: pre;">
+                        <div style="width: 5em;margin-left: 4.2em; ">Excellent </div>          
+                        <div style="width: 100%; margin-left: 3em;">Very Satisfactory</div>      
+                        <div style="width: 100%; margin-right: 5em; margin-left:2em;">Satisfactory</div> 
+                        <div style="width: 100%; margin-right: 6.5em;">Fair</div>        
+                        <div style="width: 100%; margin-right: 2em;">Poor</div> </th>
+                </tr>
+                {% for question in questions %}
+                <tr>
+                    {% if question.order == 1 %}
+                    <td>{{question.text}}</td>
+                    <td>{{ form.meeting_expectation }}</td>
+                    {% endif %}
+                </tr>
+                <tr> 
+                    {% if question.order == 2 %}
+                    <td>{{question.text}}</td>
+                    <td>{{ form.attainment_of_the_objectives }}</td>
+                    {% endif %}
+                </tr>
+                <tr>
+                    {% if question.order == 3 %}
+                    <td>{{question.text}}</td>
+                    <td>{{ form.topics_discussed }}</td>
+                    {% endif %}
+                </tr>
+                <tr>
+                    {% if question.order == 4 %}
+                    <td>{{question.text}}</td>
+                    <td>{{ form.input_presentation }}</td>
+                    {% endif %}
+                </tr>
+                <tr>
+                    {% if question.order == 5 %}
+                    <td>{{question.text}}</td>
+                    <td>{{ form.management_team }}</td>
+                    {% endif %}
+                </tr>
+                <tr>
+                    {% if question.order == 6 %}
+                    <td>{{question.text}}</td>
+                    <td>{{ form.venue_and_physical_arrangement }}</td>
+                    {% endif %}
+                </tr>
+                <tr>
+                    {% if question.order == 7 %}
+                    <td>{{question.text}}</td>
+                    <td>{{ form.overall_assessment }}</td>
+                    {% endif %}
+                </tr>
+                {% endfor %}
+                </table>
+        </div>
+    {% for question in questions %}
+    <div style="margin-top: 2em;">
+        {% if question.order == 8 %}
+        <label for="comments">{{question.text}}</label>
+        {{ form.suggestions_and_comments }}
+        {% endif %}
+    </div>    
+    {% endfor %}
+    <br>
+    <button type="submit" class="btn btn-warning custom-btn">Submit</button>
+    </form>
+   </div>
+
+{% elif form_type == 'Webinar/Seminar Event' %}
+
+   <div class="container">
+    <form method="POST" action="">
+        {% csrf_token %}
+        <div class="table-responsive">
+            <table class="table table-bordered table-responsive  " style="margin-top: 1em;">
+                <tr>
+                    <th  scope="col" style="color:#fafafa;  background: #2a9134">I. Overall Evaluation </th>
+                    <th  scope="col"><div style="display: flex; white-space: pre;">
+                        <div style="width: 5em;margin-left: 3.5em;">Outstanding </div>          
+                        <div style="width: 100%; margin-left: 4em;">Very Satisfactory</div>      
+                        <div style="width: 100%; margin-right: 3.5em; margin-left:3em;">Satisfactory</div> 
+                        <div style="width: 100%; margin-right: 5em;">Unsatisfactory</div>        
+                        <div style="width: 100%; margin-right: 2.4em;">Poor</div> </th>
+                </tr>
+                {% for question in questions %}
+                <tr>
+                    {% if question.order == 1 %}
+                    <td>{{question.text}}</td>
+                    <td>{{ form.relevance_of_the_activity }}</td>
+                    {% endif %}
+                </tr>
+                <tr> 
+                    {% if question.order == 2 %}
+                    <td>{{question.text}}</td>
+                    <td>{{ form.quality_of_the_activity }}</td>
+                    {% endif %}
+                </tr>
+                <tr>
+                    {% if question.order == 3 %}
+                    <td>{{question.text}}</td>
+                    <td>{{ form.timeliness }}</td>
+                    {% endif %}
+                </tr>
+                {% endfor %}
+                </table>
+                </div>
+                {% for question in questions %}
+                <div style="margin-top: 2em;">
+                    {% if question.order == 4 %}
+                    <label for="comments">{{question.text}}</label>
+                    {{ form.suggestions_and_comments }}
+                    {% endif %}
+                </div>   
+                {% endfor %}
+                <div class="table-responsive">
+                    <table class="table table-bordered table-responsive  " style="margin-top: 1em;">
+                        <tr>
+                    
+                            <th  scope="col" class="sticky-col">II. Procedure and Content </th>
+                            <th  scope="col"><div style="display: flex; white-space: pre; width: 50%;">
+                            <div style="width: 5em;margin-left: 3.5em;">Outstanding </div>          
+                            <div style="width: 100%; margin-left: 4em;">Very Satisfactory</div>      
+                            <div style="width: 100%; margin-right: 3.5em; margin-left:3em;">Satisfactory</div> 
+                            <div style="width: 100%; margin-right: 5em;">Unsatisfactory</div>        
+                            <div style="width: 100%; margin-right: 2.4em;">Poor</div> </th>     
+                        </tr>
+                {% for question in questions %}
+                <tr>                   
+                    {% if question.order == 5 %}
+                    <td>{{question.text}}</td>
+                    <td>{{ form.attainment_of_the_objective }}</td>
+                    {% endif %}
+                </tr>
+                <tr> 
+                    {% if question.order == 6 %}
+                    <td>{{question.text}}</td>
+                    <td>{{ form.appropriateness_of_the_topic_to_attain_the_objective }}</td>
+                    {% endif %}
+                </tr>
+                <tr>
+                    {% if question.order == 7 %}
+                    <td>{{question.text}}</td>
+                    <td>{{ form.appropriateness_of_the_searching_methods_used }}</td>
+                    {% endif %}
+                </tr>
+                {% endfor %}
+                </table>
+                </div>
+                {% for question in questions %}
+                <div style="margin-top: 2em;">
+                    {% if question.order == 8 %}
+                    <label for="topics">{{question.text}}</label>
+                    {{ form.topics_to_be_included }}
+                    {% endif %}
+                </div>    
+                {% endfor %}
+                <div class="table-responsive">
+                    <table class="table table-bordered table-responsive  " style="margin-top: 1em;">
+                        <tr>
+                            <th  scope="col" style="color:#fafafa;  background: #2a9134">III. Suitability of the present time </th>
+                            <th  scope="col" style="color:#fafafa;  background: #2a9134"><div style="display: flex; white-space: pre; width: 50%;"><div style="width: 5em;margin-left: 3em;">Outstanding </div>          <div style="width: 100%; margin-left: 4em;">Very Satisfactory</div>      <div style="width: 100%; margin-right: 3.5em; margin-left:3em;">Satisfactory</div> <div style="width: 100%; margin-right: 5em;">Unsatisfactory</div>        <div style="width: 100%; margin-right: 2em;">Poor</div> </th>
+                        </tr>
+                {% for question in questions %}
+                <tr>
+                    {% if question.order == 9 %}
+                    <td>{{question.text}}</td>
+                    <td>{{ form.appropriateness_of_the_topic_in_the_present_time }}</td>
+                    {% endif %}
+                </tr>
+                <tr> 
+                    {% if question.order == 10 %}
+                    <td>{{question.text}}</td>
+                    <td>{{ form.usefulness_of_the_topic_discusssed_in_the_activity }}</td>
+                    {% endif %}
+                </tr>
+                <tr>
+                    {% if question.order == 11 %}
+                    <td>{{question.text}}</td>
+                    <td>{{ form.appropriateness_of_the_searching_methods }}</td>
+                    {% endif %}
+                </tr>
+                {% endfor %}
+                </table>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-responsive  " style="margin-top: 1em;">
+                        <tr>
+                            <th  scope="col" style="color:#fafafa;  background: #2a9134">IV. Speaker Evaluation </th>
+                            <th  scope="col" style="color:#fafafa;  background: #2a9134"><div style="display: flex; white-space: pre; width: 50%;"><div style="width: 5em;margin-left: 3em;">Outstanding </div>          <div style="width: 100%; margin-left: 4em;">Very Satisfactory</div>      <div style="width: 100%; margin-right: 3.5em; margin-left:3em;">Satisfactory</div> <div style="width: 100%; margin-right: 5em;">Unsatisfactory</div>        <div style="width: 100%; margin-right: 2em;">Poor</div> </th>
+                        </tr>
+                {% for question in questions %}
+                <tr>
+                    {% if question.order == 12 %}
+                    <td>{{question.text}}</td>
+                    <td>{{ form.displayed_a_thorough_knowledge_of_the_topic }}</td>
+                    {% endif %}
+                </tr>
+                <tr> 
+                    {% if question.order == 13 %}
+                    <td>{{question.text}}</td>
+                    <td>{{ form.thoroughly_explained_and_processed_the_learning_activities_throughout_the_training }}</td>
+                    {% endif %}
+                </tr>
+                <tr>
+                    {% if question.order == 14 %}
+                    <td>{{question.text}}</td>
+                    <td>{{ form.able_to_create_a_good_learning_environment }}</td>
+                    {% endif %}
+                </tr>
+                <tr>
+                    {% if question.order == 15 %}
+                    <td>{{question.text}}</td>
+                    <td>{{ form.able_to_manage_her_time_well }}</td>
+                    {% endif %}
+                </tr>
+                <tr> 
+                    {% if question.order == 16 %}
+                    <td>{{question.text}}</td>
+                    <td>{{ form.demonstrated_keenness_to_the_participant_needs }}</td>
+                    {% endif %}
+                </tr>
+                <tr>
+                    {% if question.order == 18 %}
+                    <td>{{question.text}}</td>
+                    <td>{{ form.timeliness_or_suitability_of_service }}</td>
+                    {% endif %}
+                </tr>
+                <tr>
+                    {% if question.order == 17 %}
+                    <td>{{question.text}}</td>
+                    <td>{{ form.overall_satisfaction }}</td>
+                    {% endif %}
+                </tr>
+                {% endfor %}
+                </table>
+        </div>
+               
+
+                
+                <br>
+                <button type="submit" class="btn btn-warning custom-btn">Submit</button>
+                </form>
+            </div>
+{% else %}
+
+<h6>Evaluation Form Not Found</h6>
+
 {% endif %}
 {% endblock feature %}
+

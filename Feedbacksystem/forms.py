@@ -10,7 +10,7 @@ class TeacherForm(ModelForm):
     class Meta:
         model = Faculty
         fields = '__all__' 
-        exclude = ['user']
+        exclude = ['user', 'profile_picture', 'email_sent']
         widgets = {
             'first_name': forms.TextInput(attrs={'class': 'form-control'}),
             'last_name': forms.TextInput(attrs={'class': 'form-control'}),
@@ -42,7 +42,7 @@ class DepartmentForm(ModelForm):
     class Meta:
         model = Department
         fields = '__all__'     
-
+        exclude = ['email_sent']
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control'}),
         }
@@ -221,11 +221,7 @@ class FacultyRegistrationForm(UserCreationForm):
 class StudentLoginForm(forms.Form):
     student_number = forms.CharField(
         max_length=9,
-        widget=forms.TextInput(attrs={
-            'class': 'form-control',
-            'inputmode': 'numeric',  # Opens numeric keypad on mobile devices
-            'pattern': '[0-9]*',     # Restrict to digits only
-        })
+        widget=forms.TextInput
     )
     password = forms.CharField(widget=forms.PasswordInput)
 
@@ -349,16 +345,11 @@ class LikertEvaluationForm(forms.Form):
     extends_consideration_to_students = forms.ChoiceField(choices=[(5, ''), (4, ''), (3, ''),
                                         (2, ''), (1, '')],
                                widget=forms.RadioSelect(attrs={'class': 'likert-horizontal custom-radio'}))
-    
-    CREDIT_TASK_CHOICES = (
-        (True, 'Require less task for the credit'),
-        (False, 'Require more task for the credit')
-    )
 
-    credit_task_preference = forms.ChoiceField(
-        label='The course should:',
-        choices=CREDIT_TASK_CHOICES,
-        widget=forms.RadioSelect(attrs={'class': 'likert-horizontal custom-radio'}),
+
+    requires_less_task_for_credit = forms.ChoiceField(
+    choices=[('Require less task for the credit', 'Require less task for the credit'), ('Require more task for the credit', 'Require more task for the credit')],
+        widget=forms.RadioSelect(attrs={'class': 'custom-choice-radio'}),
 
     )
 

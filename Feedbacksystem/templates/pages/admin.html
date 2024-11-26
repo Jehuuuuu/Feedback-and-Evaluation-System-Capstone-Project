@@ -223,29 +223,30 @@
     
     {% block feature %}
 
-<!-- Button with Form Dropdown -->
-<div class="dropdown">
-    <button class="btn btn-primary dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-        Filter Data
-    </button>
-    <div class="dropdown-menu filter_dropdown" aria-labelledby="filterDropdown">
-        <form method="GET" id="filterForm" class="form">
-            <div class="row">
-              <div class="mb-3 col-7">
-                  {{ filterset.form.academic_year.label_tag }}
-                  {{ filterset.form.academic_year }}
-              </div>
-              <div class="mb-3 col-4">
-                  {{ filterset.form.semester.label_tag }}
-                  {{ filterset.form.semester }}
-              </div>
-            </div>
-        </form>
+
+
     </div>
+    <!-- Button with Form Dropdown -->
+<div class="dropdown">
+  <button class="btn btn-primary dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+      Filter Data
+  </button>
+  <div class="dropdown-menu filter_dropdown" aria-labelledby="filterDropdown">
+      <form method="GET" id="filterForm" class="form">
+          <div class="row">
+            <div class="mb-3 col-7">
+                {{ filterset.form.academic_year.label_tag }}
+                {{ filterset.form.academic_year }}
+            </div>
+            <div class="mb-3 col-4">
+                {{ filterset.form.semester.label_tag }}
+                {{ filterset.form.semester }}
+            </div>
+          </div>
+      </form>
+  </div>
 </div>
 
-
-    </div>
     <div class="row mt-2">
       <div class="col-md-6">
         <div id="chart-container">

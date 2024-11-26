@@ -14,7 +14,7 @@
     
         <div class="message-list">
             <div class="message-items">
-                {% for message in messages %}
+                {% for message in inbox %}
                 <div class="message-item">
                     <div class="message-sender"><a href="{% url 'view_message' message.id %}">{{ message.actor.username }}</a></div>
                     <div class="message-subject">

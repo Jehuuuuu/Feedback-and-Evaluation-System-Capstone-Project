@@ -195,13 +195,22 @@ main {
     border-bottom: 2px solid #ff9400;
   }
 
-  #eval{
-    background-color: #ffffff;
-    padding: 1em;
-    border-radius:  0.25rem;
-    height: 10.5em;
-    max-width: 550px;
-  }
+.card-title {
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #333;
+}
+
+.card-subtitle {
+    font-size: 1.2em;
+    margin-bottom: 0.5em;
+    color: #666;
+}
+
+.card-text {
+    font-size: 1em;
+    color: #555;
+}
 
 .button-container button{
   width: 100%;
@@ -271,6 +280,35 @@ main {
   overflow-wrap: break-word; /* Ensures long text wraps appropriately */
 }
 
+/* New class for customized radio buttons */
+.custom-choice-radio input[type="radio"] {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  width: 25px; /* Set the width of the custom radio button */
+  height: 25px; /* Set the height of the custom radio button */
+  border-radius: 50%; /* Make the radio button circular */
+  border: 2px solid #2a9134; /* Add a border with a different color */
+  outline: none;
+  cursor: pointer;
+  margin-top: 1em;
+  margin-bottom: 0.5em;
+}
+
+.custom-choice-radio input[type="radio"]:checked {
+  background-color: #2a9134; /* Change background color when radio button is checked */
+}
+
+.custom-choice-radio .form-check {
+  display: flex;
+  align-items: center;
+  margin-right: 20px; /* Adjust the margin between radio buttons */
+}
+
+.custom-choice-radio .form-check-label {
+  margin-left: 10px; /* Adjust space between the radio button and its label */
+  margin-top: 0.5em;
+}
 
 
 .about{
@@ -353,6 +391,23 @@ footer{
 .notification-item:hover{
   background-color: #e9ecef;
 }
+
+.rating-cell {
+  text-align: center;
+  padding: 10px;
+}
+.clickable-link {
+  color: #2a9134; /* Custom link color */
+  text-decoration: underline;
+  font-weight: bold;
+}
+
+.clickable-link:hover {
+  color: #1a5d24; /* Darker shade on hover */
+  text-decoration: none; /* Remove underline on hover */
+  cursor: pointer;
+}
+
 @media (max-width:1200px) {
   #sidebar {
     margin-left: -250px; /* Adjust based on sidebar width */
@@ -450,16 +505,52 @@ footer{
   width: 2.2em;
 }
 .custom-radio input[type="radio"] {
-  width: 20px; /* Set the width of the custom radio button */
-  height: 20px; /* Set the height of the custom radio button */
+  width: 25px; /* Set the width of the custom radio button */
+  height: 25px; /* Set the height of the custom radio button */
 
 }
-    #profile_name{
+#profile_name{
       visibility: hidden;
       margin-right: -5em;
       padding: 0;
     }
-    .profile-pic{
+.profile-pic{
       visibility: hidden;
     }
+
+
+.card-title {
+      font-size: 1.3em;
+      font-weight: bold;
+      color: #333;
+  }
+  
+.card-subtitle {
+      font-size: 1em;
+      margin-bottom: 0.5em;
+      color: #666;
+  }
+  
+.card-text {
+      font-size: 0.9em;
+      color: #555;
+  }
+}
+@media (max-width: 400px){
+  .card-title {
+    font-size: 1.1em;
+    font-weight: bold;
+    color: #333;
+}
+
+.card-subtitle {
+    font-size: 1em;
+    margin-bottom: 0.5em;
+    color: #666;
+}
+
+.card-text {
+    font-size: 0.9em;
+    color: #555;
+}
 }

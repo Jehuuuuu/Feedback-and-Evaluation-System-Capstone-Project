@@ -56,7 +56,22 @@ class EvaluationFilter(django_filters.FilterSet):
         academic_years = LikertEvaluation.objects.order_by('academic_year').values_list('academic_year', flat=True).distinct()
         academic_year_choices = [(year, year) for year in academic_years]
         self.filters['academic_year'].extra['choices'] = academic_year_choices
- 
+
+        # Adding the rating category filter
+    RATING_CATEGORY_CHOICES = [
+        ('Poor', 'Poor'),
+        ('Unsatisfactory', 'Unsatisfactory'),
+        ('Satisfactory', 'Satisfactory'),
+        ('Very Satisfactory', 'Very Satisfactory'),
+        ('Outstanding', 'Outstanding'),
+    ]
+
+    rating_category = django_filters.ChoiceFilter(
+        method='filter_rating_category',
+        choices=RATING_CATEGORY_CHOICES,
+        label='Rating Category',
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
  
     search = django_filters.CharFilter(
         method='filter_search',
@@ -79,7 +94,22 @@ class EvaluationFilter(django_filters.FilterSet):
             Q(academic_year__icontains=value) |
             Q(semester__icontains=value)     
         )
-
+    
+    def filter_rating_category(self, queryset, name, value):
+        """
+        Filters evaluations by their rating category.
+        """
+        category_map = {
+            'Poor': (1.0, 1.99),
+            'Unsatisfactory': (2.0, 2.99),
+            'Satisfactory': (3.0, 3.99),
+            'Very Satisfactory': (4.0, 4.99),
+            'Outstanding': (5.0, 5.0),
+        }
+        if value in category_map:
+            min_rating, max_rating = category_map[value]
+            return queryset.filter(average_rating__gte=min_rating, average_rating__lte=max_rating)
+        return queryset
 
 
 class Meta: 

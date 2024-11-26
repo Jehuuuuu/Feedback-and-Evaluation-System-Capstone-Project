@@ -397,6 +397,21 @@ hr{
   cursor: pointer;
   color: #333;
 }
+.card-title {
+  font-size: 1.5em;
+  font-weight: bold;
+  color: #333;
+}
+
+.card-subtitle {
+  font-size: 1.2em;
+  color: #666;
+}
+
+.card-text {
+  font-size: 1em;
+  color: #555;
+}
 
 @media (max-width:900px) {
 .header-title{
@@ -475,12 +490,30 @@ hr{
     
 }
   @media (max-width: 500px) {
-    #profile_name{
-      visibility: hidden;
-      margin-right: -5em;
-      padding: 0;
-    }
-    .profile-pic{
-      visibility: hidden;
+#profile_name{
+  visibility: hidden;
+  margin-right: -5em;
+  padding: 0;
+}
+.profile-pic{
+  visibility: hidden;
+}
+@media (max-width: 400px){
+  .card-title {
+    font-size: 1.1em;
+    font-weight: bold;
+    color: #333;
+}
+
+.card-subtitle {
+    font-size: 1em;
+    margin-bottom: 0.5em;
+    color: #666;
+}
+
+.card-text {
+    font-size: 0.9em;
+    color: #555;
+}
     }
 }

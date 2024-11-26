@@ -10,15 +10,50 @@
 {% endblock header %}
 <hr>
 {% block feature %}
+        <div class="d-flex" style="gap: 1em;">
+            <a class="btn btn-warning custom-btn " style = "color: black;"data-bs-toggle="modal" data-bs-target="#exampleModal"> <i class="bi bi-person-plus-fill"></i> <b>Add Faculty</b></a>
+            {% if department.email_sent %}
+            <a class="btn btn-success " style="color: white;"
+               href="{% url 'download_report' department.id %}"> 
+                <i class="bi bi-download"></i> <b>Download Summary Report</b>
+            </a>
+            <button class="btn btn-primary " data-bs-toggle="modal" data-bs-target="#facultySummaryModal">
+                <i class="bi bi-send"></i> <b>Send Summary Reports</b>
+            </button>
+            {% endif %}
 
-    <div class="container">
-        <div class="row">
-            <a class="btn btn-warning custom-btn col-md-2 col-sm-4 col-12" style = "color: black;"data-bs-toggle="modal" data-bs-target="#exampleModal"> <i class="bi bi-person-plus-fill"></i> <b>Add Faculty</b></a>
-            <div class="col-md-3 col-sm-4 col-12">
-                <a href="{% url 'department_head_pending_evaluations' %}" class="btn btn-secondary" ><b>Pending Evaluations</b></a>
+        </div>
+<!-- Modal for Faculty Selection -->
+<div class="modal fade" id="facultySummaryModal" tabindex="-1" aria-labelledby="facultySummaryModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="facultySummaryModalLabel">Select Faculty to Send Individual Summary Reports</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
+            <form method="POST" action="{% url 'send_summary_reports' %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <h5>Select Faculty Members:</h5>
+                    <div class="form-check">
+                        {% for faculty in faculties %}
+                            <input class="form-check-input" type="checkbox" value="{{ faculty.id }}" name="selected_faculties" checked>
+                            <label class="form-check-label" for="faculty{{ faculty.id }}">
+                                {{ faculty.full_name }}
+                            </label><br>
+                        {% endfor %}
+                    </div>
+                    <button type="button" class="btn btn-danger mt-2" id="clearSelectionsBtn">Clear Selections</button> <!-- Clear Selections Button -->
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Send Reports</button>
+                </div>
+            </form>
         </div>
     </div>
+</div>
     <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-scrollable">
           <div class="modal-content">
@@ -34,6 +69,7 @@
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+
               <input type = "submit" class="btn custom-btn" value="Add">
             </form>
             </div>
@@ -55,7 +91,7 @@
                 <td>{{ i.first_name }} {{ i.last_name }}</td>
                 <td>{{ i.average_rating }}</td>
                 <td>{{ i.get_rating_category }}</td>
-                <td style="display: flex; flex-direction: row; gap:1em; align-items: center; width: 160px;"> <a href="{% url 'department_head_faculty_evaluations' i.pk %}" style="text-decoration: none;"><button class="btn btn-primary d-flex align-items-center" style=" padding:1px 2px 1px 7px"><i class="bi bi-eye-fill" style="font-size:20px; margin-right: 5px;"></i> </button></a>
+                <td style="display: flex; flex-direction: row; gap:1em; align-items: center; width: 160px;"> <!--<a href="{% url 'department_head_faculty_evaluations' i.pk %}" style="text-decoration: none;"><button class="btn btn-primary d-flex align-items-center" style=" padding:1px 2px 1px 7px"><i class="bi bi-eye-fill" style="font-size:20px; margin-right: 5px;"></i> </button></a> -->
                     <a href="{% url 'department_head_send_message'  i.pk  %}" style="text-decoration: none;"><button class="btn btn-success d-flex align-items-center" style=" padding:1px 2px 1px 7px" title="Message Faculty"><i class="bi bi-chat-dots" style="font-size:20px; margin-right: 5px;"></i></button></a>
                 </td>
         </tr>
@@ -88,4 +124,17 @@
                 {% endif %}
             </ul>
           </nav>
+<!-- JavaScript to Clear Checkboxes -->
+<script>
+    document.getElementById('clearSelectionsBtn').addEventListener('click', function() {
+        // Get all checkboxes inside the modal
+        const checkboxes = document.querySelectorAll('#facultySummaryModal .form-check-input');
+        
+        // Uncheck all checkboxes
+        checkboxes.forEach(function(checkbox) {
+            checkbox.checked = false;
+        });
+    });
+</script>
+
 {% endblock feature %}

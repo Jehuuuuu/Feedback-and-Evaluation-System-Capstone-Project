@@ -201,6 +201,21 @@ background-color: #ff9400;
   padding:1.5em !important;
   width: 20em !important;
 }
+.form-check-input{
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  appearance: none !important;
+  width: 20px !important; /* Set the width of the custom radio button */
+  height: 20px !important; /* Set the height of the custom radio button */
+  border-radius: 50% !important; /* Make the radio button circular */
+  border: 2px solid #2a9134 !important; /* Add a border */
+  outline: none !important;
+  cursor: pointer !important;
+}
+.form-check-input:checked{
+  background-color: #2a9134;/* Change background color when radio button is checked */
+}
+
 @media (min-width:1200px){
 .evaluations_table {
   overflow-x:hidden !important;

@@ -64,7 +64,66 @@
         {% endfor %}
     
     </table>
+
     </div>
+    <div class="recent-evaluations">
+        <div class="d-flex">
+            <div>
+                <h5 class="section-title">Recent Evaluations ({{current_semester}} Semester)</h5>
+            </div>
+        </div>
+        <div class="table-container">
+            <table class="table table-bordered ">
+                <thead>
+                    <tr>
+                        <th scope="col" style="color: #fff; background-color: #2a9134; text-align: left; padding: 10px;">Evaluated</th>
+                        <th scope="col" style="color: #fff; background-color: #2a9134; text-align: center; padding: 10px;">Average Rating</th>
+                        <th scope="col" style="color: #fff; background-color: #2a9134; text-align: center; padding: 10px;">Rating Category</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for evaluation in recent_evaluations %}
+                        <tr>
+                            <td style="text-align: left; padding: 10px;">
+                                {% if evaluation.section_subject_faculty %}
+                                    <a href="{% url 'student_edit_evaluation_form' evaluation.pk %}" class="clickable-link">{{ evaluation.section_subject_faculty.faculty.full_name }}</a>
+                                {% elif evaluation.event %}
+                                    <a href="{% url 'student_edit_evaluation_form' evaluation.pk %}" class="clickable-link">{{ evaluation.event.title }}</a>
+                                {% else %}
+                                    <em>Unknown</em>
+                                {% endif %}
+                            </td>
+                            
+                            <td style="text-align: center; padding: 10px;">{{ evaluation.average_rating }}</td>
+                            <td style="
+                            text-align: center;
+                            padding: 10px;
+                            {% if evaluation.average_rating >= 5.0 %}
+                                color: #2a7a2a; /* Dark Green */
+                            {% elif evaluation.average_rating >= 4.0 %}
+                                color: #4ca64c; /* Medium Green */
+                            {% elif evaluation.average_rating >= 3.0 %}
+                                color: #e5ac00; /* Deep Gold */
+                            {% elif evaluation.average_rating >= 2.0 %}
+                                color: #cc7a00; /* Burnt Orange */
+                            {% else %}
+                                color: #d93636; /* Dark Red */
+                            {% endif %}">
+                            {{ evaluation.get_rating_category }}
+                        </td>
+                 </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="3" style="text-align: center; padding: 15px;">
+                                <strong>No recent evaluations found.</strong>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
     </div>
     </div>
     {% endblock feature %}

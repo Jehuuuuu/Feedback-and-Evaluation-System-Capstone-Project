@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
 from django.db.models import Avg
+from notifications.models import Notification 
 # Create your models here.
 
 class Course(models.Model):
@@ -23,6 +24,7 @@ class Course(models.Model):
     
 class Department(models.Model):
     name = models.CharField(max_length=100)
+    email_sent = models.BooleanField(default=False)  # New field to track email sent status
 
     updated = models.DateTimeField(auto_now = True, null=True, blank = True)
     created = models.DateTimeField(auto_now_add = True, null=True, blank = True)
@@ -45,6 +47,7 @@ class Faculty(models.Model):
     contact_number = models.CharField(max_length  = 11)
     profile_picture = models.ImageField(upload_to='profile_picture/', blank=True)
     department = models.ForeignKey(Department, on_delete=models.CASCADE, null=True, blank = True) 
+    email_sent = models.BooleanField(default=False)  # New field to track email sent status
 
     updated = models.DateTimeField(auto_now = True, null=True, blank = True)
     created = models.DateTimeField(auto_now_add = True, null=True, blank = True)
@@ -187,8 +190,8 @@ class SectionSubjectFaculty(models.Model):
 
 class Student(models.Model):
     STUDENT_STATUS_CHOICES = [
-        ('regular', 'Regular'),  
-        ('irregular', 'Irregular'), 
+        ('Regular', 'Regular'),  
+        ('Irregular', 'Irregular'), 
     ]
     user = models.OneToOneField(User, null = True, blank=True, on_delete=models.CASCADE)
     student_number = models.CharField(max_length=9, primary_key=True)
@@ -246,6 +249,10 @@ class LikertEvaluation(models.Model):
     EVALUATION_STATUS_CHOICES = [
         ('pending', 'Pending'),  # Evaluation is pending
         ('evaluated', 'Evaluated'),  # Evaluation has been completed
+    ]
+    THE_COURSE_SHOULD = [
+        ('Require less task for the credit', 'Require less task for the credit'),  # Evaluation is pending
+        ('Require more task for the credit', 'Require more task for the credit'),  # Evaluation has been completed
     ]
     ADMIN_STATUS_CHOICES = [
         ('Pending', 'Pending'),
@@ -345,7 +352,10 @@ class LikertEvaluation(models.Model):
                                         (2, 'Unsatisfactory'), (1, 'Poor')])
     
 
-    requires_less_task_for_credit = models.BooleanField()
+    requires_less_task_for_credit = models.CharField(
+        max_length=50,
+        choices=THE_COURSE_SHOULD
+    )
     strengths_of_the_faculty = models.TextField()
     other_suggestions_for_improvement = models.TextField()
     comments = models.TextField()
@@ -500,20 +510,20 @@ class LikertEvaluation(models.Model):
             self.average_rating = self.calculate_average_rating()
         super().save(*args, **kwargs)
 
+
     def get_rating_category(self):
         if self.average_rating is not None:
-            if 1.0 <= self.average_rating <= 1.49:
+            if 1.0 <= self.average_rating <= 1.99:
                 return "Poor"
-            elif 1.5 <= self.average_rating <= 2.49:
+            elif 2.0 <= self.average_rating <= 2.99:
                 return "Unsatisfactory"
-            elif 2.5 <= self.average_rating <= 3.49:
+            elif 3.0 <= self.average_rating <= 3.99:
                 return "Satisfactory"
-            elif 3.5 <= self.average_rating <= 4.49:
+            elif 4.0 <= self.average_rating <= 4.99:
                 return "Very Satisfactory"
-            elif 4.5 <= self.average_rating <= 5.0:
+            elif 5.0 <= self.average_rating <= 5.0:
                 return "Outstanding"
         return "No Rating"
-
     
     class Meta:
         ordering = ['-updated', '-created']
@@ -639,21 +649,22 @@ class SchoolEventModel(models.Model):
         ratings = [int(rating) for rating in ratings]
 
         average_rating = sum(ratings) / len(ratings) if ratings else None
-        return round(average_rating, 1) 
+        return round(average_rating, 2) 
 
+    
     def get_rating_category(self):
-            if self.average_rating is not None:
-                if 1.0 <= self.average_rating <= 1.49:
-                    return "Poor"
-                elif 1.5 <= self.average_rating <= 2.49:
-                    return "Fair"
-                elif 2.5 <= self.average_rating <= 3.49:
-                    return "Good"
-                elif 3.5 <= self.average_rating <= 4.49:
-                    return "Very Good"
-                elif 4.5 <= self.average_rating <= 5.0:
-                    return "Outstanding"
-            return "No Rating"
+        if self.average_rating is not None:
+            if 1.0 <= self.average_rating <= 1.99:
+                return "Poor"
+            elif 2.0 <= self.average_rating <= 2.99:
+                return "Unsatisfactory"
+            elif 3.0 <= self.average_rating <= 3.99:
+                return "Satisfactory"
+            elif 4.0 <= self.average_rating <= 4.99:
+                return "Very Satisfactory"
+            elif 5.0 <= self.average_rating <= 5.0:
+                return "Outstanding"
+        return "No Rating"
 
     def save(self, *args, **kwargs):
         # Get the current evaluation status
@@ -750,21 +761,22 @@ class WebinarSeminarModel(models.Model):
         ratings = [int(rating) for rating in ratings]
 
         average_rating = sum(ratings) / len(ratings) if ratings else None
-        return round(average_rating, 1) 
+        return round(average_rating, 2) 
+    
     
     def get_rating_category(self):
-            if self.average_rating is not None:
-                if 1.0 <= self.average_rating <= 1.49:
-                    return "Poor"
-                elif 1.5 <= self.average_rating <= 2.49:
-                    return "Fair"
-                elif 2.5 <= self.average_rating <= 3.49:
-                    return "Good"
-                elif 3.5 <= self.average_rating <= 4.49:
-                    return "Very Good"
-                elif 4.5 <= self.average_rating <= 5.0:
-                    return "Outstanding"
-            return "No Rating"
+        if self.average_rating is not None:
+            if 1.0 <= self.average_rating <= 1.99:
+                return "Poor"
+            elif 2.0 <= self.average_rating <= 2.99:
+                return "Unsatisfactory"
+            elif 3.0 <= self.average_rating <= 3.99:
+                return "Satisfactory"
+            elif 4.0 <= self.average_rating <= 4.99:
+                return "Very Satisfactory"
+            elif 5.0 <= self.average_rating <= 5.0:
+                return "Outstanding"
+        return "No Rating"
 
     def save(self, *args, **kwargs):
         # Get the current evaluation status
@@ -888,21 +900,22 @@ class StakeholderFeedbackModel(models.Model):
         ratings = [int(rating) for rating in ratings]
 
         average_rating = sum(ratings) / len(ratings) if ratings else None
-        return round(average_rating, 1) 
+        return round(average_rating, 2) 
 
+    
     def get_rating_category(self):
-            if self.average_rating is not None:
-                if 1.0 <= self.average_rating <= 1.49:
-                    return "Poor"
-                elif 1.5 <= self.average_rating <= 2.49:
-                    return "Fair"
-                elif 2.5 <= self.average_rating <= 3.49:
-                    return "Good"
-                elif 3.5 <= self.average_rating <= 4.49:
-                    return "Very Good"
-                elif 4.5 <= self.average_rating <= 5.0:
-                    return "Outstanding"
-            return "No Rating"
+        if self.average_rating is not None:
+            if 1.0 <= self.average_rating <= 1.99:
+                return "Not Satisfied"
+            elif 2.0 <= self.average_rating <= 2.99:
+                return "Barely Satisfied"
+            elif 3.0 <= self.average_rating <= 3.99:
+                return "Moderately Satisfied"
+            elif 4.0 <= self.average_rating <= 4.99:
+                return "Very Satisfied"
+            elif 5.0 <= self.average_rating <= 5.0:
+                return "Highly Satisfied"
+        return "No Rating"
 
     def save(self, *args, **kwargs):
         # Get the current evaluation status
@@ -1104,7 +1117,7 @@ class PeertoPeerEvaluation(models.Model):
         ratings = [int(rating) for rating in ratings]
 
         average_rating = sum(ratings) / len(ratings) if ratings else None
-        return round(average_rating, 1) 
+        return round(average_rating, 2) 
 
 
 
@@ -1152,4 +1165,3 @@ class PeertoPeerEvaluation(models.Model):
 
     def __str__(self):
        return f"{self.peer} - {self.comments}"
-

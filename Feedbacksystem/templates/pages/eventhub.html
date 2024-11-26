@@ -39,7 +39,7 @@
     <img src="{% static 'images/cvsu_thumbnail.jpg' %}"  class="card-img-top img-fluid" alt="CvSU Thumbnail">
     {% endif %}
       <h5 class="card-title">{{i.title}}</h5>
-      <h6 class="card-subtitle mb-2 text-body-secondary">{{i.date}}</h6>
+      <h6 class="card-subtitle mb-2 text-body-secondary"><small>{{i.date}}</small></h6>
       <p class="card-text">{{i.description|slice:":70"}}...</p>
       {% if i.evaluation_status %}<a href="{% url 'event_detail' i.pk %}" class="card-link btn custom-btn">Evaluate</a>{% endif %}
       <a href="#" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#eventModal{{ i.id }}">View Details</a>
@@ -54,12 +54,12 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-            <p>Date: {{ i.date }}</p>
-            <p>Time: {{ i.time }}</p>
-            <p>Location: {{ i.location }}</p>
-            <p>Description: {{ i.description }}</p>
-            <p>Evaluation Status: {{ i.evaluation_identifier }}</p>
-            <p>Created by: {{ i.get_author_name }}</p>
+            <p><b>Date:</b> {{ i.date }}</p>
+            <p><b>Time:</b> {{ i.time }}</p>
+            <p><b>Location:</b> {{ i.location }}</p>
+            <p><b>Description:</b> {{ i.description }}</p>
+            <p><b>Evaluation Status:</b> {{ i.evaluation_identifier }}</p>
+            <p><b>Created by:</b> {{ i.get_author_name }}</p>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>  

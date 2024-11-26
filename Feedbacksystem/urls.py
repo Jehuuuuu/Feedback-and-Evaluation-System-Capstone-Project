@@ -44,6 +44,7 @@ urlpatterns = [
     path('adminregister', views.adminregister, name='adminregister'),
     path('evaluate/<int:pk>/', views.evaluate_subject_faculty, name='evaluate_subject_faculty'),
     path('admin_faculty_evaluations', views.admin_faculty_evaluations, name='admin_faculty_evaluations'),
+    path('admin_send_report_to_department_heads', views.admin_send_report_to_department_heads, name='admin_send_report_to_department_heads'),
     path('view_latest_faculty_evaluations', views.view_latest_faculty_evaluations, name='view_latest_faculty_evaluations'),
     path('admin_faculty_evaluations_sections/<int:pk>/', views.admin_faculty_evaluations_sections, name='admin_faculty_evaluations_sections'),
     path('admin_faculty_evaluations_sections_view_forms/<int:pk>/', views.admin_faculty_evaluations_sections_view_forms, name='admin_faculty_evaluations_sections_view_forms'),
@@ -78,6 +79,7 @@ urlpatterns = [
     path('delete_user/<str:user_id>/', views.delete_user, name='delete_user'),
     path('evaluations_csv', views.evaluations_csv, name='evaluations_csv'),
     path('faculty_evaluations_summary_report_pdf', views.faculty_evaluations_summary_report_pdf, name='faculty_evaluations_summary_report_pdf'),
+    path('faculty_evaluations_individual_summary_report_pdf', views.faculty_evaluations_individual_summary_report_pdf, name='faculty_evaluations_individual_summary_report_pdf'),
     path('admin_event_evaluations', views.admin_event_list, name='admin_event_evaluations'),
     path('view_admin_schoolevent_evaluations/<int:pk>/', views.view_admin_schoolevent_evaluations, name='view_admin_schoolevent_evaluations'),
     path('admin_event_evaluations/<int:pk>/', views.admin_event_evaluations, name='admin_event_evaluations'),
@@ -136,6 +138,9 @@ urlpatterns = [
     path('department_head_view_evaluation_form/<int:pk>/', views.department_head_view_evaluation_form, name='department_head_view_evaluation_form'),
     path('department_head_approve_all_pending_evaluations', views.department_head_approve_all_pending_evaluations, name='department_head_approve_all_pending_evaluations'),
     path('department_head_faculty_evaluations_csv', views.department_head_faculty_evaluations_csv, name='department_head_faculty_evaluations_csv'),
+    path('student_edit_evaluation_form/<int:pk>/', views.student_edit_evaluation_form, name='student_edit_evaluation_form'),
+    path('download-report/<int:department_id>/', views.download_report, name='download_report'),
+    path('send-summary-reports/', views.send_summary_reports, name='send_summary_reports'),
 ]
 
 if settings.DEBUG:

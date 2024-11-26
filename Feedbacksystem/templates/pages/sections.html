@@ -55,17 +55,10 @@
                     {{ form.name.label_tag }}
                     {{ form.name }}
                     </div>
-            
                 <div class="form-group">
-                    {{ form.subjects.label_tag }}
-                    <div class="checkbox-list">
-                        {% for subject in form.subjects %}
-                            <div class="form-check">
-                            {{ subject }}
-                            </div>
-                        {% endfor %}
+                    {{ form.course.label_tag }}
+                    {{ form.course }}
                     </div>
-                </div>
             
         </div>
         <div class="modal-footer">
