@@ -28,6 +28,10 @@
   </div>
   <div class="modal-body">
     <form method="get" action="">
+      {{stakeholder_evaluation_filter.form.month.label_tag}}
+      {{stakeholder_evaluation_filter.form.month}}
+      {{stakeholder_evaluation_filter.form.agency.label_tag}}
+      {{stakeholder_evaluation_filter.form.agency}}
       {{stakeholder_evaluation_filter.form.academic_year.label_tag}}
       {{stakeholder_evaluation_filter.form.academic_year}}
       {{stakeholder_evaluation_filter.form.semester.label_tag}}
@@ -61,7 +65,7 @@
     </div>
 
     <div class="col-lg-4 col-md-2">
-      <a href="{% url 'stakeholderevaluations_csv' %}?{{ request.GET.urlencode }}" class="btn btn-primary">Export to CSV</a>
+      <a href="{% url 'stakeholder_evaluations_excel' %}?{{ request.GET.urlencode }}" class="btn btn-success"><i class="bi bi-file-earmark-excel-fill"></i>Export as Excel File</a>
     </div>
   </div>
 
@@ -74,8 +78,8 @@
           <tr>
               <th  scope="col">Agency</th>
               <th  scope="col">Date of Visit</th>
-              <th  scope="col">Average</th>
-              <th  scope="col">Rating</th>
+              <th  scope="col">Average Rating</th>
+              <th  scope="col">Level of Satisfaction</th>
               <th  scope="col">Comments/Suggestions</th>
               <th  scope="col">Polarity </th>
               <th  scope="col">Options </th>

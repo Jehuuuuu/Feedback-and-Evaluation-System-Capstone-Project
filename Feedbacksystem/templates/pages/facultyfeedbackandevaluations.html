@@ -40,7 +40,7 @@
   
     <!-- Search Form and Export Button -->
     <div class="col-lg-4 col-md-2">
-      <a href="{% url 'faculty_evaluations_csv' %}?{{ request.GET.urlencode }}" class="btn btn-primary">Export CSV</a>
+      <a href="{% url 'faculty_evaluations_excel' %}?{{ request.GET.urlencode }}" class="btn btn-success"><i class="bi bi-file-earmark-excel-fill"></i>Export as Excel File</a>
     </div>
   </div>
     <div class="table-responsive">

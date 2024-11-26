@@ -171,23 +171,23 @@
   </nav>
   <main role="main" class="content">
     <!-- Main content area -->
-  {% if messages %}
+    {% if messages %}
+    <div>
         {% for message in messages %}
-            <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %} alert-dismissible fade show" role="alert">
-                {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
+        <div class="alert {% if message.tags == 'error' %}alert-danger{% elif message.tags == 'success' %}alert-success{% endif %}" role="alert">
+            {{ message }}
+        </div>
         {% endfor %}
-
-{% endif %}
+    </div>
+    {% endif %}
       {% block header %}
 
     <div class="row ">
       <div class="col-md-6 col-sm-12 mb-2 ">
         <div class="card p-3 shadow-sm">
           <div class="card-body">
-              <h3 class="card-title">Academic Year: {{ evaluation_status.academic_year }}</h3>
-              <h4 class="card-subtitle mb-2 text-muted">Semester: {{ evaluation_status.semester }}</h4>
+              <h3 class="card-title">Academic Year: {{ filtered_academic_year }}</h3>
+              <h4 class="card-subtitle mb-2 text-muted">Semester: {{ filtered_semester }}</h4>
               <h4 class="card-subtitle mb-2 text-muted">Student Evaluation for Teachers: {{ evaluation_status.evaluation_status }}</h4>
               <h5 class="card-text">Evaluation End Date: {{ evaluation_status.evaluation_end_date }}</h5>
           </div>
@@ -308,9 +308,9 @@
         </form>
     </div>
   </div>
-  {% if faculty.email_sent == True %}
-  <a href="{% url 'faculty_evaluations_individual_summary_report_pdf' %}" class="btn custom-btn mb-2" ><b>View Summary Report</b></a>
-  {% endif %}
+  {% if faculty.email_sent == True and not is_filtered %}
+   <a href="{% url 'faculty_evaluations_individual_summary_report_pdf' %}" class="btn custom-btn mb-2"><b>View Summary Report</b></a> 
+   {% endif %}
 </div>
     <div class="row">
       <div class=" col-lg-8 mb-2">
@@ -325,7 +325,7 @@
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
         <canvas id="sentimentchart" width="200" height="200"></canvas>
         <table class="table table-bordered">
-          <h5>Recent feedback</h5>
+          <h5 class="mt-2">Recent feedback</h5>
           {% for i in recent_comments %}
           <tr>
             {% if i.predicted_sentiment == 'Positive' %}
@@ -350,7 +350,7 @@
                 data: {
                     labels: ['Positive', 'Negative'],  // Labels for the X-axis
                     datasets: [{
-                        label: 'Evaluations',  // Dataset label
+                        label: 'Sentiment Distribution of Student Evaluations',  // Dataset label
                         data: [{{ positive_evaluations }}, {{ negative_evaluations }}],
                         backgroundColor: ['#4caf50', '#f44336'],
                         borderColor: ['#4caf50', '#f44336'],
@@ -413,7 +413,7 @@
           data: {
               labels: labels,
               datasets: [{
-                  label: 'Rating Distribution per Category',
+                  label: 'Student Rating Distribution per Category',
                   data: dataPoints,
                   backgroundColor: [
                       'rgba(75, 192, 192, 0.2)',

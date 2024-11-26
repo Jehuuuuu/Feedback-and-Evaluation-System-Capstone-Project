@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Summary Report</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td {
+            border: 1px solid #dddddd;
+            text-align: left;
+            padding:10px 8px 10px 3px;
+            word-wrap: break-word; /* Ensure long text breaks within the cell */
+            font-size: 0.8rem;
+            white-space: nowrap; /* Prevent text from wrapping */
+        }
+        th { background-color: #f2f2f2; }
+        .total { font-weight: bold; }
+        @page {
+        size: letter landscape;
+        margin: 2cm;
+    }
+    h1{
+        text-align: center;
+    }
+    </style>
+</head>
+<body>
+    <h1>{{ title_period }}</h1>
+
+    <table>
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Unit/Department</th>
+                <th>No. of Clients</th>
+                <th>Courtesy</th>
+                <th>Quality</th>
+                <th>Timeliness</th>
+                <th>Efficiency</th>
+                <th>Cleanliness</th>
+                <th>Comfort</th>
+                <th>Average</th>
+                <th>Level of Satisfaction</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for agency, data in summary_data.items %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ agency }}</td>
+                <td>{{ data.total }}</td>
+                <td>{{ data.courtesy }}</td>
+                <td>{{ data.quality }}</td>
+                <td>{{ data.timeliness }}</td>
+                <td>{{ data.efficiency }}</td>
+                <td>{{ data.cleanliness }}</td>
+                <td>{{ data.comfort }}</td>
+                <td>{{ data.average }}</td>
+                <td>{{ data.satisfaction_level }}</td>
+            </tr>
+            {% endfor %}
+            <tr class="total">
+                <td colspan="2">Total</td>
+                <td>{{ total_clients }}</td>
+                <td colspan="6"></td>
+                <td>{{ overall_average }}</td>
+                <td>{{ satisfaction_level }}</td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>

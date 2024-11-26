@@ -1,0 +1,510 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+
+<head>
+  <title>{% block title %}Feedback and Evaluation System - CvSU Bacoor Campus {% endblock %}</title>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+  <link rel="icon" href="static/images/cvsulogo.png" type="image/png">
+ 
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+  <link rel="stylesheet" href="{% static 'css/facultypage.css'%}">
+  <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+  
+
+</head>
+
+<body>
+  <div class="container-fluid" style="padding: 0;">
+    <div class="header">
+      <button id="sidebarCollapse" class="btn">
+        <span class="material-symbols-outlined">
+          menu
+          </span>
+    </button>
+        <a class="navbar-brand" style="color: #fafafa;" id="headerlogo">
+            <img src="{% static 'images/cvsulogo.png'%}" alt="Cavite State Univeristy Logo" width="70px" height="70px" id="cvsulogo"> 
+            
+        </a>
+        <div class="title-container">
+          <div class="header-title">Feedback and Evaluation System </div>
+          <div class="subtitle">Cavite State University - Bacoor Campus</div>
+        </div>
+ 
+
+        <div class="profile-pic">
+          {% if faculty.profile_picture %}
+          <img src="{{ faculty.profile_picture.url }}" alt="Profile Picture" width="60" style=" border-radius: 50%; margin-right: 1em;">
+          {% else %}
+          <img src="{% static 'images/Default_avatar.webp' %}" alt="Default Profile Picture" width="60" style="margin-right: 1em; border-radius: 50%;" >
+          {% endif %}
+<p style="color: #fafafa; display: inline-block;">{{request.user}}</p>         </div>
+
+
+
+    </div>
+    </div>
+</div>
+</div>
+</nav>
+    <nav id="sidebar" class="sidebar lightsidebar"> 
+      <ul class="nav flex-column nav-pills nav-container">
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'adminlogout' %}">
+            <i class="bi bi-box-arrow-in-left nav-icon"></i> <b>Logout</b>
+          </a>
+      </li>
+    </ul>
+  </nav>
+  <main role="main" class="content">
+    <!-- Main content area -->
+    {% if messages %}
+    <div>
+        {% for message in messages %}
+        <div class="alert {% if message.tags == 'error' %}alert-danger{% elif message.tags == 'success' %}alert-success{% endif %}" role="alert">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="row ">
+      <div class="col-md-6 col-sm-12 mb-2 ">
+        <div class="card p-3 shadow-sm">
+          <div class="card-body">
+              <h3 class="card-title">{{ current_month_name }} {{current_year}}</h3>
+          </div>
+      </div>
+      </div>
+
+      <div class="col-lg-2 col-md-3 col-sm-3 col-6 mb-2 ">
+        <div class="card" style="width: 10rem; border: none;">
+         <div class="card-body" style="text-align: center;">
+           <h1 class="card-title mb-2" data-bs-toggle="tooltip" 
+           data-bs-placement="bottom" 
+           title="Number of evaluators this semester ">
+               {{ total_clients }}
+           </h1>
+           <h6 class="card-subtitle"><small>Total Clients</small></h6>
+         </div>
+              </div>
+      </div>
+
+       <div class="col-lg-2 col-md-3 col-sm-3 col-5 mb-2">
+         <div class="card " style="width: 10rem; border: none;">
+          <div class="card-body" style="text-align: center;">
+          {% if avg_rating >= 5.0 %}
+    <h1 class="card-title mb-2" data-bs-toggle="tooltip" 
+        data-bs-placement="bottom" 
+        title="Average rating based on student evaluations" style="color: #339933;">
+        {{ avg_rating }}
+        <h6 class="card-subtitle" data-bs-toggle="tooltip" 
+            data-bs-placement="bottom" 
+            title="Overall performance is outstanding based on the ratings received" style="color: #339933"><small>Outstanding</small></h6>
+    </h1>
+{% elif avg_rating >= 4.0 %}
+    <h1 class="card-title mb-2" data-bs-toggle="tooltip" 
+        data-bs-placement="bottom" 
+        title="Average rating based on student evaluations" style="color: #66CC66">
+        {{ avg_rating }}
+        <h6 class="card-subtitle" data-bs-toggle="tooltip" 
+            data-bs-placement="bottom" 
+            title="Overall performance is very satisfactory based on the ratings received" style="color: #66CC66"><small>Very Satisfactory</small></h6>
+    </h1>
+{% elif avg_rating >= 3.0 %}
+    <h1 class="card-title mb-2" data-bs-toggle="tooltip" 
+        data-bs-placement="bottom" 
+        title="Average rating based on student evaluations" style="color: #FFD700;">
+        {{ avg_rating }}
+        <h6 class="card-subtitle" data-bs-toggle="tooltip" 
+            data-bs-placement="bottom" 
+            title="Overall performance is satisfactory based on the ratings received" style="color: #FFD700"><small>Satisfactory</small></h6>
+    </h1>
+{% elif avg_rating >= 2.0 %}
+    <h1 class="card-title mb-2" data-bs-toggle="tooltip" 
+        data-bs-placement="bottom" 
+        title="Average rating based on student evaluations" style="color: #FF9900;">
+        {{ avg_rating }}
+        <h6 class="card-subtitle" data-bs-toggle="tooltip" 
+            data-bs-placement="bottom" 
+            title="Overall performance is unsatisfactory based on the ratings received" style="color: #FF9900"><small>Unsatisfactory</small></h6>
+    </h1>
+{% elif avg_rating >= 1.0 %}
+    <h1 class="card-title mb-2" data-bs-toggle="tooltip" 
+        data-bs-placement="bottom" 
+        title="Average rating based on student evaluations" style="color: #cc0000;">
+        {{ avg_rating }}
+        <h6 class="card-subtitle" data-bs-toggle="tooltip" 
+            data-bs-placement="bottom" 
+            title="Overall performance is unsatisfactory based on the ratings received" style="color: #cc0000"><small>Poor</small></h6>
+    </h1>
+{% else %}
+    <h1 class="card-title mb-2" data-bs-toggle="tooltip" 
+        data-bs-placement="bottom" 
+        title="Average rating based on student evaluations">
+        0
+        <h6 class="card-subtitle"><small>General Average</small></h6>
+    </h1>
+{% endif %}
+        </div>
+               </div>
+       </div>
+       
+       <div class="col-lg-2 col-md-3 col-sm-4 col-6 mb-2">
+        <div class="card" style="width: 10rem; border: none;">
+            <div class="card-body" style="text-align: center;">
+                <h1 class="card-title" style="margin-bottom: 0.5em;">
+                    {{ rounded_sentiment_score }}
+                </h1>
+                <h6 class="card-subtitle" style="font-size: 0.937em;">Sentiment Score <i class="bi bi-info-circle-fill " data-bs-toggle="tooltip" 
+                  data-bs-placement="bottom" 
+                  title="Positive Evaluations - Negative Evaluations / Total Evaluations"></i></h6>
+            </div>
+        </div>
+    </div>
+    
+
+
+      </div>
+
+
+
+ </div>
+<!-- Button with Form Dropdown -->
+<div class="d-flex" style="gap: 1em;">
+    <div class="dropdown mb-2">
+      <button class="btn btn-primary dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+          <i class="bi bi-funnel"></i> Filter Data
+      </button>
+      <div class="dropdown-menu filter_dropdown" aria-labelledby="filterDropdown">
+          <form method="GET" id="filterForm" class="form">
+              <div class="d-flex" style="gap: 1em;">
+                <div class="mb-2 col-7">
+                    {{ filterset.form.month.label_tag }}
+                    {{ filterset.form.month }}
+                </div>
+                <div class="mb-2 col-5">
+                    {{ filterset.form.year.label_tag }}
+                    {{ filterset.form.year }}
+                </div>
+              </div>
+          </form>
+      </div>
+    </div>
+    <a href="{% url 'stakeholderevaluations' %}" class="btn custom-btn mb-2">
+        <i class="bi bi-list-check"></i> <b>View All Evaluations</b>
+      </a>
+    <button type="button" class="btn btn-success mb-2" data-bs-toggle="modal" data-bs-target="#summaryReportModal"> <i class="bi bi-file-earmark-text"></i> <b>Generate Summary Report</b> </button>
+
+    <div class="modal fade" id="summaryReportModal" tabindex="-1" aria-labelledby="summaryReportModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="summaryReportModalLabel">Configure Summary Report</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form method="get" action="{% url 'stakeholders_generate_summary_report' %}">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label">Select Months</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="1" id="january" name="months">
+                                <label class="form-check-label" for="january">January</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="2" id="february" name="months">
+                                <label class="form-check-label" for="february">February</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="3" id="march" name="months">
+                                <label class="form-check-label" for="march">March</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="4" id="april" name="months">
+                                <label class="form-check-label" for="april">April</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="5" id="may" name="months">
+                                <label class="form-check-label" for="may">May</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="6" id="june" name="months">
+                                <label class="form-check-label" for="june">June</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="7" id="july" name="months">
+                                <label class="form-check-label" for="july">July</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="8" id="august" name="months">
+                                <label class="form-check-label" for="august">August</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="9" id="september" name="months">
+                                <label class="form-check-label" for="september">September</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="10" id="october" name="months">
+                                <label class="form-check-label" for="october">October</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="11" id="november" name="months">
+                                <label class="form-check-label" for="november">November</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="12" id="december" name="months">
+                                <label class="form-check-label" for="december">December</label>
+                            </div>
+                            <div class="mt-3"> <button type="button" class="btn btn-success" onclick="selectAll()">Select All</button> <button type="button" class="btn btn-danger" onclick="clearSelections()">Clear Selections</button> </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Generate Report</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+ 
+    
+      
+        </div>
+    </div>
+  </div>
+     
+  
+  <div class="row">
+    <div class=" col-lg-8 mb-2">
+      <div class="chart-container">
+        <!-- Canvas for the Chart.js chart -->
+        <canvas id="evaluationChart" height="200px"></canvas>
+<!-- Modal for displaying category averages -->
+<div class="modal fade" id="categoryModal" tabindex="-1" aria-labelledby="categoryModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="categoryModalLabel">Agency Averages per Category</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div id="categoryAveragesContent"></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+      </div>
+    </div>
+        <!-- Sentiment Score Pie Chart -->
+  <div class="col-lg-4 mb-2">
+    <div class="chart-container">
+      <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+      <canvas id="sentimentchart" width="200" height="200"></canvas>
+      <table class="table table-bordered">
+        <h5>Recent feedback</h5>
+        {% for i in recent_comments %}
+        <tr>
+          {% if i.predicted_sentiment == 'Positive' %}
+          <td class="text-success">
+              {{ i.suggestions_and_comments | truncatechars:40 }}
+          </td>
+          {% endif %}
+          {% if i.predicted_sentiment == 'Negative' %}
+          <td class="text-danger">
+              {{ i.suggestions_and_comments | truncatechars:40 }}
+          </td>
+          {% endif %}
+        </tr>
+        {% endfor %}
+    </table>
+    <a href="{% url 'stakeholderevaluations' %}">View all</a>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var ctx = document.getElementById('sentimentchart').getContext('2d');
+            var sentimentChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Positive', 'Negative'],  // Labels for the X-axis
+                    datasets: [{
+                        label: 'Stakeholder Feedback Sentiment Distribution',  // Dataset label
+                        data: [{{ positive_evaluations }}, {{ negative_evaluations }}],
+                        backgroundColor: ['#4caf50', '#f44336'],
+                        borderColor: ['#4caf50', '#f44336'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                boxWidth: 0,  // Set box width to 0 to hide the color box
+                                font: {
+                                    size: 14
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(tooltipItem) {
+                                    return tooltipItem.label + ': ' + tooltipItem.raw;  // Show label without color
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+    
+    <script>
+    // Pass the agency ratings data from Django to JavaScript
+    const agencyRatings = {{ agency_ratings|safe }};
+
+    // Prepare data for Chart.js
+    const labels = Object.keys(agencyRatings); // Agency names
+    const dataPoints = Object.values(agencyRatings); // Average ratings
+
+    // Chart.js configuration
+    const ctx = document.getElementById('evaluationChart').getContext('2d');
+    const evaluationChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Average Rating by Agency',
+                data: dataPoints,
+                backgroundColor: [
+                    'rgba(75, 192, 192, 0.2)',
+                    'rgba(54, 162, 235, 0.2)',
+                    'rgba(255, 206, 86, 0.2)',
+                    'rgba(153, 102, 255, 0.2)',
+                    'rgba(255, 159, 64, 0.2)',
+                    'rgba(255, 99, 132, 0.2)'
+                ],
+                borderColor: [
+                    'rgba(75, 192, 192, 1)',
+                    'rgba(54, 162, 235, 1)',
+                    'rgba(255, 206, 86, 1)',
+                    'rgba(153, 102, 255, 1)',
+                    'rgba(255, 159, 64, 1)',
+                    'rgba(255, 99, 132, 1)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top',
+                    labels: {
+                        boxWidth: 0,  // Set box width to 0 to hide the color box
+                        font: {
+                            size: 14
+                        }
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(tooltipItem) {
+                            return tooltipItem.label + ': ' + tooltipItem.raw;  // Show label without color
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 5
+                }
+            }
+        }
+    });
+</script>
+      </div>
+  </div>
+</div>
+      
+
+
+
+
+ 
+  <footer>
+    <!-- place footer here -->
+  </footer>
+  <!-- Bootstrap JavaScript Libraries -->
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"
+    integrity="sha384-oBqDVmMz9ATKxIep9tiCxS/Z9fNfEXiDAYTujMAeBAsjFuCZSmKbSSUnQlmh/jp3" crossorigin="anonymous">
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/js/bootstrap.min.js"
+    integrity="sha384-7VPbUDkoPSGFnVtYi0QogXtr74QeVeeIs99Qfg5YCF+TidwNdjvaKZX19NZ/e6oz" crossorigin="anonymous">
+    
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+
+ 
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+   
+  <script>
+    $(document).ready(function () {
+        $('#sidebarCollapse').on('click', function () {
+            $('body').toggleClass('sidebar-collapsed');
+        });
+    });
+</script>
+
+<script>
+  // Initialize the tooltip using Bootstrap's JavaScript
+  document.addEventListener("DOMContentLoaded", function() {
+      var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+      var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+          return new bootstrap.Tooltip(tooltipTriggerEl)
+      })
+  });
+</script>
+<script>
+    // Get all select elements in the form
+    const filterForm = document.getElementById('filterForm');
+    const selects = filterForm.querySelectorAll('select');
+  
+    // Add an event listener to each select element
+    selects.forEach(select => {
+      select.addEventListener('change', function() {
+        // Automatically submit the form when a selection changes
+        filterForm.submit();
+      });
+    });
+  </script> 
+<script>
+    document.getElementById('period_type').addEventListener('change', function() {
+        const periodType = this.value;
+        document.getElementById('month-select').style.display = periodType === 'month' ? 'block' : 'none';
+    });
+</script>
+<script> function selectAll() { const checkboxes = document.querySelectorAll('.form-check-input'); checkboxes.forEach(checkbox => { checkbox.checked = true; }); } function clearSelections() { const checkboxes = document.querySelectorAll('.form-check-input'); checkboxes.forEach(checkbox => { checkbox.checked = false; }); } </script>
+</body>
+
+</html>

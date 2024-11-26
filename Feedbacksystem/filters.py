@@ -362,12 +362,7 @@ class StakeholderFilter(django_filters.FilterSet):
     academic_year = django_filters.ChoiceFilter(choices=[], label='Academic Year',
                                                 widget=forms.Select(attrs={'class': 'form-control'})
 )
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # Populate choices for academic_year dynamically from the database
-        academic_years = StakeholderFeedbackModel.objects.order_by('academic_year').values_list('academic_year', flat=True).distinct()
-        academic_year_choices = [(year, year) for year in academic_years]
-        self.filters['academic_year'].extra['choices'] = academic_year_choices
+
     SEMESTER_CHOICES = [
         ('1st', '1st'),
         ('2nd', '2nd'),
@@ -377,6 +372,27 @@ class StakeholderFilter(django_filters.FilterSet):
          widget=forms.Select(attrs={'class': 'form-control'})
 )
    
+    # Define choices for months dynamically
+    month = django_filters.ChoiceFilter(
+        field_name='date__month',
+        label='Month',
+        choices=[],
+        widget=forms.Select(attrs={'class': 'form-control'}),
+    )
+        # Define choices for year dynamically
+    year = django_filters.ChoiceFilter(
+        field_name='date__year',
+        label='Year',
+        choices=[],  # Will be populated dynamically
+        widget=forms.Select(attrs={'class': 'form-control'}),
+    )
+
+    # Filter by agency (assuming `agency` is a ForeignKey)
+    agency = django_filters.ModelChoiceFilter(
+        queryset=StakeholderAgency.objects.all(),
+        label='Agency',
+        widget=forms.Select(attrs={'class': 'form-control'}),
+    )
     
     
     search = django_filters.CharFilter(
@@ -397,10 +413,36 @@ class StakeholderFilter(django_filters.FilterSet):
             Q(date=value)  |
             Q(staff=value)  
         )
-    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Populate choices for academic_year dynamically from the database
+        academic_years = StakeholderFeedbackModel.objects.order_by('academic_year').values_list('academic_year', flat=True).distinct()
+        academic_year_choices = [(year, year) for year in academic_years]
+        self.filters['academic_year'].extra['choices'] = academic_year_choices
+
+        # Populate choices for months dynamically from the database
+        available_months = (
+            StakeholderFeedbackModel.objects
+            .dates('date', 'month', order='ASC')
+            .distinct()
+        )
+        month_choices = [(month.month, month.strftime('%B')) for month in available_months]
+        self.filters['month'].extra['choices'] = month_choices
+
+                # Populate choices for year dynamically
+        available_years = (
+            StakeholderFeedbackModel.objects
+            .dates('date', 'year', order='ASC')
+            .distinct()
+        )
+        year_choices = [(year.year, year.year) for year in available_years]
+        self.filters['year'].extra['choices'] = year_choices
+
+
+
     class Meta:
         model = StakeholderFeedbackModel
-        fields = ('academic_year', 'semester', 'search')
+        fields = ('academic_year', 'semester', 'month', 'agency', 'search')
 
 class LikertEvaluationFilter(django_filters.FilterSet):
     SEMESTER_CHOICES = [

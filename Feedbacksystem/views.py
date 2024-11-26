@@ -51,6 +51,10 @@ from django.conf import settings
 from itertools import chain
 from django.db.models import Q
 from django.http import FileResponse
+from openpyxl import Workbook 
+from io import BytesIO
+import calendar
+from xhtml2pdf.default import DEFAULT_FONT
 
 scheduler = BackgroundScheduler()
 scheduler.start()
@@ -188,7 +192,7 @@ def adminlogin(request):
         if user is not None:
                 if user.groups.filter(name="HR admin").exists():
                     login(request, user)
-                    return redirect('stakeholderevaluations')
+                    return redirect('hr_dashboard')
                 elif user.groups.filter(name="admin").exists():
                     login(request, user)
                     return redirect('admin')
@@ -2864,12 +2868,14 @@ def stakeholderevaluations(request):
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['admin'])
-def stakeholderevaluations_csv(request):
-    response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = 'attachment; filename=stakeholder_evaluations.csv'
+def stakeholder_evaluations_excel(request):
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename=stakeholder_evaluations.xlsx'
 
-    # Create a csv writer
-    writer = csv.writer(response)
+    # Create a workbook and a worksheet
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Stakeholder Evaluations"
 
     # Apply filters from the EvaluationFilter based on the request data
     evaluation_filter = StakeholderFilter(request.GET, queryset=StakeholderFeedbackModel.objects.all())
@@ -2877,13 +2883,56 @@ def stakeholderevaluations_csv(request):
     # Get the filtered queryset
     filtered_evaluations = evaluation_filter.qs
 
-    # Add column headings to csv file
+    # Add column headings to the worksheet
+    columns = [
+        'Name', 'Agency', 'Email Address', 'Purpose of Visit', 'Date of Visit',
+        'Attending Staff', 'Courtesy', 'Quality', 'Timeliness', 'Efficiency',
+        'Cleanliness', 'Comfort', 'Average', 'Rating', 'Comments/Suggestions',
+        'Predicted Sentiment', 'Academic Year', 'Semester'
+    ]
+    ws.append(columns)
 
-    writer.writerow(['Name', 'Agency', 'Email Address', 'Purpose of Visit', 'Date of Visit', 'Attending Staff', 'Average', 'Rating', 'Comments/Suggestions'])
+    # Loop through and output the data
+    for evaluation in filtered_evaluations:
+        row = [
+            str(evaluation.name),
+            str(evaluation.agency),
+            str(evaluation.email),
+            str(evaluation.purpose),
+            str(evaluation.date),
+            str(evaluation.staff),
+            str(evaluation.courtesy),
+            str(evaluation.quality),
+            str(evaluation.timeliness),
+            str(evaluation.efficiency),
+            str(evaluation.cleanliness),
+            str(evaluation.comfort),
+            str(evaluation.average_rating),
+            str(evaluation.get_rating_category()),
+            str(evaluation.suggestions_and_comments),
+            str(evaluation.predicted_sentiment),
+            str(evaluation.academic_year),
+            str(evaluation.semester)
+        ]
+        ws.append(row)
 
-    # Loop thru and output
-    for i in filtered_evaluations:
-        writer.writerow([i.name, i.agency, i.email, i.purpose, i.date, i.staff, i.average_rating, i.get_rating_category(), i.suggestions_and_comments])
+    # Auto-adjust column widths
+    for col in ws.columns:
+        max_length = 0
+        column = col[0].column_letter  # Get the column name
+        for cell in col:
+            try:
+                if len(str(cell.value)) > max_length:
+                    max_length = len(str(cell.value))
+            except:
+                pass
+        adjusted_width = max_length + 2  # Add some padding
+        ws.column_dimensions[column].width = adjusted_width
+
+    # Save the workbook to a BytesIO stream
+    output = BytesIO()
+    wb.save(output)
+    response.write(output.getvalue())
 
     return response
 
@@ -3762,6 +3811,206 @@ def edit_user_group(request, user_id):
         }
         return render(request, 'pages/edit_user_group.html', context)
 
+@login_required(login_url='signin')
+@allowed_users(allowed_roles=['HR admin'])
+def hr_dashboard(request):
+    user=request.user
+    # Get the current month and year
+    current_month = datetime.now().month
+    current_year = datetime.now().year
+    current_month_name = datetime.now().strftime('%B')  # Example: 'November'r
+
+    months = [datetime(current_year, i, 1).strftime('%B') for i in range(1, 13)]
+    evaluation_status = EvaluationStatus.objects.first()
+    current_academic_year = evaluation_status.academic_year 
+    current_semester = evaluation_status.semester
+    current_evaluation_status = evaluation_status.evaluation_status
+        # Initialize the filterset and filter data
+    filterset = StakeholderFilter(request.GET, queryset=StakeholderFeedbackModel.objects.all())
+    if not request.GET or (request.GET.get('academic_year') == '' and request.GET.get('semester') == ''):
+        data = StakeholderFeedbackModel.objects.filter(date__month=current_month)
+    else:
+        data = filterset.qs
+
+    total_clients = data.count()
+        # Compute evaluation counts
+    positive_evaluations = data.filter(predicted_sentiment='Positive').count()
+    negative_evaluations = data.filter(predicted_sentiment='Negative').count()
+    total_evaluations = data.count()
+
+    # Sentiment score calculation
+    sentiment_score = (positive_evaluations - negative_evaluations) / total_evaluations if total_evaluations else 0
+    rounded_sentiment_score = round(sentiment_score, 1)
+    # Average rating calculation
+    avg_rating = data.aggregate(average_rating=Avg('average_rating'))['average_rating']
+    avg_rating = round(avg_rating, 1) if avg_rating else None
+
+      # Fetch recent comments
+    recent_comments = data.values('suggestions_and_comments', 'predicted_sentiment')[:3]
+
+        # Calculate average ratings for each agency
+    agencies = StakeholderAgency.objects.all()
+    agency_ratings = {
+        agency.name: round(
+            data.filter(agency=agency).aggregate(avg_rating=Avg('average_rating'))['avg_rating'],
+            1
+        )
+        if data.filter(agency=agency).exists()
+        else 0
+        for agency in agencies
+    }
+    # Calculate average ratings for each category per agency
+    agency_category_averages = {}
+    categories = ['courtesy', 'quality', 'timeliness', 'efficiency', 'cleanliness', 'comfort']
+
+    for agency in agencies:
+        averages = {}
+        for category in categories:
+            avg = data.filter(agency=agency).aggregate(avg_rating=Avg(category))['avg_rating']
+            averages[category] = round(avg, 1) if avg else 0
+        agency_category_averages[agency.name] = averages
+
+    context = {
+        'user': user,
+        'evaluation_status': evaluation_status,
+        'current_evaluation_status': current_evaluation_status,
+        'current_academic_year': current_academic_year,
+        'current_semester': current_semester,
+        'current_month': current_month,
+        'data': data,
+        'total_clients': total_clients,
+        'months': months,
+        'filterset': filterset,
+        'avg_rating': avg_rating,
+        'rounded_sentiment_score': rounded_sentiment_score,
+        'avg_rating': avg_rating,
+        'current_month_name': current_month_name,
+        'current_year': current_year,
+        'recent_comments': recent_comments,
+        'positive_evaluations': positive_evaluations,
+        'negative_evaluations': negative_evaluations,
+        'agency_ratings': agency_ratings
+
+    }
+
+    return render(request, 'pages/hr_dashboard.html', context)
+
+def stakeholders_generate_summary_report(request):
+    months = request.GET.getlist('months')
+    filtered_evaluations = StakeholderFeedbackModel.objects.all()
+
+    if months:
+
+        months = [int(month) for month in months]  # Convert months to integers
+        filtered_evaluations = filtered_evaluations.filter(date__month__in=months)
+
+        if not filtered_evaluations.exists(): 
+            messages.error(request, 'No evaluations found for the selected month(s).') 
+            return redirect('hr_dashboard')
+
+        if len(months) == 1:
+            title_period = f"Stakeholders' Feedback Monthly Report\n{calendar.month_name[months[0]]}"
+        elif len(months) == 3:
+            start_month = calendar.month_name[months[0]]
+            end_month = calendar.month_name[months[-1]]
+            year = filtered_evaluations.first().date.year if filtered_evaluations.exists() else ''
+            title_period = f"Stakeholders' Feedback Quarterly Report\n{start_month} - {end_month} {year}"
+        elif len(months) == 12:
+            title_period = "Stakeholders' Feedback Yearly Report - {year}"
+        
+        else:
+            start_month = calendar.month_name[months[0]]
+            end_month = calendar.month_name[months[-1]]
+            title_period = f"Stakeholders' Feedback Summary Report\n{start_month} - {end_month} {year}"
+
+    else:
+        messages.error(request, 'Please select the month/s to generate report.')
+        return redirect('hr_dashboard')
+
+    summary_data = {}
+    category_totals = {
+        'courtesy': 0,
+        'quality': 0,
+        'timeliness': 0,
+        'efficiency': 0,
+        'cleanliness': 0,
+        'comfort': 0,
+    }
+    total_clients = filtered_evaluations.count()
+
+    for evaluation in filtered_evaluations:
+        agency = evaluation.agency.name
+        if agency not in summary_data:
+            summary_data[agency] = {
+                'courtesy': 0,
+                'quality': 0,
+                'timeliness': 0,
+                'efficiency': 0,
+                'cleanliness': 0,
+                'comfort': 0,
+                'total': 0
+            }
+        summary_data[agency]['courtesy'] += evaluation.courtesy
+        summary_data[agency]['quality'] += evaluation.quality
+        summary_data[agency]['timeliness'] += evaluation.timeliness
+        summary_data[agency]['efficiency'] += evaluation.efficiency
+        summary_data[agency]['cleanliness'] += evaluation.cleanliness
+        summary_data[agency]['comfort'] += evaluation.comfort
+        summary_data[agency]['total'] += 1
+
+        category_totals['courtesy'] += evaluation.courtesy
+        category_totals['quality'] += evaluation.quality
+        category_totals['timeliness'] += evaluation.timeliness
+        category_totals['efficiency'] += evaluation.efficiency
+        category_totals['cleanliness'] += evaluation.cleanliness
+        category_totals['comfort'] += evaluation.comfort
+
+    category_averages = {k: round(v / total_clients, 2) for k, v in category_totals.items()}
+    overall_average = round(sum(category_averages.values()) / len(category_averages), 2)
+
+    satisfaction_level = get_satisfaction_level(overall_average)
+
+    for agency, data in summary_data.items():
+        data['average'] = round((data['courtesy'] + data['quality'] + data['timeliness'] + data['efficiency'] + data['cleanliness'] + data['comfort']) / 6, 2)
+        data['satisfaction_level'] = get_satisfaction_level(data['average'])
+
+    html = render_to_string('pages/stakeholders_generate_summary_report.html', {
+        'title_period': title_period,
+        'summary_data': summary_data,
+        'total_clients': total_clients,
+        'category_averages': category_averages,
+        'overall_average': overall_average,
+        'satisfaction_level': satisfaction_level,
+    })
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename=summary_report.pdf'
+    pisa_status = pisa.CreatePDF(html, dest=response,
+                                  default_font=DEFAULT_FONT, 
+                                  encoding='utf-8', 
+                                  link_callback=None, 
+                                  how_error_as_pdf=False, 
+                                  context=None, 
+                                  default_css=None,
+                                  path=None, 
+                                  pagesize='landscape' )
+
+    if pisa_status.err:
+        return HttpResponse('We had some errors with generating your PDF.')
+
+    return response
+
+def get_satisfaction_level(average):
+    if average >= 4.5:
+        return 'Highly Satisfied'
+    elif average >= 3.5:
+        return 'Very Satisfied'
+    elif average >= 2.5:
+        return 'Moderately Satisfied'
+    elif average >= 1.5:
+        return 'Barely Satisfied'
+    else:
+        return 'Not Satisfied'    
 
 
 def adminlogout(request):
@@ -3822,8 +4071,14 @@ def facultydashboard(request):
     if not request.GET or (request.GET.get('academic_year') == '' and request.GET.get('semester') == ''):
         data = LikertEvaluation.objects.filter(section_subject_faculty__faculty=faculty, 
                                                academic_year=current_academic_year, semester=current_semester, admin_status='Approved')
+        is_filtered = False
     else:
         data = filterset.qs
+        is_filtered = True
+
+    # Get the filtered academic year and semester
+    filtered_academic_year = request.GET.get('academic_year', current_academic_year)
+    filtered_semester = request.GET.get('semester', current_semester)
 
     # Compute evaluation counts
     positive_evaluations = data.filter(predicted_sentiment='Positive').count()
@@ -3996,7 +4251,10 @@ def facultydashboard(request):
         'current_academic_year': current_academic_year,
         'current_semester': current_semester,
         'is_head_of_osas': is_head_of_osas,
-        'is_department_head': is_department_head
+        'is_department_head': is_department_head,
+        'filtered_academic_year': filtered_academic_year,
+        'filtered_semester': filtered_semester,
+        'is_filtered': is_filtered
     }
 
     return render(request, 'pages/facultydashboard.html', context)
@@ -4295,13 +4553,15 @@ def facultyfeedbackandevaluations(request):
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['faculty', 'head of OSAS', 'department head'])
-def faculty_evaluations_csv(request):
+def faculty_evaluations_excel(request):
     faculty = Faculty.objects.filter(email=request.user.username).first()
-    response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = 'attachment; filename=faculty_evaluations.csv'
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename=faculty_evaluations.xlsx'
 
-    # Create a csv writer
-    writer = csv.writer(response)
+    # Create a workbook and a worksheet
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Faculty Evaluations"
 
     # Apply filters from the EvaluationFilter based on the request data
     evaluation_filter = EvaluationFilter(request.GET, queryset=LikertEvaluation.objects.filter(section_subject_faculty__faculty=faculty))
@@ -4309,16 +4569,43 @@ def faculty_evaluations_csv(request):
     # Get the filtered queryset
     filtered_evaluations = evaluation_filter.qs
 
-    # Add column headings to csv file
+    # Add column headings to the worksheet
+    columns = ['Subject', 'Faculty', 'Average', 'Rating', 'Overall Impression', 'Polarity', 'Academic Year', 'Semester']
+    ws.append(columns)
 
-    writer.writerow(['Subject', 'Faculty', 'Average', 'Rating', 'Overall Impression', 'Polarity', 'Academic Year', 'Semester'])
+    # Loop through and output the data
+    for evaluation in filtered_evaluations:
+        row = [
+            str(evaluation.section_subject_faculty.subjects),
+            str(evaluation.section_subject_faculty.faculty),
+            str(evaluation.average_rating),
+            str(evaluation.get_rating_category()),
+            str(evaluation.comments),
+            str(evaluation.predicted_sentiment),
+            str(evaluation.academic_year),
+            str(evaluation.semester)
+        ]
+        ws.append(row)
 
-    # Loop thru and output
-    for i in filtered_evaluations:
-        writer.writerow([i.section_subject_faculty.subjects, i.section_subject_faculty.faculty, i.average_rating, i.get_rating_category(), i.comments, i.predicted_sentiment, i.academic_year, i.semester ])
+    # Auto-adjust column widths
+    for col in ws.columns:
+        max_length = 0
+        column = col[0].column_letter  # Get the column name
+        for cell in col:
+            try:
+                if len(str(cell.value)) > max_length:
+                    max_length = len(str(cell.value))
+            except:
+                pass
+        adjusted_width = (max_length + 2)
+        ws.column_dimensions[column].width = adjusted_width
+
+    # Save the workbook to a BytesIO stream
+    output = BytesIO()
+    wb.save(output)
+    response.write(output.getvalue())
 
     return response
-
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['faculty', 'head of OSAS', 'department head'])

@@ -91,7 +91,7 @@ urlpatterns = [
     path('president_view_event_evaluations/<int:pk>', views.president_view_event_evaluations, name='president_view_event_evaluations'),
     path('president_edit_event_evaluations/<int:pk>', views.president_edit_event_evaluations, name='president_edit_event_evaluations'),
     path('president_delete_event_evaluations/<int:pk>', views.president_delete_event_evaluations, name='president_delete_event_evaluations'),
-    path('stakeholderevaluations_csv', views.stakeholderevaluations_csv, name='stakeholderevaluations_csv'),
+    path('stakeholder_evaluations_excel', views.stakeholder_evaluations_excel, name='stakeholder_evaluations_excel'),
     path('eventevaluations_csv', views.eventevaluations_csv, name='eventevaluations_csv'),
     path('view_society_president_event_evaluations/<int:pk>/', views.view_society_president_event_evaluations, name='view_society_president_event_evaluations'),
     path('faculty_events', views.faculty_events, name='faculty_events'),
@@ -100,7 +100,7 @@ urlpatterns = [
     path('faculty_events_closed', views.faculty_events_closed, name='faculty_events_closed'),
     path('event_evaluation_form/<int:pk>/', views.faculty_event_detail, name='faculty_event_detail'),
     path('send_message/<int:pk>/', views.send_message, name='send_message'),
-    path('faculty_evaluations_csv', views.faculty_evaluations_csv, name='faculty_evaluations_csv'),
+    path('faculty_evaluations_excel', views.faculty_evaluations_excel, name='faculty_evaluations_excel'),
     path('mark-notifications-read/', views.mark_notifications_read, name='mark_notifications_read'),
     path('view_message/<int:notification_id>/', views.view_message, name='view_message'),
     path('inbox', views.inbox, name='inbox'),
@@ -141,6 +141,8 @@ urlpatterns = [
     path('student_edit_evaluation_form/<int:pk>/', views.student_edit_evaluation_form, name='student_edit_evaluation_form'),
     path('download-report/<int:department_id>/', views.download_report, name='download_report'),
     path('send-summary-reports/', views.send_summary_reports, name='send_summary_reports'),
+    path('hr_dashboard/', views.hr_dashboard, name='hr_dashboard'),
+    path('stakeholders_generate_summary_report/', views.stakeholders_generate_summary_report, name='stakeholders_generate_summary_report'),
 ]
 
 if settings.DEBUG:
