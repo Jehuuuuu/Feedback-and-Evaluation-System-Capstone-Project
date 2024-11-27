@@ -11,6 +11,11 @@ import base64
 import re
 import os
 import nltk
+
+try:
+    stopwords.words("english")
+except LookupError:
+    nltk.download("stopwords")
 STOPWORDS = set(stopwords.words("english"))
 
 def load_prediction_models():

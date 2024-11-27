@@ -2,4 +2,4 @@ services:
   - name: feedback-and-evaluation-system
     startCommand: |
       pip install -r requirements.txt
-      bash start.sh
+      bash build.sh

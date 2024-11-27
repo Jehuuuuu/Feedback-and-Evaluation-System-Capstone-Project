@@ -3,7 +3,7 @@
 set -o errexit
 
 pip install -r requirements.txt
-python nltk_downloader.py
+python -m nltk.downloader stopwords && gunicorn Rodriguez.wsgi:application
 python manage.py collectstatic --no-input
 python manage.py migrate
 
