@@ -115,3 +115,8 @@ whitenoise==6.8.2
 wordcloud==1.9.3
 xgboost==2.1.0
 xhtml2pdf==0.2.16
+
+...
+# NLTK Downloader
+-r nltk_downloader.py
+
