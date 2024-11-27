@@ -2,5 +2,4 @@ services:
   - name: feedback-and-evaluation-system
     startCommand: |
       pip install -r requirements.txt
-      python nltk_downloader.py
-      python manage.py runserver 0.0.0.0:8000
+      bash start.sh
