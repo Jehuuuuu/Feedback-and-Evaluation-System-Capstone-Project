@@ -487,6 +487,11 @@ hr{
       flex-grow: 1;
       padding: 0 2em 0 1em;
     }
+    .card-title {
+      font-size: 1.3em;
+      font-weight: bold;
+      color: #333;
+  }
     
 }
   @media (max-width: 500px) {
@@ -500,7 +505,7 @@ hr{
 }
 @media (max-width: 400px){
   .card-title {
-    font-size: 1.1em;
+    font-size: 1em;
     font-weight: bold;
     color: #333;
 }

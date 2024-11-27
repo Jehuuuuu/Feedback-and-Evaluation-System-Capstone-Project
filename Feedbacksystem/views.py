@@ -364,6 +364,7 @@ def home(request):
     unread_notifications = Notification.objects.filter(recipient=user, level='success', unread=True)
     notifications_unread_count = unread_notifications.count()
     courses = student.Course 
+    evaluation_status = EvaluationStatus.objects.first()
     #pending events to display
     events = Event.objects.filter(course_attendees=courses, admin_status="Approved").distinct()  # Get events related to those courses
     # Get evaluated event IDs by the current user

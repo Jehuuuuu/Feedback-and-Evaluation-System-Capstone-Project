@@ -268,12 +268,20 @@ li{
 
 }
 
+@media only screen and (min-width:1200px){
+    .message_container{
+        margin-top: 10em;
+    }    
+}
+
 @media only screen and (max-width:850px) { 
-    
-    .container-body{
-        width: 47em;
-        min-height: 31em;
-    }
+.message_container {
+    min-height: 0 !important;
+} 
+.container-body{
+    width: 47em;
+    min-height: 31em;
+}
 
 .container-body button{
     font-size: 0.70em;
@@ -348,91 +356,79 @@ h5{
 }
 }
 @media only screen and (max-width:590px) { 
-    .center{
-        margin-left: 1.3em;
+    @media only screen and (max-width:590px) { 
+        .center{
+            margin-left: 1.3em;
+        }
+        .container{
+            width: 29em;
+        }
+       .container p{
+            font-size: 0.70em;
+            line-height: 0.8em;
+            margin: 1em 0;
+            margin-left: 2em;
+        }
+        .container button{
+          
+            font-size: 0.5em;
+            padding: 0.4rem 2rem;
+            margin-top: 0.625rem;
+            cursor: pointer;
+        }
+    .container input{
+        padding: 0.5em 0.75em;
+        font-size: 0.85em;
+        width: 18em;
     }
-    .container-body{
-        width: 29em;
-        min-height: 20em;
+    h1{
+        font-size: 1rem;
     }
-   .container-body p{
-        font-size: 0.70em;
-        line-height: 0.8em;
-        margin: 1em 0;
-        margin-left: 2em;
+    .toggle-right h1{
+       margin-left: 2em;
     }
-    .container-body button{
+    li{
+        font-size: 0.75rem;
+    }
+    h5{
+        font-size: 0.9rem;  /* Set the font size */
+        white-space: nowrap;  /* Prevent text from wrapping */
+
+    }   
+    .container a{
+        font-size: 0.6em;
+        margin: 0.7em 0 0.5px;
       
-        font-size: 0.5em;
-        padding: 0.4rem 2rem;
-        margin-top: 0.625rem;
-        cursor: pointer;
     }
-.container-body input{
-    padding: 0.5em 0.75em;
-    font-size: 0.85em;
-    width: 18em;
-}
-h1{
-    font-size: 1rem;
-}
-.toggle-right h1{
-   margin-left: 2em;
-}
-li{
-    font-size: 0.6rem;
-}
-h5{
-    font-size:  0.75rem;
-}
-.container-body a{
-    font-size: 0.6em;
-    margin: 0.7em 0 0.5px;
-  
-}
-.toggle-right{
-   
-    padding: 5em 1em 5em 1em;
-   
-}
-.toggle-left{
-   
-    padding: 5em 2em 4em 1em;
-   
-}
+    .toggle-right{
+       
+        padding: 5em 1em 5em 1em;
+       
+    }
+    .toggle-left{
+       
+        padding: 5em 2em 4em 1em;
+       
+    }
+    .container form{
+        padding: 0 1em;
+        height: 100%;
+        
+    }
+    .dropdown-item{
+        font-size: 0.6rem !important;
+       
+    }
+    #admin{
+        font-size: 0.8rem;
+    }
+    .admininput{
+        font-size: 0.6rem !important;
+    }
+    .dropdown-menu {
+        min-width: 100px !important;
+    }
 
-.container-body form{
-    padding: 0 1em;
-    height: 100%;
-    
-}
-.dropdown-item{
-    font-size: 0.6rem !important;
-   
-}
-#admin{
-    font-size: 0.8rem;
-}
-.admininput{
-    font-size: 0.6rem !important;
-}
-.dropdown-menu {
-    min-width: 100px !important;
-}
-.feedback-note{
-    font-size: 0.7rem;
-}
-
-form { 
-    width: 80%; 
-}
-.form-group { 
-    margin-bottom: 1.5rem; 
-}
-input { 
-    padding: 0.4rem;
-    font-size: 0.9rem; 
-}
 }
 @media only screen and (max-width:461px) {
     .container-body{
@@ -510,7 +506,7 @@ input {
         font-size: 0.55em;
         line-height: 0.8em;
         margin: 1em 0;
-        margin-left: 1.7em;
+        margin-left: 1.5em;
     }
     .container-body input{
         font-size: 0.75em;
@@ -525,7 +521,7 @@ input {
         font-size: 0.75rem;
     }
     .toggle-right h1{
-       margin-right: 0.6em;
+       margin-right: 0.5em;
     }
 
     li{

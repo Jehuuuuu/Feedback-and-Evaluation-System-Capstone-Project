@@ -15,36 +15,25 @@
 </head>
 
 <body>
-    {% if messages %}
-    <div class="container  col-md-5 col-12" style="margin-top: 10em;">
-        {% for message in messages %}
-        <div class="alert {% if message.tags == 'error' %}alert-danger{% elif message.tags == 'success' %}alert-success{% endif %}" role="alert">
-            {{ message }}
+    
+        {% if messages %}
+        <div class="container col-lg-8 col-md-12 col-10 message_container">
+            {% for message in messages %}
+            <div class="alert {% if message.tags == 'error' %}alert-danger{% elif message.tags == 'success' %}alert-success{% endif %}" role="alert">
+                {{ message }}
+            </div>
+            {% endfor %}
         </div>
-        {% endfor %}
-    </div>
-    {% endif %}
+        {% endif %}
+
     <div class="container-body" id="container">
-        
+
         <div class="form-container sign-up" {% if request.POST and 'register' in request.POST %} id="active" {% endif %}>
             <form method="POST" action="">
     
                 <br>
                 {% csrf_token %}
-                <div class="form-group col-12 col-lg-10 col-md-11">
-                    <label for="{{ registration_form.student_number.id_for_label }}">Student Number:</label>
-                    {{ registration_form.student_number }}
-                </div>
-                
-                <div class="form-group col-12 col-lg-10 col-md-11">
-                    <label for="{{ registration_form.password1.id_for_label }}">Password:</label>
-                    {{ registration_form.password1 }}
-                </div>
-                
-                <div class="form-group col-12 col-lg-10 col-md-11">
-                    <label for="{{ registration_form.password2.id_for_label }}">Confirm Password:</label>
-                    {{ registration_form.password2 }}
-                </div>
+                {{ registration_form.as_p }}
                 
                 
                 <button onclick="showAlert()" type = "Submit" name="register"><b>Register</b></button>
@@ -54,7 +43,7 @@
         <div class="form-container sign-in" {% if request.POST and 'login' in request.POST %} id="active" {% endif %}>
             <form method="POST" action="">
                 <h1>CvSU</h1>
-                <h5 class="center">Feedback and Evaluation System</h5>
+                <h5 class="center"><small>Feedback and Evaluation System</small></h5>
                 <h5 class="center">Student Login</h5>
               
                 {% csrf_token %}

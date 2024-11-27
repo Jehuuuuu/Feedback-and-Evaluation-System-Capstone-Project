@@ -105,8 +105,7 @@ class EvaluationStatusForm(ModelForm):
         }
 
 class StudentRegistrationForm(UserCreationForm):
-    student_number = forms.CharField(max_length=9)
-
+    student_number = forms.CharField( max_length=9, label="Student Number", widget=forms.TextInput(attrs={ 'class': 'form-control student-number', }) )
     class Meta:
         model = User
         fields = ('student_number', 'password1', 'password2')
@@ -164,6 +163,8 @@ class StudentRegistrationForm(UserCreationForm):
         # Set help_text to an empty string for each field
         for field_name in self.fields:
             self.fields[field_name].help_text = ''
+
+
 
 class FacultyRegistrationForm(UserCreationForm):
     email = forms.EmailField(max_length=100)

@@ -407,11 +407,13 @@ footer{
   text-decoration: none; /* Remove underline on hover */
   cursor: pointer;
 }
-
+.active>.page-link, .page-link.active{
+  z-index: 1 !important;
+}
 @media (max-width:1200px) {
   #sidebar {
     margin-left: -250px; /* Adjust based on sidebar width */
-    z-index: 2; 
+    z-index: 5; 
   }
   
   .content {
@@ -420,7 +422,7 @@ footer{
   
   .sidebar-collapsed #sidebar {
     margin-left: 0;
-    z-index: 2;
+    z-index: 5;
   }
 }
 

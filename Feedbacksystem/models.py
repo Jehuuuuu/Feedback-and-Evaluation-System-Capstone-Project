@@ -713,7 +713,7 @@ class WebinarSeminarModel(models.Model):
     #Speaker Evaluation 
     displayed_a_thorough_knowledge_of_the_topic = models.IntegerField(choices=[(5, 'Greatly exceeded expectations'), (4, 'Exceeded expectations'), (3, 'Matched expectations'),
                                         (2, 'Less than expected'), (1, 'Much less than expected')])
-    thoroughly_explained_and_processed_the_learning_activities_throughout_the_training = models.IntegerField(choices=[(5, 'Greatly exceeded expectations'), (4, 'Exceeded expectations'), (3, 'Matched expectations'),
+    explained_activities = models.IntegerField(choices=[(5, 'Greatly exceeded expectations'), (4, 'Exceeded expectations'), (3, 'Matched expectations'),
                                         (2, 'Less than expected'), (1, 'Much less than expected')], db_column='explained_activities')
     able_to_create_a_good_learning_environment = models.IntegerField(choices=[(5, 'Greatly exceeded expectations'), (4, 'Exceeded expectations'), (3, 'Matched expectations'),
                                         (2, 'Less than expected'), (1, 'Much less than expected')])
