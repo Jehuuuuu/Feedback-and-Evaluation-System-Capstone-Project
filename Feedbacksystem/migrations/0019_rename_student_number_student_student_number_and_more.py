@@ -17,11 +17,5 @@ class Migration(migrations.Migration):
             model_name='student',
             old_name='student_Number',
             new_name='student_number',
-        ),
-        migrations.AddField(
-            model_name='student',
-            name='user',
-            field=models.OneToOneField(default=1, on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL),
-            preserve_default=False,
-        ),
+        )
     ]

@@ -24,8 +24,10 @@ cryptography==43.0.3
 cssselect2==0.7.0
 cycler==0.12.1
 diff-match-patch==20230430
+dj-database-url==2.3.0
 Django==5.0.7
 django-celery-beat==2.7.0
+django-environ==0.11.2
 django-filter==24.2
 django-import-export==4.1.1
 django-model-utils==5.0.0
@@ -35,6 +37,7 @@ et-xmlfile==1.1.0
 fonttools==4.53.1
 gitdb==4.0.11
 GitPython==3.1.43
+gunicorn==23.0.0
 html5lib==1.1
 idna==3.7
 Jinja2==3.1.4
@@ -58,6 +61,8 @@ pandas==2.2.2
 pillow==10.4.0
 prompt_toolkit==3.0.48
 protobuf==5.27.2
+psycopg-binary==3.2.3
+psycopg2-binary==2.9.10
 pyarrow==17.0.0
 pycparser==2.22
 pydeck==0.9.1
@@ -106,6 +111,7 @@ vine==5.1.0
 watchdog==4.0.1
 wcwidth==0.2.13
 webencodings==0.5.1
+whitenoise==6.8.2
 wordcloud==1.9.3
 xgboost==2.1.0
 xhtml2pdf==0.2.16
