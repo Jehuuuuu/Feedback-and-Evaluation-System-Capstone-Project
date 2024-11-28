@@ -6,6 +6,7 @@ from django import forms
 from django.db.models import Q, Value, CharField
 from django.contrib.auth.models import Group
 from django.db.models.functions import Concat
+from django.db.models import Case, When, Value, CharField
 class EvaluationFilter(django_filters.FilterSet):
      # Foreign key field filter
     section_subject_faculty = django_filters.ModelChoiceFilter(
@@ -118,6 +119,11 @@ class Meta:
 
 
 class FacultyFilter(django_filters.FilterSet):
+    department = django_filters.ModelChoiceFilter(
+    queryset=Department.objects.all(),
+    label='Department',
+    widget=forms.Select(attrs={'class': 'form-control'})) # Add Bootstrap class for styling
+
     search = django_filters.CharFilter(
     method='filter_search',
     label='',
@@ -125,6 +131,19 @@ class FacultyFilter(django_filters.FilterSet):
         'class': 'form-control',
         'placeholder': 'Search...'
     })
+    )
+    rating_category = django_filters.ChoiceFilter(
+        method='filter_rating_category',
+        label='Rating Category',
+        choices=[
+            ("Poor", "Poor"),
+            ("Unsatisfactory", "Unsatisfactory"),
+            ("Satisfactory", "Satisfactory"),
+            ("Very Satisfactory", "Very Satisfactory"),
+            ("Outstanding", "Outstanding"),
+            ("No Rating", "No Rating"),
+        ],
+        widget=forms.Select(attrs={'class': 'form-control'})
     )
 
     def filter_search(self, queryset, name, value):
@@ -135,7 +154,26 @@ class FacultyFilter(django_filters.FilterSet):
             Q(contact_number__icontains=value) |     
             Q(department__name__icontains=value)     
         )
+    
+    def filter_rating_category(self, queryset, name, value):
+        # Annotate the queryset with the rating category
+        queryset = queryset.annotate(
+            average_rating=Avg('likertevaluation__average_rating'),
+            rating_category=Case(
+                When(average_rating__lte=1.49, then=Value("Poor")),
+                When(average_rating__gte=1.5, average_rating__lte=2.49, then=Value("Unsatisfactory")),
+                When(average_rating__gte=2.5, average_rating__lte=3.49, then=Value("Satisfactory")),
+                When(average_rating__gte=3.5, average_rating__lte=4.49, then=Value("Very Satisfactory")),
+                When(average_rating__gte=4.5, average_rating__lte=5.0, then=Value("Outstanding")),
+                default=Value("No Rating"),
+                output_field=CharField(),
+            )
+        )
 
+        # Filter based on the provided rating category
+        if value:
+            queryset = queryset.filter(rating_category=value)
+        return queryset
     class Meta: 
         model = Faculty
         fields =  ('department', 'gender', 'search')

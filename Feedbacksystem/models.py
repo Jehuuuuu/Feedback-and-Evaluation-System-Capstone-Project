@@ -48,6 +48,7 @@ class Faculty(models.Model):
     profile_picture = models.ImageField(upload_to='profile_picture/', blank=True)
     department = models.ForeignKey(Department, on_delete=models.CASCADE, null=True, blank = True) 
     email_sent = models.BooleanField(default=False)  # New field to track email sent status
+    is_supervisor = models.BooleanField(default=False)
 
     updated = models.DateTimeField(auto_now = True, null=True, blank = True)
     created = models.DateTimeField(auto_now_add = True, null=True, blank = True)
@@ -126,20 +127,21 @@ class Faculty(models.Model):
 
     @property
     def get_rating_category(self):
-        avg_rating = self.average_rating()  # Call the method here
-        if avg_rating is not None:
-            if 1.0 <= avg_rating <= 1.49:
-                return "Poor"
-            elif 1.5 <= avg_rating <= 2.49:
-                return "Unsatisfactory"
-            elif 2.5 <= avg_rating <= 3.49:
-                return "Satisfactory"
-            elif 3.5 <= avg_rating <= 4.49:
-                return "Very Satisfactory"
-            elif 4.5 <= avg_rating <= 5.0:
-                return "Outstanding"
+        avg_rating = self.average_rating  # Treat as an attribute, not a callable
+        if avg_rating is None or avg_rating == 0.0:
+            return "No evaluators yet"
+        if 1.0 <= avg_rating <= 1.49:
+            return "Poor"
+        elif 1.5 <= avg_rating <= 2.49:
+            return "Unsatisfactory"
+        elif 2.5 <= avg_rating <= 3.49:
+            return "Satisfactory"
+        elif 3.5 <= avg_rating <= 4.49:
+            return "Very Satisfactory"
+        elif 4.5 <= avg_rating <= 5.0:
+            return "Outstanding"
         return "No Rating"
-    
+
     def full_name(self):
         return f"{self.first_name} {self.last_name}"
     
@@ -674,6 +676,22 @@ class SchoolEventModel(models.Model):
             self.semester = evaluation_status.semester
             self.average_rating = self.calculate_average_rating()
         super().save(*args, **kwargs)
+
+     # Method to calculate the total average rating of the event
+    @staticmethod
+    def get_event_average_rating(pk):
+        # Get all the event evaluations for a particular event
+        evaluations = SchoolEventModel.objects.filter(pk=pk)
+
+        # Calculate the total average rating
+        total_ratings = 0
+        total_count = evaluations.count()
+
+        for evaluation in evaluations:
+            total_ratings += evaluation.average_rating if evaluation.average_rating else 0
+
+        # Return the total average
+        return total_ratings / total_count if total_count else 'No evaluations yet'
 
     class Meta:
         ordering = ['-updated', '-created']

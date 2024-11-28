@@ -10,19 +10,54 @@
 {% endblock header %}
 <hr>
 {% block feature %}
-        <div class="d-flex" style="gap: 1em;">
-            <a class="btn btn-warning custom-btn " style = "color: black;"data-bs-toggle="modal" data-bs-target="#exampleModal"> <i class="bi bi-person-plus-fill"></i> <b>Add Faculty</b></a>
-            {% if department.email_sent %}
-            <a class="btn btn-success " style="color: white;"
-               href="{% url 'download_report' department.id %}"> 
+<div class="row g-2 align-items-center">
+    <!-- Add Faculty Button -->
+    <div class="col-12 col-md-auto">
+        <a class="btn btn-warning custom-btn w-100" style="color: black;" data-bs-toggle="modal" data-bs-target="#exampleModal">
+            <i class="bi bi-person-plus-fill"></i> <b>Add Faculty</b>
+        </a>
+    </div>
+
+    <!-- Filter Options Button -->
+    <div class="col-12 col-md-auto">
+        <button type="button" class="btn btn-warning custom-btn w-100" data-bs-toggle="modal" data-bs-target="#exampleModal">
+            <i class="bi bi-pencil-square"></i> <b>Filter Options</b>
+        </button>
+    </div>
+
+    <!-- Sort Dropdown -->
+    <div class="col-12 col-md-5">
+        <select class="form-select" name="sort" id="sort-list" onchange="location = finalurl();">
+            <option value="" id="placeholder" disabled selected hidden>Sort</option>
+            <option id="average_rating" value="average_rating">Average Rating: Ascending</option>
+            <option id="-average_rating" value="-average_rating">Average Rating: Descending</option>
+        </select>
+    </div>
+    <div class="col-12 col-md-auto">
+        <a class="btn btn-success w-100" style="color: white;" href="{% url 'peer_to_peer_summary_report_pdf' %}">
+            <i class="bi bi-download"></i> <b>Download Peer-to-Peer Summary Report</b>
+        </a>
+    </div>
+    <!-- Conditional Buttons -->
+    {% if department.email_sent %}
+        <!-- Download Summary Report Button -->
+        
+        <div class="col-12 col-md-auto">
+            <a class="btn btn-success w-100" style="color: white;" href="{% url 'download_report' department.id %}">
                 <i class="bi bi-download"></i> <b>Download Summary Report</b>
             </a>
-            <button class="btn btn-primary " data-bs-toggle="modal" data-bs-target="#facultySummaryModal">
+        </div>
+
+
+        <!-- Send Summary Reports Button -->
+        <div class="col-12 col-md-auto">
+            <button class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#facultySummaryModal">
                 <i class="bi bi-send"></i> <b>Send Summary Reports</b>
             </button>
-            {% endif %}
-
         </div>
+    {% endif %}
+</div>
+
 <!-- Modal for Faculty Selection -->
 <div class="modal fade" id="facultySummaryModal" tabindex="-1" aria-labelledby="facultySummaryModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -76,12 +111,37 @@
           </div>
         </div>
       </div>
+
+      <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+        <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="exampleModalLabel">Filter Options</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form method="get" action="">
+            {{department_faculty_filter.form.rating_category.label_tag}}
+            {{department_faculty_filter.form.rating_category}}
+            {{department_faculty_filter.form.rating_category.label_tag}}
+            {{department_faculty_filter.form.rating_category}}
+            <button type="button" class="btn btn-secondary" onclick="clearFilters()" style="margin-top: 1em;">Clear All</button>
+        </div>
+      <div class="modal-footer">
+      <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+      <input type = "submit" value="Save Changes" class="btn btn-success">
+      </form>
+      </div>
+      </div>
+      </div>
+      </div>
         <table class="table table-responsive table-bordered mt-2">
     
                 <tr>
                     <th scope="col">Faculty</th>
                     <th scope="col">Average</th>
                     <th scope="col">Rating</th>
+                    <th scope="col">Supervisor</th>
                     <th scope="col" style="width: 160px;">Options</th>
                 </tr>
     
@@ -89,13 +149,54 @@
         <tr>
             {% for i in page_obj %}
                 <td>{{ i.first_name }} {{ i.last_name }}</td>
-                <td>{{ i.average_rating }}</td>
+                <td>
+                    {% if i.average_rating == 0.0 or i.average_rating is None %}
+                        No evaluators yet
+                    {% else %}
+                        {{ i.average_rating }}
+                    {% endif %}
+                </td>
+                
                 <td>{{ i.get_rating_category }}</td>
+                <td>{{ i.is_supervisor|yesno:"Yes,No" }}</td>
                 <td style="display: flex; flex-direction: row; gap:1em; align-items: center; width: 160px;"> <!--<a href="{% url 'department_head_faculty_evaluations' i.pk %}" style="text-decoration: none;"><button class="btn btn-primary d-flex align-items-center" style=" padding:1px 2px 1px 7px"><i class="bi bi-eye-fill" style="font-size:20px; margin-right: 5px;"></i> </button></a> -->
                     <a href="{% url 'department_head_send_message'  i.pk  %}" style="text-decoration: none;"><button class="btn btn-success d-flex align-items-center" style=" padding:1px 2px 1px 7px" title="Message Faculty"><i class="bi bi-chat-dots" style="font-size:20px; margin-right: 5px;"></i></button></a>
+                
+                {% if not i.is_supervisor %}
+                <!-- New Button to Trigger Modal -->
+                <button 
+                    type="button" 
+                    class="btn btn-warning d-flex align-items-center" 
+                    style="padding: 1px 2px 1px 7px" 
+                    title="Mark as Supervisor"
+                    data-bs-toggle="modal" 
+                    data-bs-target="#markSupervisorModal{{ i.pk }}">
+                    <i class="bi bi-person-badge" style="font-size: 20px; margin-right: 5px;"></i>
+                </button>
+                {% endif %}
                 </td>
         </tr>
-    
+                <!-- Modal Confirmation -->
+            <div class="modal fade" id="markSupervisorModal{{ i.pk }}" tabindex="-1" aria-labelledby="markSupervisorLabel{{ i.pk }}" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="markSupervisorLabel{{ i.pk }}">Confirm Action</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            Are you sure you want to mark <strong>{{ i.first_name }} {{ i.last_name }}</strong> as a supervisor?
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <form method="post" action="{% url 'mark_as_supervisor' i.pk %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-success">Confirm</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
         {% endfor %}
     
         </table>
@@ -137,4 +238,47 @@
     });
 </script>
 
+<script>
+    // Retrieve the current sort parameter
+    function getSortParam() {
+        const match = new RegExp('[?&]sort=([^&]*)').exec(location.search);
+        return match ? decodeURIComponent(match[1]) : null;
+    }
+
+    // Update the placeholder text based on the current sort parameter
+    document.addEventListener('DOMContentLoaded', () => {
+        const currentSort = getSortParam();
+        if (currentSort) {
+            const option = document.getElementById(currentSort);
+            if (option) {
+                document.getElementById('placeholder').innerText = `Sort: ${option.innerText}`;
+            }
+        }
+    });
+
+    // Generate the updated URL for sorting
+    function finalurl() {
+        const url = new URL(window.location.href);
+        const sortValue = document.getElementById('sort-list').value;
+        url.searchParams.set('sort', sortValue);
+        return url.toString();
+    }
+
+   function clearFilters() {
+      // Get all filter inputs within the form
+      var filterInputs = document.querySelectorAll('#exampleModal form select, #exampleModal form input[type="text"]');
+      
+      // Loop through each input and clear its value
+      filterInputs.forEach(function(input) {
+        if (input.tagName === 'SELECT') {
+          // For select elements, set the selected index to the default (first) option
+          input.selectedIndex = 0;
+        } else {
+          // For text inputs, clear the value
+          input.value = '';
+        }
+      });
+    }
+  
+  </script>
 {% endblock feature %}

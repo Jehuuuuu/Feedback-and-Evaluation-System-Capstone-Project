@@ -79,6 +79,7 @@ urlpatterns = [
     path('delete_user/<str:user_id>/', views.delete_user, name='delete_user'),
     path('evaluations_csv', views.evaluations_csv, name='evaluations_csv'),
     path('faculty_evaluations_summary_report_pdf', views.faculty_evaluations_summary_report_pdf, name='faculty_evaluations_summary_report_pdf'),
+    path('peer_to_peer_summary_report_pdf', views.peer_to_peer_summary_report_pdf, name='peer_to_peer_summary_report_pdf'),
     path('faculty_evaluations_individual_summary_report_pdf', views.faculty_evaluations_individual_summary_report_pdf, name='faculty_evaluations_individual_summary_report_pdf'),
     path('admin_event_evaluations', views.admin_event_list, name='admin_event_evaluations'),
     path('view_admin_schoolevent_evaluations/<int:pk>/', views.view_admin_schoolevent_evaluations, name='view_admin_schoolevent_evaluations'),
@@ -92,7 +93,7 @@ urlpatterns = [
     path('president_edit_event_evaluations/<int:pk>', views.president_edit_event_evaluations, name='president_edit_event_evaluations'),
     path('president_delete_event_evaluations/<int:pk>', views.president_delete_event_evaluations, name='president_delete_event_evaluations'),
     path('stakeholder_evaluations_excel', views.stakeholder_evaluations_excel, name='stakeholder_evaluations_excel'),
-    path('eventevaluations_csv', views.eventevaluations_csv, name='eventevaluations_csv'),
+    path('eventevaluations_excel', views.eventevaluations_excel, name='eventevaluations_excel'),
     path('view_society_president_event_evaluations/<int:pk>/', views.view_society_president_event_evaluations, name='view_society_president_event_evaluations'),
     path('faculty_events', views.faculty_events, name='faculty_events'),
     path('faculty_events_upcoming', views.faculty_events_upcoming, name='faculty_events_upcoming'),
@@ -143,6 +144,7 @@ urlpatterns = [
     path('send-summary-reports/', views.send_summary_reports, name='send_summary_reports'),
     path('hr_dashboard/', views.hr_dashboard, name='hr_dashboard'),
     path('stakeholders_generate_summary_report/', views.stakeholders_generate_summary_report, name='stakeholders_generate_summary_report'),
+     path('faculty/<int:pk>/mark-as-supervisor/', views.mark_as_supervisor, name='mark_as_supervisor'),
 ]
 
 if settings.DEBUG:

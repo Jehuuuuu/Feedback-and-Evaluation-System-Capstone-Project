@@ -32,14 +32,14 @@
             </div>
         {% endif %}
         
-        <div class="row g-0">
-            <div class="col-lg-2 col-md-3 col-sm-4 col-6 mb-1"><a class = "btn btn-warning custom-btn" data-bs-toggle="modal" data-bs-target="#createEventModal"> <i class="bi bi-plus-square-fill"> </i>Create Event </a></div>
+        <div class="row g-2">
+            <div class="col-12 col-md-auto mb-1"><button class = "btn btn-warning custom-btn" data-bs-toggle="modal" data-bs-target="#createEventModal"> <i class="bi bi-plus-square-fill"> </i>Create Event </button></div>
         {% if is_head_of_osas %}
-            <div class="col-lg-2 col-md-3 col-sm-4 col-6 mb-1">
+            <div class="col-12 col-md-auto mb-1">
                 <a href="{% url 'pending_events' %}" class="btn btn-secondary" ><b>Pending Events</b></a>
             </div>
         {% endif %}
-            <div class="col-lg-2 col-md-3 col-sm-4 col-12 mb-1">
+            <div class="col-12 col-md-auto mb-1">
                 <button type="button" class="btn btn-warning custom-btn" style="color: black; text-decoration: none;" data-bs-toggle="modal" data-bs-target="#exampleModal">
                     <i class="bi bi-pencil-square"></i> <b>Filter Options</b>
                 </button>

@@ -11,11 +11,15 @@
 <hr>
 {% block feature %}
 
-<form action="{% url 'eventevaluations_csv' %}" method="get">
-    <input type="hidden" name="event_id" value="{{ event.id }}">
-    <input type="hidden" name="{{ request.GET.urlencode }}">
-    <button type="submit" class="btn btn-primary">Export CSV</button>
-</form>
+<div class="d-flez">
+    <form action="{% url 'eventevaluations_excel' %}" method="get">
+        <input type="hidden" name="event_id" value="{{ event.id }}">
+        <input type="hidden" name="{{ request.GET.urlencode }}">
+        <button type="submit" class="btn btn-primary">Export CSV</button>
+    </form>
+    <p>Total Average Rating: {{ total_average_rating }}</p>
+</div>
+
 <div class="table-responsive mt-2">
     <table class="table table-bordered " >
             <tr>

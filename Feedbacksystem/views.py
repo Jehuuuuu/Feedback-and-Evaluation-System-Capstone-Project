@@ -189,19 +189,23 @@ def adminlogin(request):
             messages.error(request, "Username does not exist")
             return render(request, 'pages/adminlogin.html', {})
 
+        # Authenticate the user using username and password
+        user = authenticate(request, username=username, password=password)
         if user is not None:
-                if user.groups.filter(name="HR admin").exists():
-                    login(request, user)
-                    return redirect('hr_dashboard')
-                elif user.groups.filter(name="admin").exists():
-                    login(request, user)
-                    return redirect('admin')
-                else:
-                    messages.error(request, "You are not authorized to log in as an admin")
-
+            if user.groups.filter(name="HR admin").exists():
+                login(request, user)
+                return redirect('hr_dashboard')
+            elif user.groups.filter(name="admin").exists():
+                login(request, user)
+                return redirect('admin')
+            else:
+                messages.error(request, "You are not authorized to log in as an admin")
+        else:
+            messages.error(request, "Invalid password")
 
     context = {}
     return render(request, 'pages/adminlogin.html', context)
+
 
 
 def facultylogin(request):
@@ -902,7 +906,7 @@ def event_detail(request, pk):
 
                 displayed_a_thorough_knowledge_of_the_topic = form.cleaned_data['displayed_a_thorough_knowledge_of_the_topic']
 
-                thoroughly_explained_and_processed_the_learning_activities_throughout_the_training = form.cleaned_data['thoroughly_explained_and_processed_the_learning_activities_throughout_the_training']
+                explained_activities = form.cleaned_data['explained_activities']
 
                 able_to_create_a_good_learning_environment = form.cleaned_data['able_to_create_a_good_learning_environment']
 
@@ -946,7 +950,7 @@ def event_detail(request, pk):
 
                     displayed_a_thorough_knowledge_of_the_topic=displayed_a_thorough_knowledge_of_the_topic,
 
-                    thoroughly_explained_and_processed_the_learning_activities_throughout_the_training=thoroughly_explained_and_processed_the_learning_activities_throughout_the_training,
+                    explained_activities=explained_activities,
 
                     able_to_create_a_good_learning_environment=able_to_create_a_good_learning_environment,
 
@@ -1193,7 +1197,7 @@ def view_society_president_event_evaluations(request, pk):
         ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
             displayed_a_thorough_knowledge_of_the_topic=5
         ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
-            thoroughly_explained_and_processed_the_learning_activities_throughout_the_training=5
+            explained_activities=5
         ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
             able_to_create_a_good_learning_environment=5
         ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
@@ -1227,7 +1231,7 @@ def view_society_president_event_evaluations(request, pk):
         ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
             displayed_a_thorough_knowledge_of_the_topic=4
         ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
-            thoroughly_explained_and_processed_the_learning_activities_throughout_the_training=4
+            explained_activities=4
         ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
             able_to_create_a_good_learning_environment=4
         ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
@@ -1261,7 +1265,7 @@ def view_society_president_event_evaluations(request, pk):
         ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
             displayed_a_thorough_knowledge_of_the_topic=3
         ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
-            thoroughly_explained_and_processed_the_learning_activities_throughout_the_training=3
+            explained_activities=3
         ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
             able_to_create_a_good_learning_environment=3
         ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
@@ -1295,7 +1299,7 @@ def view_society_president_event_evaluations(request, pk):
         ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
             displayed_a_thorough_knowledge_of_the_topic=2
         ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
-            thoroughly_explained_and_processed_the_learning_activities_throughout_the_training=2
+            explained_activities=2
         ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
             able_to_create_a_good_learning_environment=2
         ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
@@ -1329,7 +1333,7 @@ def view_society_president_event_evaluations(request, pk):
         ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
             displayed_a_thorough_knowledge_of_the_topic=1
         ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
-            thoroughly_explained_and_processed_the_learning_activities_throughout_the_training=1
+            explained_activities=1
         ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
             able_to_create_a_good_learning_environment=1
         ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
@@ -1416,6 +1420,11 @@ def admin(request):
     total_subject = subject.count()
     total_user = user.count()
 
+    registered_faculty = Faculty.objects.filter(user__isnull=False).count() 
+
+
+    registered_students = Student.objects.filter(user__isnull=False).count()
+
     evaluation_status = EvaluationStatus.objects.first()  # Assuming there's only one status entry
     current_academic_year = evaluation_status.academic_year 
     current_semester = evaluation_status.semester
@@ -1499,7 +1508,9 @@ def admin(request):
                 'chart_data': chart_data,
                 'filterset': filterset,
                 'is_admin': is_admin,
-                'is_hr_admin': is_hr_admin
+                'is_hr_admin': is_hr_admin,
+                'registered_faculty': registered_faculty,
+                'registered_students': registered_students
                 }
     return render(request, 'pages/admin.html', context)
 
@@ -1674,9 +1685,9 @@ def admin_send_report_to_department_heads(request):
         department_ids = request.POST.getlist('departments')  # Get selected departments
         departments = Department.objects.filter(id__in=department_ids)
 
-        # Filter department heads: Faculties with the "department head" role and assigned to the selected departments
+        # Filter department head/program coordinators: Faculties with the "department head/program coordinator" role and assigned to the selected departments
         department_heads = Faculty.objects.filter(
-            user__groups__name="department head",  # Assuming roles are managed via Django Groups
+            user__groups__name="department head/program coordinator",  # Assuming roles are managed via Django Groups
             department__in=departments
         )
 
@@ -1684,7 +1695,7 @@ def admin_send_report_to_department_heads(request):
         current_academic_year = evaluation_status.academic_year
         current_semester = evaluation_status.semester
 
-        # Group department heads by their respective departments
+        # Group department head/program coordinators by their respective departments
         department_heads_by_department = {}
         for head in department_heads:
             department_heads_by_department.setdefault(head.department, []).append(head)
@@ -1779,7 +1790,7 @@ def admin_send_report_to_department_heads(request):
             if pisa_status.err:
                 return HttpResponse(f'Error generating PDF for department {department.name}')
 
-            # Send the email to all department heads of this department
+            # Send the email to all department head/program coordinators of this department
             for head in heads:
                 email = EmailMessage(
                     subject=f'Faculty Evaluations Summary Report - {department.name}',
@@ -1796,7 +1807,7 @@ def admin_send_report_to_department_heads(request):
                             description=f'The summary report for the {head.department.name} has been sent to your email.',
                             level='info')
                 
-        messages.success(request, "The summary reports have been successfully sent to the department heads and program coordinators.") 
+        messages.success(request, "The summary reports have been successfully sent to the department head/program coordinators and program coordinators.") 
         return redirect('admin_faculty_evaluations')  # Redirect to a success page
 
 
@@ -2032,6 +2043,122 @@ def faculty_evaluations_summary_report_pdf(request):
     return response
 
 @login_required(login_url='signin')
+@allowed_users(allowed_roles=['department head/program coordinator'])
+def peer_to_peer_summary_report_pdf(request):
+    """
+    Generates a PDF summary report of peer-to-peer evaluations.
+
+    Args:
+        request: The HTTP request object.
+
+    Returns:
+        An HTTP response containing the PDF report.
+    """
+    image_path = os.path.join(settings.BASE_DIR, static('images/cvsulogo.png'))
+    evaluation_status = EvaluationStatus.objects.first()  # Assuming there's only one status entry
+    current_academic_year = evaluation_status.academic_year 
+    current_semester = evaluation_status.semester
+    user_department = request.user.faculty.department  # Get the department of the logged-in user
+
+    # Apply filters from the EvaluationFilter based on the request data
+    evaluation_filter = EvaluationFilter(request.GET, queryset=PeertoPeerEvaluation.objects.filter(academic_year=current_academic_year, semester=current_semester, peer__department=user_department))
+    filtered_evaluations = evaluation_filter.qs
+
+    # Get all faculty in the same department as the logged-in user
+    faculties = Faculty.objects.filter(department=user_department).distinct()
+
+    summary_data = []
+    comments_data = []
+
+    # Loop through each faculty and calculate the required aggregates
+    for faculty in faculties:
+        faculty_id = faculty.id
+        faculty_name = faculty.full_name()  
+        evaluations = filtered_evaluations.filter(peer=faculty_id)
+        num_evaluators = evaluations.count()
+
+        if num_evaluators > 0:
+            category_sums = {
+                'Subject Matter Content': 0,
+                'Organization': 0,
+                'Teacher-Student Rapport': 0,
+                'Teaching Methods': 0,
+                'Presentation': 0,
+                'Classroom Management': 0,
+                'Sensitivity and Support to Students': 0,
+                'Overall': 0
+            }
+
+            for evaluation in evaluations:
+                category_averages = evaluation.calculate_category_averages()
+                for category, average in category_averages.items():
+                    if average is not None:
+                        category_sums[category] += average
+                category_sums['Overall'] += evaluation.average_rating
+
+            # Calculate averages
+            category_averages = {category: round(total / num_evaluators, 2) for category, total in category_sums.items()}
+            avg_rating = category_averages['Overall']
+
+            if avg_rating is not None:
+                if 1.0 <= avg_rating <= 1.49:
+                    rating_category = "Poor"
+                elif 1.5 <= avg_rating <= 2.49:
+                    rating_category = "Unsatisfactory"
+                elif 2.5 <= avg_rating <= 3.49:
+                    rating_category = "Satisfactory"
+                elif 3.5 <= avg_rating <= 4.49:
+                    rating_category = "Very Satisfactory"
+                elif 4.5 <= avg_rating <= 5.0:
+                    rating_category = "Outstanding"
+                else:
+                    rating_category = "No Rating"
+            else:
+                rating_category = "No Rating"
+
+            summary_data.append({
+                'faculty': faculty_name,
+                'num_evaluators': num_evaluators,
+                'subject_matter_content_avg': category_averages['Subject Matter Content'],
+                'organization_avg': category_averages['Organization'],
+                'teacher_student_rapport_avg': category_averages['Teacher-Student Rapport'],
+                'teaching_methods_avg': category_averages['Teaching Methods'],
+                'presentation_avg': category_averages['Presentation'],
+                'classroom_management_avg': category_averages['Classroom Management'],
+                'sensitivity_support_students_avg': category_averages['Sensitivity and Support to Students'],
+                'overall_avg': category_averages['Overall'],
+                'rating_category': rating_category
+            })
+
+            for evaluation in evaluations: 
+                comments_data.append({ 
+                    'faculty': faculty_name, 
+                    'requires_less_task_for_credit': evaluation.requires_less_task_for_credit, 
+                    'strengths_of_the_faculty': evaluation.strengths_of_the_faculty,
+                    'other_suggestions_for_improvement': evaluation.other_suggestions_for_improvement,
+                    'comments': evaluation.comments 
+                })
+
+    # Render the summary data to an HTML template
+    html = render_to_string('pages/peer_to_peer_summary_report.html', {
+        'summary_data': summary_data, 
+        'image_path': image_path, 
+        'comments_data': comments_data, 
+        'current_academic_year': current_academic_year, 
+        'current_semester': current_semester
+    })
+
+    # Create the PDF
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="peer_to_peer_summary_report.pdf"'
+    pisa_status = pisa.CreatePDF(html, dest=response)
+
+    if pisa_status.err:
+        return HttpResponse('We had some errors with code %s' % pisa_status.err)
+    return response
+
+
+@login_required(login_url='signin')
 @allowed_users(allowed_roles=['admin'])
 def pending_evaluations(request):
     is_admin = request.user.groups.filter(name='admin').exists()
@@ -2046,7 +2173,7 @@ def pending_evaluations(request):
 def approve_evaluation(request, pk):
     evaluation = get_object_or_404(LikertEvaluation, pk=pk, admin_status='Pending')
     
-    evaluation.admin_status = 'Approved to Department Head'
+    evaluation.admin_status = 'Approved to Department head/program coordinator'
     evaluation.save()
                 
     return redirect('pending_evaluations')
@@ -2064,7 +2191,7 @@ def reject_evaluation(request, pk):
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['admin']) 
 def approve_all_pending_evaluations(request):
-     if request.method == 'POST': LikertEvaluation.objects.filter(admin_status='Pending').update(admin_status='Approved to Department Head') 
+     if request.method == 'POST': LikertEvaluation.objects.filter(admin_status='Pending').update(admin_status='Approved to Department head/program coordinator') 
      messages.success(request, 'All pending evaluations have been approved.') 
      return redirect('pending_evaluations')
 
@@ -2528,12 +2655,14 @@ def admin_event_evaluations(request, pk):
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['admin', 'society president', 'faculty', 'head of OSAS'])
-def eventevaluations_csv(request):
-    response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = 'attachment; filename=event_evaluations.csv'
+def eventevaluations_excel(request):
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename=event_evaluations.xlsx'
 
-    # Create a csv writer
-    writer = csv.writer(response)
+    # Create a workbook and add a worksheet
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Event Evaluations"
 
     # Retrieve the event ID from the request
     event_id = request.GET.get('event_id')
@@ -2552,13 +2681,36 @@ def eventevaluations_csv(request):
     if not evaluations.exists():
         return HttpResponse("No evaluations found for this event.")
 
-    # Write the CSV headers
-    writer.writerow(['Event', 'Author', 'Suggestions and Comments', 'Average', 'Rating', 'Academic Year', 'Semester', 'Date Submitted'])
+    # Write the headers (Consider breaking this long line if readability suffers)
+    headers = [
+        'Event', 'Suggestions and Comments', 'Average Rating', 'Rating Category',
+        'Academic Year', 'Semester', 'Date Submitted'
+    ]
+    ws.append(headers)
+
+    # Adjust column widths
+    for col_num, header in enumerate(headers, 1):
+        col_letter = get_column_letter(col_num)
+        ws.column_dimensions[col_letter].width = 20  # Customize as needed
 
     # Loop through and write the evaluation data
     for i in evaluations:
-        writer.writerow([i.event.title, i.event.get_author_name(), i.suggestions_and_comments, i.average_rating, i.get_rating_category(), i.academic_year, i.semester, i.created])
+        ws.append([
+            i.event.title,
+            i.suggestions_and_comments,
+            i.average_rating,
+            i.get_rating_category(),
+            i.academic_year,
+            i.semester,
+            i.created.strftime('%Y-%m-%d %H:%M:%S')
+        ])
 
+    # Align the header cells
+    for cell in ws["1:1"]:
+        cell.alignment = Alignment(horizontal='center')
+
+    # Save the workbook to the response
+    wb.save(response)
     return response
 
 @login_required(login_url='signin')
@@ -2687,7 +2839,7 @@ def view_admin_schoolevent_evaluations(request, pk):
         ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
             displayed_a_thorough_knowledge_of_the_topic=5
         ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
-            thoroughly_explained_and_processed_the_learning_activities_throughout_the_training=5
+            explained_activities=5
         ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
             able_to_create_a_good_learning_environment=5
         ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
@@ -2721,7 +2873,7 @@ def view_admin_schoolevent_evaluations(request, pk):
         ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
             displayed_a_thorough_knowledge_of_the_topic=4
         ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
-            thoroughly_explained_and_processed_the_learning_activities_throughout_the_training=4
+            explained_activities=4
         ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
             able_to_create_a_good_learning_environment=4
         ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
@@ -2755,7 +2907,7 @@ def view_admin_schoolevent_evaluations(request, pk):
         ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
             displayed_a_thorough_knowledge_of_the_topic=3
         ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
-            thoroughly_explained_and_processed_the_learning_activities_throughout_the_training=3
+            explained_activities=3
         ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
             able_to_create_a_good_learning_environment=3
         ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
@@ -2789,7 +2941,7 @@ def view_admin_schoolevent_evaluations(request, pk):
         ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
             displayed_a_thorough_knowledge_of_the_topic=2
         ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
-            thoroughly_explained_and_processed_the_learning_activities_throughout_the_training=2
+            explained_activities=2
         ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
             able_to_create_a_good_learning_environment=2
         ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
@@ -2823,7 +2975,7 @@ def view_admin_schoolevent_evaluations(request, pk):
         ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
             displayed_a_thorough_knowledge_of_the_topic=1
         ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
-            thoroughly_explained_and_processed_the_learning_activities_throughout_the_training=1
+            explained_activities=1
         ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
             able_to_create_a_good_learning_environment=1
         ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
@@ -3777,8 +3929,8 @@ def edit_user_group(request, user_id):
     if user_groups.filter(name__in=['student', 'society president']).exists():
         allowed_groups = Group.objects.filter(name__in=['student', 'society president'])
         allow_multiple_selection = False  # Only single selection allowed for students
-    elif user_groups.filter(name__in=['faculty', 'head of OSAS', 'department head']).exists():
-        allowed_groups = Group.objects.filter(name__in=['faculty', 'head of OSAS', 'department head'])
+    elif user_groups.filter(name__in=['faculty', 'head of OSAS', 'department head/program coordinator']).exists():
+        allowed_groups = Group.objects.filter(name__in=['faculty', 'head of OSAS', 'department head/program coordinator'])
         allow_multiple_selection = True  # Multiple selection allowed for faculty and head of OSAS
     elif user_groups.filter(name__in=['admin', 'HR admin']).exists():
         allowed_groups = Group.objects.filter(name__in=['admin', 'HR admin'])
@@ -4036,10 +4188,10 @@ def delete_user(request, user_id):
 
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['faculty', 'head of OSAS', 'department head'])
+@allowed_users(allowed_roles=['faculty', 'head of OSAS', 'department head/program coordinator'])
 def facultydashboard(request):
     is_head_of_osas = request.user.groups.filter(name='head of OSAS').exists() 
-    is_department_head = request.user.groups.filter(name='department head').exists()
+    is_department_head = request.user.groups.filter(name='department head/program coordinator').exists()
     user=request.user
     faculty = Faculty.objects.filter(email=request.user.username).first()   
     event_notifications = Notification.objects.filter(recipient=user, level='success')
@@ -4276,7 +4428,7 @@ def get_evaluation_data(request):
     }
     return JsonResponse(data)
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['faculty', 'head of OSAS', 'department head'])
+@allowed_users(allowed_roles=['faculty', 'head of OSAS', 'department head/program coordinator'])
 def faculty_evaluations_individual_summary_report_pdf(request):
     """
     Generates a PDF summary report of faculty evaluations for the currently logged-in faculty.
@@ -4381,7 +4533,7 @@ def faculty_evaluations_individual_summary_report_pdf(request):
     return response
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['student', 'faculty', 'head of OSAS', 'department head'])
+@allowed_users(allowed_roles=['student', 'faculty', 'head of OSAS', 'department head/program coordinator'])
 def mark_notifications_read(request):
     if request.method == 'POST':
         # Mark all notifications as read for the current user
@@ -4390,10 +4542,10 @@ def mark_notifications_read(request):
     return JsonResponse({'status': 'error'}, status=400)
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['faculty', 'head of OSAS', 'department head'])
+@allowed_users(allowed_roles=['faculty', 'head of OSAS', 'department head/program coordinator'])
 def faculty_notifications(request):
     user=request.user
-    is_department_head = request.user.groups.filter(name='department head').exists()
+    is_department_head = request.user.groups.filter(name='department head/program coordinator').exists()
     faculty = Faculty.objects.filter(email=request.user.username).first()   
     event_notifications = Notification.objects.filter(recipient=user, level='success')
     messages_notifications = Notification.objects.filter(recipient=user, level='info')
@@ -4410,10 +4562,10 @@ def faculty_notifications(request):
         'messages_unread_count': messages_unread_count, 'is_department_head': is_department_head })  # Return the response
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['faculty', 'head of OSAS', 'department head'])
+@allowed_users(allowed_roles=['faculty', 'head of OSAS', 'department head/program coordinator'])
 def inbox(request):
     user=request.user
-    is_department_head = request.user.groups.filter(name='department head').exists()
+    is_department_head = request.user.groups.filter(name='department head/program coordinator').exists()
     faculty = Faculty.objects.filter(email=request.user.username).first()   
     event_notifications = Notification.objects.filter(recipient=user, level='success')
     messages_notifications = Notification.objects.filter(recipient=user, level='info')
@@ -4430,10 +4582,10 @@ def inbox(request):
         'messages_unread_count': messages_unread_count,'is_department_head': is_department_head })  # Return the response
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['faculty', 'head of OSAS', 'department head'])
+@allowed_users(allowed_roles=['faculty', 'head of OSAS', 'department head/program coordinator'])
 def view_message(request, notification_id):
     user=request.user
-    is_department_head = request.user.groups.filter(name='department head').exists()
+    is_department_head = request.user.groups.filter(name='department head/program coordinator').exists()
     faculty = Faculty.objects.filter(email=request.user.username).first()   
 
     event_notifications = Notification.objects.filter(recipient=user, level='success')
@@ -4456,11 +4608,11 @@ def view_message(request, notification_id):
 
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['faculty', 'head of OSAS', 'department head'])
+@allowed_users(allowed_roles=['faculty', 'head of OSAS', 'department head/program coordinator'])
 def facultyprofile(request):
     user=request.user
     faculty = Faculty.objects.filter(email=request.user.username).first()   
-    is_department_head = request.user.groups.filter(name='department head').exists()
+    is_department_head = request.user.groups.filter(name='department head/program coordinator').exists()
     event_notifications = Notification.objects.filter(recipient=user, level='success')
     messages_notifications = Notification.objects.filter(recipient=user, level='info')
     unread_notifications = Notification.objects.filter(recipient=user, level='success', unread=True)
@@ -4476,10 +4628,10 @@ def facultyprofile(request):
     return render(request, 'pages/facultyprofile.html', context)
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['faculty', 'head of OSAS', 'department head'])
+@allowed_users(allowed_roles=['faculty', 'head of OSAS', 'department head/program coordinator'])
 def edit_faculty_profile(request):
     user=request.user.faculty
-    is_department_head = request.user.groups.filter(name='department head').exists()
+    is_department_head = request.user.groups.filter(name='department head/program coordinator').exists()
     user_faculty = request.user
     faculty = Faculty.objects.filter(email=request.user.username).first()   
     event_notifications = Notification.objects.filter(recipient=user_faculty, level='success')
@@ -4497,12 +4649,12 @@ def edit_faculty_profile(request):
 
   
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['faculty', 'head of OSAS', 'department head'])   
+@allowed_users(allowed_roles=['faculty', 'head of OSAS', 'department head/program coordinator'])   
 def facultyfeedbackandevaluations(request):
     user=request.user
-    is_department_head = request.user.groups.filter(name='department head').exists()
+    is_department_head = request.user.groups.filter(name='department head/program coordinator').exists()
     faculty = Faculty.objects.filter(email=request.user.username).first()   
-    is_department_head = request.user.groups.filter(name='department head').exists()
+    is_department_head = request.user.groups.filter(name='department head/program coordinator').exists()
     event_notifications = Notification.objects.filter(recipient=user, level='success')
     messages_notifications = Notification.objects.filter(recipient=user, level='info')
     unread_notifications = Notification.objects.filter(recipient=user, level='success', unread=True)
@@ -4513,7 +4665,7 @@ def facultyfeedbackandevaluations(request):
     evaluation_status = EvaluationStatus.objects.first()
     current_academic_year = evaluation_status.academic_year 
     current_semester = evaluation_status.semester
-
+    current_status = evaluation_status.evaluation_status
     teacher_evaluations = LikertEvaluation.objects.filter(section_subject_faculty__faculty=faculty, admin_status='Approved')
     try:
         # Query the Faculty model using the email address
@@ -4548,12 +4700,12 @@ def facultyfeedbackandevaluations(request):
     context = {'faculty': faculty, 'teacher': teacher, 'teacher_evaluations': page.object_list, 'faculty_evaluation_filter': faculty_evaluation_filter, 'page_obj':page, 'is_paginated': True, 'paginator':evaluation_paginator,'ordering': ordering, 'event_notifications': event_notifications,
         'notifications_unread_count': notifications_unread_count,
         'messages_notifications': messages_notifications,
-        'messages_unread_count': messages_unread_count, 'is_department_head': is_department_head}
+        'messages_unread_count': messages_unread_count, 'is_department_head': is_department_head, 'current_status': current_status}
 
     return render(request, 'pages/facultyfeedbackandevaluations.html', context)
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['faculty', 'head of OSAS', 'department head'])
+@allowed_users(allowed_roles=['faculty', 'head of OSAS', 'department head/program coordinator'])
 def faculty_evaluations_excel(request):
     faculty = Faculty.objects.filter(email=request.user.username).first()
     response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
@@ -4609,10 +4761,10 @@ def faculty_evaluations_excel(request):
     return response
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['faculty', 'head of OSAS', 'department head'])
+@allowed_users(allowed_roles=['faculty', 'head of OSAS', 'department head/program coordinator'])
 def view_evaluation_form(request, pk):
     user=request.user
-    is_department_head = request.user.groups.filter(name='department head').exists()
+    is_department_head = request.user.groups.filter(name='department head/program coordinator').exists()
     faculty = Faculty.objects.filter(email=request.user.username).first()   
 
     event_notifications = Notification.objects.filter(recipient=user, level='success')
@@ -4993,10 +5145,10 @@ def view_evaluation_form(request, pk):
         'messages_unread_count': messages_unread_count,'is_department_head': is_department_head})
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['faculty', 'head of OSAS', 'department head'])
+@allowed_users(allowed_roles=['faculty', 'head of OSAS', 'department head/program coordinator'])
 def faculty_event_evaluations(request):
      user=request.user
-     is_department_head = request.user.groups.filter(name='department head').exists()
+     is_department_head = request.user.groups.filter(name='department head/program coordinator').exists()
      faculty = Faculty.objects.filter(email=request.user.username).first()   
      is_head_of_osas = request.user.groups.filter(name='head of OSAS').exists() 
      event_notifications = Notification.objects.filter(recipient=user, level='success')
@@ -5057,12 +5209,12 @@ def faculty_event_evaluations(request):
      return render(request, 'pages/faculty_event_evaluations.html', context)
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['head of OSAS', 'department head'])
+@allowed_users(allowed_roles=['head of OSAS', 'department head/program coordinator'])
 def pending_events(request):
     user = request.user
     faculty = Faculty.objects.filter(email=request.user.username).first()   
     events = Event.objects.filter(admin_status='Pending').order_by('-updated')
-    is_department_head = request.user.groups.filter(name='department head').exists()
+    is_department_head = request.user.groups.filter(name='department head/program coordinator').exists()
     is_head_of_osas = request.user.groups.filter(name='head of OSAS').exists() 
     event_notifications = Notification.objects.filter(recipient=user, level='success')
     messages_notifications = Notification.objects.filter(recipient=user, level='info')
@@ -5080,7 +5232,7 @@ def pending_events(request):
         'messages_unread_count': messages_unread_count, 'is_head_of_osas': is_head_of_osas, })
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['head of OSAS', 'department head'])
+@allowed_users(allowed_roles=['head of OSAS', 'department head/program coordinator'])
 def approve_event(request, event_id):
     user=request.user
     event = get_object_or_404(Event, id=event_id, admin_status='Pending')
@@ -5115,7 +5267,7 @@ def approve_event(request, event_id):
     return redirect('pending_events')
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['head of OSAS', 'department head'])
+@allowed_users(allowed_roles=['head of OSAS', 'department head/program coordinator'])
 def reject_event(request, event_id):
     event = get_object_or_404(Event, id=event_id, admin_status='Pending')
     event.admin_status = 'Rejected'
@@ -5124,11 +5276,11 @@ def reject_event(request, event_id):
     return redirect('pending_events')
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['faculty', 'head of OSAS', 'department head'])
+@allowed_users(allowed_roles=['faculty', 'head of OSAS', 'department head/program coordinator'])
 def view_faculty_event_evaluations(request, pk):
     user=request.user
     faculty = Faculty.objects.filter(email=request.user.username).first()   
-    is_department_head = request.user.groups.filter(name='department head').exists()
+    is_department_head = request.user.groups.filter(name='department head/program coordinator').exists()
 
     event_notifications = Notification.objects.filter(recipient=user, level='success')
     messages_notifications = Notification.objects.filter(recipient=user, level='info')
@@ -5142,7 +5294,7 @@ def view_faculty_event_evaluations(request, pk):
     # Filter evaluations from both SchoolEventModel and WebinarSeminarModel
     school_event_evaluations = list(SchoolEventModel.objects.filter(event=event))
     webinar_seminar_evaluations = list(WebinarSeminarModel.objects.filter(event=event))
-
+    total_average_rating = SchoolEventModel.get_event_average_rating(pk)
     # Combine the results into one list
     evaluations = school_event_evaluations + webinar_seminar_evaluations
     paginator = Paginator(evaluations, 5) 
@@ -5158,17 +5310,18 @@ def view_faculty_event_evaluations(request, pk):
         'notifications_unread_count': notifications_unread_count,
         'messages_notifications': messages_notifications,
         'messages_unread_count': messages_unread_count,
-        'is_department_head': is_department_head
+        'is_department_head': is_department_head,
+        'total_average_rating': total_average_rating
     }
     return render(request, 'pages/view_faculty_event_evaluations.html', context)
 
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['faculty', 'head of OSAS', 'department head'])
+@allowed_users(allowed_roles=['faculty', 'head of OSAS', 'department head/program coordinator'])
 def faculty_view_event_evaluations(request, pk):
     user=request.user
     faculty = Faculty.objects.filter(email=request.user.username).first()   
-    is_department_head = request.user.groups.filter(name='department head').exists()
+    is_department_head = request.user.groups.filter(name='department head/program coordinator').exists()
 
     event_notifications = Notification.objects.filter(recipient=user, level='success')
     messages_notifications = Notification.objects.filter(recipient=user, level='info')
@@ -5180,6 +5333,8 @@ def faculty_view_event_evaluations(request, pk):
      # Try to get the event from SchoolEventModel or WebinarSeminarModel
     try:
         event_form_details = SchoolEventModel.objects.get(pk=pk)
+ 
+        
         event_type = 'school_event'
     except SchoolEventModel.DoesNotExist:
         try:
@@ -5319,7 +5474,7 @@ def faculty_view_event_evaluations(request, pk):
         ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
             displayed_a_thorough_knowledge_of_the_topic=5
         ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
-            thoroughly_explained_and_processed_the_learning_activities_throughout_the_training=5
+            explained_activities=5
         ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
             able_to_create_a_good_learning_environment=5
         ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
@@ -5353,7 +5508,7 @@ def faculty_view_event_evaluations(request, pk):
         ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
             displayed_a_thorough_knowledge_of_the_topic=4
         ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
-            thoroughly_explained_and_processed_the_learning_activities_throughout_the_training=4
+            explained_activities=4
         ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
             able_to_create_a_good_learning_environment=4
         ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
@@ -5387,7 +5542,7 @@ def faculty_view_event_evaluations(request, pk):
         ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
             displayed_a_thorough_knowledge_of_the_topic=3
         ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
-            thoroughly_explained_and_processed_the_learning_activities_throughout_the_training=3
+            explained_activities=3
         ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
             able_to_create_a_good_learning_environment=3
         ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
@@ -5421,7 +5576,7 @@ def faculty_view_event_evaluations(request, pk):
         ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
             displayed_a_thorough_knowledge_of_the_topic=2
         ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
-            thoroughly_explained_and_processed_the_learning_activities_throughout_the_training=2
+            explained_activities=2
         ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
             able_to_create_a_good_learning_environment=2
         ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
@@ -5455,7 +5610,7 @@ def faculty_view_event_evaluations(request, pk):
         ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
             displayed_a_thorough_knowledge_of_the_topic=1
         ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
-            thoroughly_explained_and_processed_the_learning_activities_throughout_the_training=1
+            explained_activities=1
         ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
             able_to_create_a_good_learning_environment=1
         ).count() + WebinarSeminarModel.objects.filter(pk=pk).filter(
@@ -5480,11 +5635,11 @@ def faculty_view_event_evaluations(request, pk):
         'messages_unread_count': messages_unread_count,'is_department_head': is_department_head})
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['faculty' , 'head of OSAS', 'department head'])
+@allowed_users(allowed_roles=['faculty' , 'head of OSAS', 'department head/program coordinator'])
 def edit_faculty_events(request, pk):
     user=request.user
     faculty = Faculty.objects.filter(email=request.user.username).first()   
-    is_department_head = request.user.groups.filter(name='department head').exists()
+    is_department_head = request.user.groups.filter(name='department head/program coordinator').exists()
 
     event_notifications = Notification.objects.filter(recipient=user, level='success')
     messages_notifications = Notification.objects.filter(recipient=user, level='info')
@@ -5509,11 +5664,11 @@ def edit_faculty_events(request, pk):
     return render(request, 'pages/edit_faculty_events.html', context)
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['faculty', 'head of OSAS', 'department head'])
+@allowed_users(allowed_roles=['faculty', 'head of OSAS', 'department head/program coordinator'])
 def delete_faculty_events(request, pk):
     user=request.user
     faculty = Faculty.objects.filter(email=request.user.username).first()   
-    is_department_head = request.user.groups.filter(name='department head').exists()
+    is_department_head = request.user.groups.filter(name='department head/program coordinator').exists()
 
     event_notifications = Notification.objects.filter(recipient=user, level='success')
     messages_notifications = Notification.objects.filter(recipient=user, level='info')
@@ -5533,11 +5688,11 @@ def delete_faculty_events(request, pk):
         'messages_unread_count': messages_unread_count,'is_department_head': is_department_head})
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['faculty' , 'head of OSAS', 'department head'])
+@allowed_users(allowed_roles=['faculty' , 'head of OSAS', 'department head/program coordinator'])
 def faculty_events(request):
     user=request.user
     faculty = Faculty.objects.filter(email=request.user.username).first()
-    is_department_head = request.user.groups.filter(name='department head').exists()
+    is_department_head = request.user.groups.filter(name='department head/program coordinator').exists()
 
     event_notifications = Notification.objects.filter(recipient=user, level='success')
     messages_notifications = Notification.objects.filter(recipient=user, level='info')
@@ -5570,11 +5725,11 @@ def faculty_events(request):
         'messages_unread_count': messages_unread_count,'is_department_head': is_department_head})
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['faculty', 'head of OSAS', 'department head'])
+@allowed_users(allowed_roles=['faculty', 'head of OSAS', 'department head/program coordinator'])
 def faculty_events_upcoming(request):
     user=request.user
     faculty = Faculty.objects.filter(email=request.user.username).first()   
-    is_department_head = request.user.groups.filter(name='department head').exists()
+    is_department_head = request.user.groups.filter(name='department head/program coordinator').exists()
 
     event_notifications = Notification.objects.filter(recipient=user, level='success')
     messages_notifications = Notification.objects.filter(recipient=user, level='info')
@@ -5595,11 +5750,11 @@ def faculty_events_upcoming(request):
         'messages_unread_count': messages_unread_count,'is_department_head': is_department_head})
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['faculty', 'head of OSAS', 'department head'])
+@allowed_users(allowed_roles=['faculty', 'head of OSAS', 'department head/program coordinator'])
 def faculty_events_evaluated(request):
     user=request.user
     faculty = Faculty.objects.filter(email=request.user.username).first()   
-    is_department_head = request.user.groups.filter(name='department head').exists()
+    is_department_head = request.user.groups.filter(name='department head/program coordinator').exists()
 
     event_notifications = Notification.objects.filter(recipient=user, level='success')
     messages_notifications = Notification.objects.filter(recipient=user, level='info')
@@ -5628,11 +5783,11 @@ def faculty_events_evaluated(request):
         'messages_unread_count': messages_unread_count, 'is_department_head': is_department_head})
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['faculty', 'head of OSAS', 'department head'])
+@allowed_users(allowed_roles=['faculty', 'head of OSAS', 'department head/program coordinator'])
 def faculty_events_closed(request):
     user=request.user
     faculty = Faculty.objects.filter(email=request.user.username).first()
-    is_department_head = request.user.groups.filter(name='department head').exists()
+    is_department_head = request.user.groups.filter(name='department head/program coordinator').exists()
 
     event_notifications = Notification.objects.filter(recipient=user, level='success')
     messages_notifications = Notification.objects.filter(recipient=user, level='info')
@@ -5654,11 +5809,11 @@ def faculty_events_closed(request):
         'messages_unread_count': messages_unread_count, 'is_department_head': is_department_head})
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['faculty', 'head of OSAS', 'department head'])
+@allowed_users(allowed_roles=['faculty', 'head of OSAS', 'department head/program coordinator'])
 def faculty_event_detail(request, pk):
     user=request.user
     faculty = Faculty.objects.filter(email=request.user.username).first()   
-    is_department_head = request.user.groups.filter(name='department head').exists()
+    is_department_head = request.user.groups.filter(name='department head/program coordinator').exists()
 
     event_notifications = Notification.objects.filter(recipient=user, level='success')
     messages_notifications = Notification.objects.filter(recipient=user, level='info')
@@ -5737,7 +5892,7 @@ def faculty_event_detail(request, pk):
 
                 displayed_a_thorough_knowledge_of_the_topic = form.cleaned_data['displayed_a_thorough_knowledge_of_the_topic']
 
-                thoroughly_explained_and_processed_the_learning_activities_throughout_the_training = form.cleaned_data['thoroughly_explained_and_processed_the_learning_activities_throughout_the_training']
+                explained_activities = form.cleaned_data['explained_activities']
 
                 able_to_create_a_good_learning_environment = form.cleaned_data['able_to_create_a_good_learning_environment']
 
@@ -5781,7 +5936,7 @@ def faculty_event_detail(request, pk):
 
                     displayed_a_thorough_knowledge_of_the_topic=displayed_a_thorough_knowledge_of_the_topic,
 
-                    thoroughly_explained_and_processed_the_learning_activities_throughout_the_training=thoroughly_explained_and_processed_the_learning_activities_throughout_the_training,
+                    explained_activities=explained_activities,
 
                     able_to_create_a_good_learning_environment=able_to_create_a_good_learning_environment,
 
@@ -5809,11 +5964,11 @@ def faculty_event_detail(request, pk):
         pass
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['faculty', 'head of OSAS', 'department head'])
+@allowed_users(allowed_roles=['faculty', 'head of OSAS', 'department head/program coordinator'])
 def peer_to_peer_evaluation(request):
     evaluation_status = EvaluationStatus.objects.first()
     user=request.user
-    is_department_head = request.user.groups.filter(name='department head').exists()
+    is_department_head = request.user.groups.filter(name='department head/program coordinator').exists()
     faculty = Faculty.objects.filter(email=request.user.username).first()   
     event_notifications = Notification.objects.filter(recipient=user, level='success')
     messages_notifications = Notification.objects.filter(recipient=user, level='info')
@@ -5823,7 +5978,18 @@ def peer_to_peer_evaluation(request):
 
     notifications_unread_count = unread_notifications.count()
     messages_unread_count = unread_messages.count()
-    faculty_department = Faculty.objects.filter(department=faculty.department).order_by('first_name')
+    if faculty.is_supervisor:  
+        # If supervisor, display all faculty except other supervisors
+        faculty_department = Faculty.objects.filter(
+            department=faculty.department, 
+            is_supervisor=False  # Exclude supervisors
+        ).order_by('first_name')
+    else:
+        # If not a supervisor, display only non-supervisors
+        faculty_department = Faculty.objects.filter(
+            department=faculty.department, 
+            is_supervisor=False  # Include only non-supervisors
+        ).order_by('first_name')
     user_evaluations = PeertoPeerEvaluation.objects.filter(
         user=request.user,
         academic_year=evaluation_status.academic_year,
@@ -5837,10 +6003,10 @@ def peer_to_peer_evaluation(request):
     return render(request, 'pages/peer_to_peer_evaluation.html', {'faculty': faculty, 'messages_notifications': messages_notifications, 'evaluation_status': evaluation_status, 'messages_unread_count': messages_unread_count, 'event_notifications': event_notifications, 'notifications_unread_count': notifications_unread_count, 'faculty_department': faculty_department, 'evaluated_faculty_ids': user_evaluations, 'has_met_minimum_evaluations': has_met_minimum_evaluations, 'evaluated_count': evaluated_count, 'minimum_evaluations_required': minimum_evaluations_required, 'is_department_head': is_department_head})
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['faculty', 'head of OSAS', 'department head'])
+@allowed_users(allowed_roles=['faculty', 'head of OSAS', 'department head/program coordinator'])
 def peer_to_peer_evaluation_form(request,pk):
     user=request.user
-    is_department_head = request.user.groups.filter(name='department head').exists()
+    is_department_head = request.user.groups.filter(name='department head/program coordinator').exists()
     faculty = Faculty.objects.filter(email=request.user.username).first()   
     peer = get_object_or_404(Faculty, pk=pk)
     event_notifications = Notification.objects.filter(recipient=user, level='success')
@@ -5990,11 +6156,11 @@ def peer_to_peer_evaluation_form(request,pk):
     return render(request, 'pages/peer_to_peer_evaluation_form.html', context)
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['faculty', 'head of OSAS', 'department head'])
+@allowed_users(allowed_roles=['faculty', 'head of OSAS', 'department head/program coordinator'])
 def peer_to_peer_evaluations(request):
     evaluation_status = EvaluationStatus.objects.first()
     user=request.user
-    is_department_head = request.user.groups.filter(name='department head').exists()
+    is_department_head = request.user.groups.filter(name='department head/program coordinator').exists()
     faculty = Faculty.objects.filter(email=request.user.username).first()   
     event_notifications = Notification.objects.filter(recipient=user, level='success')
     messages_notifications = Notification.objects.filter(recipient=user, level='info')
@@ -6032,7 +6198,7 @@ def peer_to_peer_evaluations(request):
     return render(request, 'pages/peer_to_peer_evaluations.html', {'faculty': faculty, 'messages_notifications': messages_notifications, 'evaluation_status': evaluation_status, 'messages_unread_count': messages_unread_count, 'event_notifications': event_notifications, 'notifications_unread_count': notifications_unread_count, 'peer_to_peer_evaluations': peer_to_peer_evaluations, 'faculty_evaluation_filter': faculty_evaluation_filter, 'page_obj':page, 'is_paginated': True, 'paginator':evaluation_paginator,'ordering': ordering, 'is_department_head': is_department_head})
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['faculty', 'head of OSAS', 'department head'])
+@allowed_users(allowed_roles=['faculty', 'head of OSAS', 'department head/program coordinator'])
 def peer_to_peer_evaluations_csv(request):
     faculty = Faculty.objects.filter(email=request.user.username).first()
     response = HttpResponse(content_type='text/csv')
@@ -6058,10 +6224,10 @@ def peer_to_peer_evaluations_csv(request):
     return response
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['faculty', 'head of OSAS', 'department head'])
+@allowed_users(allowed_roles=['faculty', 'head of OSAS', 'department head/program coordinator'])
 def view_peer_to_peer_evaluation_form(request, pk):
     user=request.user
-    is_department_head = request.user.groups.filter(name='department head').exists()
+    is_department_head = request.user.groups.filter(name='department head/program coordinator').exists()
     faculty = Faculty.objects.filter(email=request.user.username).first()   
 
     event_notifications = Notification.objects.filter(recipient=user, level='success')
@@ -6443,21 +6609,48 @@ def view_peer_to_peer_evaluation_form(request, pk):
 
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['head of OSAS', 'department head'])
+@allowed_users(allowed_roles=['head of OSAS', 'department head/program coordinator'])
 def department_head_view_department(request):
     user=request.user
-
-    is_department_head = request.user.groups.filter(name='department head').exists()
+    evaluation_status = EvaluationStatus.objects.first()
+    current_academic_year = evaluation_status.academic_year 
+    current_semester = evaluation_status.semester
+    is_department_head = request.user.groups.filter(name='department head/program coordinator').exists()
     faculty = Faculty.objects.filter(email=request.user.username).first()   
     event_notifications = Notification.objects.filter(recipient=user, level='success')
     messages_notifications = Notification.objects.filter(recipient=user, level='info')
     unread_notifications = Notification.objects.filter(recipient=user, level='success', unread=True)
     unread_messages = Notification.objects.filter(recipient=user, level='info', unread=True)
-
+    
     notifications_unread_count = unread_notifications.count()
     messages_unread_count = unread_messages.count()
+
     department = Department.objects.get(name=faculty.department)
-    faculties = department.faculty_set.all().order_by('last_name')  # Retrieve all faculties in the department
+        
+    # Base queryset
+    faculties = Faculty.objects.filter(department=request.user.faculty.department).exclude(id=faculty.id).annotate(
+        average_rating=Avg(
+            'sectionsubjectfaculty__likertevaluation__average_rating',
+            filter=Q(
+                sectionsubjectfaculty__likertevaluation__academic_year=current_academic_year,
+                sectionsubjectfaculty__likertevaluation__semester=current_semester,
+            ),
+        )
+    )
+    
+    is_supervisor = faculty.is_supervisor
+    department_faculty_filter = FacultyFilter(request.GET, queryset=faculties)
+    faculties = department_faculty_filter.qs
+    
+
+
+
+    # Handle sorting
+    ordering = request.GET.get('sort')
+    if ordering in ['average_rating', '-average_rating']:
+        faculties = faculties.order_by(ordering)
+ 
+
 
     form = TeacherForm()
     if request.method == 'POST':
@@ -6466,7 +6659,7 @@ def department_head_view_department(request):
             form.save()
             messages.success(request, 'Faculty added successfully')
             return redirect('department_head_view_department')
-    paginator = Paginator(faculties, 5)
+    paginator = Paginator(faculties, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     context = {
@@ -6479,14 +6672,25 @@ def department_head_view_department(request):
         'notifications_unread_count': notifications_unread_count,
         'messages_unread_count': messages_unread_count,
         'faculty': faculty,
-        'form': form
+        'form': form,
+        'is_supervisor': is_supervisor
 
     }
 
     return render(request, 'pages/department_head_view_department.html', context)
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['head of OSAS', 'department head'])
+@allowed_users(allowed_roles=['head of OSAS', 'department head/program coordinator'])
+def mark_as_supervisor(request, pk):
+    if request.method == 'POST':
+        faculty = get_object_or_404(Faculty, pk=pk)
+        faculty.is_supervisor = True  # Ensure this field exists in the Faculty model
+        faculty.save()
+        messages.success(request, f"{faculty.first_name} {faculty.last_name} has been successfully marked as a supervisor.")
+    return redirect('department_head_view_department')  # Replace with the appropriate redirect URL
+
+@login_required(login_url='signin')
+@allowed_users(allowed_roles=['head of OSAS', 'department head/program coordinator'])
 def download_report(request, department_id):
     department = get_object_or_404(Department, id=department_id)
 
@@ -6498,7 +6702,7 @@ def download_report(request, department_id):
         return HttpResponse("Report not found.")
     
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['head of OSAS', 'department head'])
+@allowed_users(allowed_roles=['head of OSAS', 'department head/program coordinator'])
 def send_summary_reports(request):
     evaluation_status = EvaluationStatus.objects.first()
     current_academic_year = evaluation_status.academic_year
@@ -6612,10 +6816,10 @@ def send_summary_reports(request):
         return redirect('department_head_view_department')  # Redirect to a success page
     
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['head of OSAS', 'department head'])
+@allowed_users(allowed_roles=['head of OSAS', 'department head/program coordinator'])
 def department_head_faculty_evaluations(request, pk):
     user = request.user
-    is_department_head = request.user.groups.filter(name='department head').exists()
+    is_department_head = request.user.groups.filter(name='department head/program coordinator').exists()
     faculty = Faculty.objects.filter(email=request.user.username).first()   
     event_notifications = Notification.objects.filter(recipient=user, level='success')
     messages_notifications = Notification.objects.filter(recipient=user, level='info')
@@ -6642,10 +6846,10 @@ def department_head_faculty_evaluations(request, pk):
     return render(request, 'pages/department_head_faculty_evaluations.html', context)
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['head of OSAS', 'department head'])
+@allowed_users(allowed_roles=['head of OSAS', 'department head/program coordinator'])
 def department_head_send_message(request, pk):
     user = request.user
-    is_department_head = request.user.groups.filter(name='department head').exists()
+    is_department_head = request.user.groups.filter(name='department head/program coordinator').exists()
     faculty = Faculty.objects.filter(email=request.user.username).first()   
     event_notifications = Notification.objects.filter(recipient=user, level='success')
     messages_notifications = Notification.objects.filter(recipient=user, level='info')
@@ -6691,10 +6895,10 @@ def department_head_send_message(request, pk):
         'faculty': faculty})
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['head of OSAS', 'department head'])
+@allowed_users(allowed_roles=['head of OSAS', 'department head/program coordinator'])
 def department_head_pending_evaluations(request):
     user = request.user
-    is_department_head = request.user.groups.filter(name='department head').exists()
+    is_department_head = request.user.groups.filter(name='department head/program coordinator').exists()
     faculty = Faculty.objects.filter(email=request.user.username).first()   
     event_notifications = Notification.objects.filter(recipient=user, level='success')
     messages_notifications = Notification.objects.filter(recipient=user, level='info')
@@ -6703,7 +6907,7 @@ def department_head_pending_evaluations(request):
 
     notifications_unread_count = unread_notifications.count()
     messages_unread_count = unread_messages.count()
-    evaluations = LikertEvaluation.objects.filter(admin_status='Approved to Department Head',  section_subject_faculty__faculty__department=faculty.department).order_by('-updated')
+    evaluations = LikertEvaluation.objects.filter(admin_status='Approved to Department head/program coordinator',  section_subject_faculty__faculty__department=faculty.department).order_by('-updated')
     paginator = Paginator(evaluations, 5) 
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
@@ -6715,9 +6919,9 @@ def department_head_pending_evaluations(request):
         'faculty': faculty})
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['head of OSAS','department head'])
+@allowed_users(allowed_roles=['head of OSAS','department head/program coordinator'])
 def department_head_approve_evaluation(request, pk):
-    evaluation = get_object_or_404(LikertEvaluation, pk=pk, admin_status='Approved to Department Head')
+    evaluation = get_object_or_404(LikertEvaluation, pk=pk, admin_status='Approved to Department head/program coordinator')
     
     evaluation.admin_status = 'Approved'
     evaluation.save()
@@ -6725,7 +6929,7 @@ def department_head_approve_evaluation(request, pk):
     return redirect('department_head_pending_evaluations')
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['head of OSAS','department head'])
+@allowed_users(allowed_roles=['head of OSAS','department head/program coordinator'])
 def department_head_reject_evaluation(request, pk):
     evaluation = get_object_or_404(LikertEvaluation, pk=pk, admin_status='Pending')
     
@@ -6735,14 +6939,14 @@ def department_head_reject_evaluation(request, pk):
     return redirect('department_head_pending_evaluations')
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['head of OSAS','department head']) 
+@allowed_users(allowed_roles=['head of OSAS','department head/program coordinator']) 
 def department_head_approve_all_pending_evaluations(request):
-     if request.method == 'POST': LikertEvaluation.objects.filter(admin_status='Approved to Department Head').update(admin_status='Approved') 
+     if request.method == 'POST': LikertEvaluation.objects.filter(admin_status='Approved to Department head/program coordinator').update(admin_status='Approved') 
      messages.success(request, 'All pending evaluations have been approved.') 
      return redirect('department_head_pending_evaluations')
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['head of OSAS', 'department head'])
+@allowed_users(allowed_roles=['head of OSAS', 'department head/program coordinator'])
 def department_head_faculty_evaluations_csv(request):
     faculty = Faculty.objects.filter(email=request.user.username).first()
     response = HttpResponse(content_type='text/csv')
@@ -6771,12 +6975,12 @@ def department_head_faculty_evaluations_csv(request):
     return response
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['head of OSAS','department head'])
+@allowed_users(allowed_roles=['head of OSAS','department head/program coordinator'])
 def department_head_view_evaluation_form(request, pk):
     faculty_evaluation_form = get_object_or_404(LikertEvaluation, pk=pk)
     questions = FacultyEvaluationQuestions.objects.all().order_by('order')
     user = request.user
-    is_department_head = request.user.groups.filter(name='department head').exists()
+    is_department_head = request.user.groups.filter(name='department head/program coordinator').exists()
     faculty = Faculty.objects.filter(email=request.user.username).first()   
     event_notifications = Notification.objects.filter(recipient=user, level='success')
     messages_notifications = Notification.objects.filter(recipient=user, level='info')
