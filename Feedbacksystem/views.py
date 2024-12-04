@@ -341,13 +341,13 @@ def stakeholder_feedback_form(request):
 
 def makeqrcode(destination_url):
     image = qrcode.make(destination_url)
-    name = "stakeholderform.jpg"
+    name = "CvSU_Stakeholder_Feedback_Form.jpg"
     path = 'Feedbacksystem/static/images/'  
     image.save(path + name)
 
 def get_code(request):
     if request.method == 'GET':
-        destination_url = "http://127.0.0.1:8000/stakeholder_feedback_form"
+        destination_url = "https://feedback-and-evaluation-system-capstone.onrender.com/stakeholder_feedback_form"
         makeqrcode(destination_url)
 
         return render(request, 'pages/qrcode.html')
@@ -5690,6 +5690,7 @@ def delete_faculty_events(request, pk):
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['faculty' , 'head of OSAS', 'department head/program coordinator'])
 def faculty_events(request):
+    is_head_of_osas = request.user.groups.filter(name='head of OSAS').exists() 
     user=request.user
     faculty = Faculty.objects.filter(email=request.user.username).first()
     is_department_head = request.user.groups.filter(name='department head/program coordinator').exists()
@@ -5722,11 +5723,12 @@ def faculty_events(request):
     return render(request, 'pages/faculty_events.html', {'faculty': faculty, 'unevaluated_events': unevaluated_events, 'past_events': past_events, 'upcoming_events': upcoming_events, 'event_notifications': event_notifications,
         'notifications_unread_count': notifications_unread_count,
         'messages_notifications': messages_notifications,
-        'messages_unread_count': messages_unread_count,'is_department_head': is_department_head})
+        'messages_unread_count': messages_unread_count,'is_department_head': is_department_head, 'is_head_of_osas': is_head_of_osas,})
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['faculty', 'head of OSAS', 'department head/program coordinator'])
 def faculty_events_upcoming(request):
+    is_head_of_osas = request.user.groups.filter(name='head of OSAS').exists() 
     user=request.user
     faculty = Faculty.objects.filter(email=request.user.username).first()   
     is_department_head = request.user.groups.filter(name='department head/program coordinator').exists()
@@ -5747,11 +5749,12 @@ def faculty_events_upcoming(request):
     return render(request, 'pages/faculty_events_upcoming.html', {'faculty': faculty,'upcoming_events': upcoming_events, 'event_notifications': event_notifications,
         'notifications_unread_count': notifications_unread_count,
         'messages_notifications': messages_notifications,
-        'messages_unread_count': messages_unread_count,'is_department_head': is_department_head})
+        'messages_unread_count': messages_unread_count,'is_department_head': is_department_head, 'is_head_of_osas': is_head_of_osas,})
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['faculty', 'head of OSAS', 'department head/program coordinator'])
 def faculty_events_evaluated(request):
+    is_head_of_osas = request.user.groups.filter(name='head of OSAS').exists() 
     user=request.user
     faculty = Faculty.objects.filter(email=request.user.username).first()   
     is_department_head = request.user.groups.filter(name='department head/program coordinator').exists()
@@ -5780,11 +5783,12 @@ def faculty_events_evaluated(request):
     return render(request, 'pages/faculty_events_evaluated.html', {'faculty': faculty, 'evaluated_events': evaluated_events, 'event_notifications': event_notifications,
         'notifications_unread_count': notifications_unread_count,
         'messages_notifications': messages_notifications,
-        'messages_unread_count': messages_unread_count, 'is_department_head': is_department_head})
+        'messages_unread_count': messages_unread_count, 'is_department_head': is_department_head, 'is_head_of_osas': is_head_of_osas,})
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['faculty', 'head of OSAS', 'department head/program coordinator'])
 def faculty_events_closed(request):
+    is_head_of_osas = request.user.groups.filter(name='head of OSAS').exists() 
     user=request.user
     faculty = Faculty.objects.filter(email=request.user.username).first()
     is_department_head = request.user.groups.filter(name='department head/program coordinator').exists()
@@ -5806,11 +5810,12 @@ def faculty_events_closed(request):
     return render(request, 'pages/faculty_events_closed.html', {'faculty': faculty, 'past_events': past_events, 'event_notifications': event_notifications,
         'notifications_unread_count': notifications_unread_count,
         'messages_notifications': messages_notifications,
-        'messages_unread_count': messages_unread_count, 'is_department_head': is_department_head})
+        'messages_unread_count': messages_unread_count, 'is_department_head': is_department_head, 'is_head_of_osas': is_head_of_osas,})
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['faculty', 'head of OSAS', 'department head/program coordinator'])
 def faculty_event_detail(request, pk):
+    is_head_of_osas = request.user.groups.filter(name='head of OSAS').exists() 
     user=request.user
     faculty = Faculty.objects.filter(email=request.user.username).first()   
     is_department_head = request.user.groups.filter(name='department head/program coordinator').exists()
@@ -5859,7 +5864,7 @@ def faculty_event_detail(request, pk):
         return render(request, 'pages/faculty_school_event_form.html', context = {'event': event, 'form': form, 'faculty': faculty, 'questions': questions, 'event_notifications': event_notifications,
         'notifications_unread_count': notifications_unread_count,
         'messages_notifications': messages_notifications,
-        'messages_unread_count': messages_unread_count, 'is_department_head': is_department_head})
+        'messages_unread_count': messages_unread_count, 'is_department_head': is_department_head, 'is_head_of_osas': is_head_of_osas,})
     
     elif event.event_type.name == 'Webinar/Seminar':
         questions = WebinarSeminarQuestions.objects.all().order_by('order')
@@ -5958,7 +5963,7 @@ def faculty_event_detail(request, pk):
         return render(request, 'pages/faculty_webinar_seminar_form.html', context={'event': event, 'form': form, 'faculty': faculty, 'questions': questions, 'event_notifications': event_notifications,
         'notifications_unread_count': notifications_unread_count,
         'messages_notifications': messages_notifications,
-        'messages_unread_count': messages_unread_count, 'is_department_head': is_department_head})
+        'messages_unread_count': messages_unread_count, 'is_department_head': is_department_head , 'is_head_of_osas': is_head_of_osas,})
     else:
         # Handle other event types
         pass
@@ -6673,7 +6678,8 @@ def department_head_view_department(request):
         'messages_unread_count': messages_unread_count,
         'faculty': faculty,
         'form': form,
-        'is_supervisor': is_supervisor
+        'is_supervisor': is_supervisor,
+        'department_faculty_filter': department_faculty_filter
 
     }
 
@@ -6687,6 +6693,16 @@ def mark_as_supervisor(request, pk):
         faculty.is_supervisor = True  # Ensure this field exists in the Faculty model
         faculty.save()
         messages.success(request, f"{faculty.first_name} {faculty.last_name} has been successfully marked as a supervisor.")
+    return redirect('department_head_view_department')  # Replace with the appropriate redirect URL
+
+@login_required(login_url='signin')
+@allowed_users(allowed_roles=['head of OSAS', 'department head/program coordinator'])
+def unmark_as_supervisor(request, pk):
+    if request.method == 'POST':
+        faculty = get_object_or_404(Faculty, pk=pk)
+        faculty.is_supervisor = False  # Ensure this field exists in the Faculty model
+        faculty.save()
+        messages.success(request, f"{faculty.first_name} {faculty.last_name} has been successfully unmarked as a supervisor.")
     return redirect('department_head_view_department')  # Replace with the appropriate redirect URL
 
 @login_required(login_url='signin')

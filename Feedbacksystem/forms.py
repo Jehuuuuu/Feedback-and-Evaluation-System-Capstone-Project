@@ -10,7 +10,7 @@ class TeacherForm(ModelForm):
     class Meta:
         model = Faculty
         fields = '__all__' 
-        exclude = ['user', 'profile_picture', 'email_sent']
+        exclude = ['user', 'profile_picture', 'email_sent', 'is_supervisor']
         widgets = {
             'first_name': forms.TextInput(attrs={'class': 'form-control'}),
             'last_name': forms.TextInput(attrs={'class': 'form-control'}),

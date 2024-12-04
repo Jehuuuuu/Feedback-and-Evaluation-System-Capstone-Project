@@ -130,15 +130,15 @@ class Faculty(models.Model):
         avg_rating = self.average_rating  # Treat as an attribute, not a callable
         if avg_rating is None or avg_rating == 0.0:
             return "No evaluators yet"
-        if 1.0 <= avg_rating <= 1.49:
+        if 1.0 <= avg_rating <= 1.99:
             return "Poor"
-        elif 1.5 <= avg_rating <= 2.49:
+        elif 2.0 <= avg_rating <= 2.99:
             return "Unsatisfactory"
-        elif 2.5 <= avg_rating <= 3.49:
+        elif 3.0 <= avg_rating <= 3.99:
             return "Satisfactory"
-        elif 3.5 <= avg_rating <= 4.49:
+        elif 4.0 <= avg_rating <= 4.99:
             return "Very Satisfactory"
-        elif 4.5 <= avg_rating <= 5.0:
+        elif 5.0 <= avg_rating <= 5.0:
             return "Outstanding"
         return "No Rating"
 

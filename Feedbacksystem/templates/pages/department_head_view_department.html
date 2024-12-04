@@ -20,7 +20,7 @@
 
     <!-- Filter Options Button -->
     <div class="col-12 col-md-auto">
-        <button type="button" class="btn btn-warning custom-btn w-100" data-bs-toggle="modal" data-bs-target="#exampleModal">
+        <button type="button" class="btn btn-warning custom-btn w-100" data-bs-toggle="modal" data-bs-target="#filterModal">
             <i class="bi bi-pencil-square"></i> <b>Filter Options</b>
         </button>
     </div>
@@ -112,20 +112,20 @@
         </div>
       </div>
 
-      <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+      <div class="modal fade" id="filterModal" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
         <div class="modal-dialog">
         <div class="modal-content">
         <div class="modal-header">
-          <h1 class="modal-title fs-5" id="exampleModalLabel">Filter Options</h1>
+          <h1 class="modal-title fs-5" id="filterModalLabel">Filter Options</h1>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
           <form method="get" action="">
             {{department_faculty_filter.form.rating_category.label_tag}}
             {{department_faculty_filter.form.rating_category}}
-            {{department_faculty_filter.form.rating_category.label_tag}}
-            {{department_faculty_filter.form.rating_category}}
-            <button type="button" class="btn btn-secondary" onclick="clearFilters()" style="margin-top: 1em;">Clear All</button>
+            {{department_faculty_filter.form.is_supervisor.label_tag}}
+            {{department_faculty_filter.form.is_supervisor}}
+            <button type="button" class="btn btn-secondary" onclick="clearAll()" style="margin-top: 1em;">Clear All</button>
         </div>
       <div class="modal-footer">
       <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
@@ -160,7 +160,7 @@
                 <td>{{ i.get_rating_category }}</td>
                 <td>{{ i.is_supervisor|yesno:"Yes,No" }}</td>
                 <td style="display: flex; flex-direction: row; gap:1em; align-items: center; width: 160px;"> <!--<a href="{% url 'department_head_faculty_evaluations' i.pk %}" style="text-decoration: none;"><button class="btn btn-primary d-flex align-items-center" style=" padding:1px 2px 1px 7px"><i class="bi bi-eye-fill" style="font-size:20px; margin-right: 5px;"></i> </button></a> -->
-                    <a href="{% url 'department_head_send_message'  i.pk  %}" style="text-decoration: none;"><button class="btn btn-success d-flex align-items-center" style=" padding:1px 2px 1px 7px" title="Message Faculty"><i class="bi bi-chat-dots" style="font-size:20px; margin-right: 5px;"></i></button></a>
+                <a href="{% url 'department_head_send_message'  i.pk  %}" style="text-decoration: none;"><button class="btn btn-success d-flex align-items-center" style=" padding:1px 2px 1px 7px" title="Message Faculty"><i class="bi bi-chat-dots" style="font-size:20px; margin-right: 5px;"></i></button></a>
                 
                 {% if not i.is_supervisor %}
                 <!-- New Button to Trigger Modal -->
@@ -171,6 +171,19 @@
                     title="Mark as Supervisor"
                     data-bs-toggle="modal" 
                     data-bs-target="#markSupervisorModal{{ i.pk }}">
+                    <i class="bi bi-person-badge" style="font-size: 20px; margin-right: 5px;"></i>
+                </button>
+                {% endif %}
+
+                {% if i.is_supervisor %}
+                <!-- New Button to Trigger Modal -->
+                <button 
+                    type="button" 
+                    class="btn btn-danger d-flex align-items-center" 
+                    style="padding: 1px 2px 1px 7px" 
+                    title="Unmark as Supervisor"
+                    data-bs-toggle="modal" 
+                    data-bs-target="#unmarkSupervisorModal{{ i.pk }}">
                     <i class="bi bi-person-badge" style="font-size: 20px; margin-right: 5px;"></i>
                 </button>
                 {% endif %}
@@ -190,6 +203,27 @@
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                             <form method="post" action="{% url 'mark_as_supervisor' i.pk %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-success">Confirm</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+                <!-- Modal Confirmation -->
+            <div class="modal fade" id="unmarkSupervisorModal{{ i.pk }}" tabindex="-1" aria-labelledby="unmarkSupervisorLabel{{ i.pk }}" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="unmarkSupervisorLabel{{ i.pk }}">Confirm Action</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            Are you sure you want to unmark <strong>{{ i.first_name }} {{ i.last_name }}</strong> as a supervisor?
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <form method="post" action="{% url 'unmark_as_supervisor' i.pk %}">
                                 {% csrf_token %}
                                 <button type="submit" class="btn btn-success">Confirm</button>
                             </form>
@@ -279,6 +313,26 @@
         }
       });
     }
-  
+    function clearAll() {
+    // Select all input fields within the form in the modal
+    const form = document.querySelector("#filterModal form");
+
+    // Clear all select inputs
+    const selectFields = form.querySelectorAll("select");
+    selectFields.forEach(select => {
+        select.value = ""; // Set to empty
+    });
+
+    // Clear any other input fields like text or checkboxes
+    const inputFields = form.querySelectorAll("input");
+    inputFields.forEach(input => {
+        if (input.type === "checkbox" || input.type === "radio") {
+            input.checked = false; // Uncheck
+        } else if (input.type === "text" || input.type === "number") {
+            input.value = ""; // Clear text inputs
+        }
+    });
+}
+
   </script>
 {% endblock feature %}

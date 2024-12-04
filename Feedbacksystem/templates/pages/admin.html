@@ -114,7 +114,7 @@
         <!-- Main content area -->
         {% if messages %}
  
-        <div class="container  col-md-5 col-12" >
+        <div class="container  col-md-10 col-12" >
           {% for message in messages %}
           <div class="alert alert-dismissible {% if message.tags == 'error' %}alert-danger{% elif message.tags == 'success' %}alert-success{% endif %}" role="alert">
               {{ message }}
@@ -229,7 +229,7 @@
     <!-- Button with Form Dropdown -->
 <div class="dropdown">
   <button class="btn btn-primary dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-      Filter Data
+    <i class="bi bi-funnel"></i> Filter Data
   </button>
   <div class="dropdown-menu filter_dropdown" aria-labelledby="filterDropdown">
       <form method="GET" id="filterForm" class="form">

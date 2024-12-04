@@ -132,6 +132,27 @@ class FacultyFilter(django_filters.FilterSet):
         'placeholder': 'Search...'
     })
     )
+    
+    is_supervisor = django_filters.ChoiceFilter(
+    label='Supervisor',
+    choices=[
+        ('true', 'Yes'),
+        ('false', 'No')
+    ],
+    method='filter_is_supervisor',
+    widget=forms.Select(attrs={'class': 'form-control'})
+    )
+
+    def filter_is_supervisor(self, queryset, name, value):
+        """
+        Filters based on the 'is_supervisor' BooleanField.
+        """
+        if value == 'true':
+            return queryset.filter(is_supervisor=True)
+        elif value == 'false':
+            return queryset.filter(is_supervisor=False)
+        return queryset
+    
     rating_category = django_filters.ChoiceFilter(
         method='filter_rating_category',
         label='Rating Category',
@@ -156,27 +177,35 @@ class FacultyFilter(django_filters.FilterSet):
         )
     
     def filter_rating_category(self, queryset, name, value):
-        # Annotate the queryset with the rating category
-        queryset = queryset.annotate(
-            average_rating=Avg('likertevaluation__average_rating'),
-            rating_category=Case(
-                When(average_rating__lte=1.49, then=Value("Poor")),
-                When(average_rating__gte=1.5, average_rating__lte=2.49, then=Value("Unsatisfactory")),
-                When(average_rating__gte=2.5, average_rating__lte=3.49, then=Value("Satisfactory")),
-                When(average_rating__gte=3.5, average_rating__lte=4.49, then=Value("Very Satisfactory")),
-                When(average_rating__gte=4.5, average_rating__lte=5.0, then=Value("Outstanding")),
-                default=Value("No Rating"),
-                output_field=CharField(),
+            """
+            Filters the queryset based on rating categories.
+            """
+            queryset = queryset.annotate(
+                avg_rating=Avg(
+                    "sectionsubjectfaculty__likertevaluation__average_rating",
+                    filter=Q(
+                        sectionsubjectfaculty__likertevaluation__academic_year=EvaluationStatus.objects.first().academic_year,
+                        sectionsubjectfaculty__likertevaluation__semester=EvaluationStatus.objects.first().semester,
+                    )
+                ),
+                rating_category=Case(
+                    When(avg_rating__isnull=True, then=Value("No Rating")),
+                    When(avg_rating__lte=1.99, then=Value("Poor")),
+                    When(avg_rating__gte=2.0, avg_rating__lte=2.99, then=Value("Unsatisfactory")),
+                    When(avg_rating__gte=3.0, avg_rating__lte=3.99, then=Value("Satisfactory")),
+                    When(avg_rating__gte=4.0, avg_rating__lte=4.99, then=Value("Very Satisfactory")),
+                    When(avg_rating__gte=5.0, avg_rating__lte=5.0, then=Value("Outstanding")),
+                    output_field=CharField(),
+                )
             )
-        )
+            # Apply the filter
+            if value:
+                queryset = queryset.filter(rating_category=value)
+            return queryset
 
-        # Filter based on the provided rating category
-        if value:
-            queryset = queryset.filter(rating_category=value)
-        return queryset
     class Meta: 
         model = Faculty
-        fields =  ('department', 'gender', 'search')
+        fields =  ('department', 'gender', 'search', 'is_supervisor')
 
 
 class StudentFilter(django_filters.FilterSet):
@@ -196,7 +225,7 @@ class StudentFilter(django_filters.FilterSet):
         label='Status',
         widget=forms.Select(attrs={'class': 'form-control'})
     )
-    
+
     search = django_filters.CharFilter(
         method='filter_search',
         label='',
@@ -216,6 +245,7 @@ class StudentFilter(django_filters.FilterSet):
             Q(status__icontains=value)   |
             Q(Section__name__icontains=value)   
         )
+    
 
     class Meta: 
         model = Student

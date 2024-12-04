@@ -144,7 +144,8 @@ urlpatterns = [
     path('send-summary-reports/', views.send_summary_reports, name='send_summary_reports'),
     path('hr_dashboard/', views.hr_dashboard, name='hr_dashboard'),
     path('stakeholders_generate_summary_report/', views.stakeholders_generate_summary_report, name='stakeholders_generate_summary_report'),
-     path('faculty/<int:pk>/mark-as-supervisor/', views.mark_as_supervisor, name='mark_as_supervisor'),
+    path('faculty/<int:pk>/mark-as-supervisor/', views.mark_as_supervisor, name='mark_as_supervisor'),
+    path('faculty/<int:pk>/unmark-as-supervisor/', views.unmark_as_supervisor, name='unmark_as_supervisor'),
 ]
 
 if settings.DEBUG:
