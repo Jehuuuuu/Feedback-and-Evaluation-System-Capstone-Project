@@ -545,7 +545,8 @@ class TypeOfEvent(models.Model):
     
     def __str__(self):
         return self.name
-    
+
+
 class Event(models.Model):
     title = models.CharField(max_length = 200)
     date = models.DateField()
@@ -576,7 +577,6 @@ class Event(models.Model):
 
     requires_attendance = models.BooleanField(default=False)
     qr_code = models.ImageField(upload_to='qr_codes/', null=True, blank=True)
-    qr_scanned = models.BooleanField(default=False)  # Tracks QR code scan status
 
     class Meta:
         ordering = ['-date', '-updated', '-created']
@@ -621,7 +621,7 @@ class Event(models.Model):
 
     def generate_qr_code(self):
         if self.requires_attendance:
-            evaluation_url = reverse('event_detail', args=[self.pk])
+            evaluation_url = reverse('scan_qr_code', args=[self.pk])
             full_url = f"https://feedback-and-evaluation-system-capstone.onrender.com{evaluation_url}"  # Replace with your domain
             qr = qrcode.QRCode(
                 version=1,
@@ -641,7 +641,13 @@ class Event(models.Model):
     def evaluation_identifier(self):
         return "Ongoing" if self.evaluation_status else "Closed"
     
-   
+class Attendance(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    event = models.ForeignKey(Event, on_delete=models.CASCADE)
+    attended = models.BooleanField(default=False)
+
+    class Meta:
+        unique_together = ('user', 'event')   
 
 class SchoolEventModel(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE) 

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Student, Subject, Faculty, Course, Department, Section, SectionSubjectFaculty, LikertEvaluation, EvaluationStatus, Event, TypeOfEvent, SchoolEventModel, WebinarSeminarModel, FacultyEvaluationQuestions, SchoolEventQuestions, WebinarSeminarQuestions, StakeholderFeedbackModel, StakeholderFeedbackQuestions, Message, PeertoPeerEvaluation, PeertoPeerEvaluationQuestions, StakeholderAgency
+from .models import Student, Subject, Faculty, Course, Department, Section, SectionSubjectFaculty, LikertEvaluation, EvaluationStatus, Event, TypeOfEvent, SchoolEventModel, WebinarSeminarModel, FacultyEvaluationQuestions, SchoolEventQuestions, WebinarSeminarQuestions, StakeholderFeedbackModel, StakeholderFeedbackQuestions, Message, PeertoPeerEvaluation, PeertoPeerEvaluationQuestions, StakeholderAgency, Attendance
 from import_export.admin import ImportExportModelAdmin
 # Register your models here.
 class SectionSubjectFacultyInline(admin.TabularInline):
@@ -35,3 +35,4 @@ admin.site.register(Message)
 admin.site.register(PeertoPeerEvaluation)
 admin.site.register(PeertoPeerEvaluationQuestions)
 admin.site.register(StakeholderAgency)
+admin.site.register(Attendance)

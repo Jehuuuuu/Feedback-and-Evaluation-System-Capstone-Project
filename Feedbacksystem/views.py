@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from Feedbacksystem.models import Course, Section, SectionSubjectFaculty, Faculty, Department, Student, Subject, LikertEvaluation, EvaluationStatus, Event, SchoolEventModel, FacultyEvaluationQuestions, SchoolEventQuestions, WebinarSeminarModel, WebinarSeminarQuestions, StakeholderFeedbackModel, StakeholderFeedbackQuestions, Message, PeertoPeerEvaluation, PeertoPeerEvaluationQuestions, StakeholderAgency 
+from Feedbacksystem.models import Course, Section, SectionSubjectFaculty, Faculty, Department, Student, Subject, LikertEvaluation, EvaluationStatus, Event, SchoolEventModel, FacultyEvaluationQuestions, SchoolEventQuestions, WebinarSeminarModel, WebinarSeminarQuestions, StakeholderFeedbackModel, StakeholderFeedbackQuestions, Message, PeertoPeerEvaluation, PeertoPeerEvaluationQuestions, StakeholderAgency, Attendance 
 from .forms import TeacherForm, StudentForm, CourseForm, SectionForm, SectionSubjectFacultyForm, SubjectForm, StudentRegistrationForm, StudentLoginForm, LikertEvaluationForm, FacultyRegistrationForm, FacultyLoginForm, EvaluationStatusForm, DepartmentForm, EventCreationForm, SchoolEventForm, WebinarSeminarForm, StudentProfileForm, EditQuestionForm, EditSchoolEventQuestionForm,  WebinarSeminarForm, EditWebinarSeminarQuestionForm, StakeholderFeedbackForm, MessageForm, PeertoPeerEvaluationForm, FacultyProfileForm
 from django.contrib.auth.models import User, Group
 from django.contrib.auth import authenticate, login, logout
@@ -86,7 +86,15 @@ def signin(request):
             if user is not None:
                 # Login the user
                 login(request, user)
-                return redirect('home')  # Redirect to the home page or any desired URL after successful login
+                # Get the value of the 'next' parameter
+                next_url = request.GET.get('next')
+
+                # Redirect to 'next' URL if it exists, otherwise redirect to the home page
+                if next_url:
+                    return redirect(next_url)
+                else:
+                    return redirect('home')
+                
             else:
 
                 try:
@@ -229,9 +237,13 @@ def facultylogin(request):
             user = authenticate(request, username=email, password=password)
 
             if user is not None:
-                # Login the user
-                login(request, user)
-                return redirect('facultydashboard')  # Redirect to the home page or any desired URL after successful login
+                next_url = request.GET.get('next')
+
+                # Redirect to 'next' URL if it exists, otherwise redirect to the home page
+                if next_url:
+                    return redirect(next_url)
+                else:
+                    return redirect('facultydashboard')
             else:
 
                 try:
@@ -836,12 +848,23 @@ def eventhub_closed(request):
 
 @login_required(login_url='signin')
 def scan_qr_code(request, pk):
+    user = request.user
     event = get_object_or_404(Event, pk=pk)
-    if not event.qr_scanned: 
-        event.qr_scanned = True
-        event.save()
-    return redirect('event_detail', pk=event.pk)
 
+    # Mark attendance
+    attendance, created = Attendance.objects.get_or_create(user=user, event=event)
+    attendance.attended = True
+    attendance.save()
+
+    # Redirect based on user role
+    if user.groups.filter(name='faculty').exists():
+        return redirect('faculty_event_detail', pk=pk)
+    elif user.groups.filter(name='student').exists():
+        return redirect('event_detail', pk=pk)
+    else:
+        # Default redirection if no specific group is found
+        return redirect('signin')
+    
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['student', 'society president'])
 def event_detail(request, pk):
@@ -853,11 +876,12 @@ def event_detail(request, pk):
     notifications_unread_count = unread_notifications.count()
     event = Event.objects.get(pk=pk)
     questions = SchoolEventQuestions.objects.all().order_by('order')
-    if event.requires_attendance ==  True:
-        if not event.qr_scanned:
-            messages.error(request, "You must scan the QR code to access the evaluation form.")
-            return redirect('eventhub')  # Redirect to event details or another page
-   
+    
+    # attendance = Attendance.objects.filter(user=user, event=event, attended=True).exists()
+    #if not attendance: 
+    #    messages.error(request, "You must scan the QR code to access this evaluation form.")
+     #   return redirect('eventhub') # Redirect to home if user has not attended the event
+    
     if event.event_type.name == 'School Event':
         user_evaluations = SchoolEventModel.objects.filter(
         user=request.user,
@@ -5203,6 +5227,7 @@ def faculty_event_evaluations(request):
         if form.is_valid():
             event = form.save(commit=False)
             event.author = request.user  # Set the author to the currently logged-in user
+
             form.save()
             #event = form.save(commit=False)
             #event.published_by = faculty 

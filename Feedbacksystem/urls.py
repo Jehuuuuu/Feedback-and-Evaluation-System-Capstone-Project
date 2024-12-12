@@ -21,7 +21,6 @@ urlpatterns = [
     path('eventhub_upcoming', views.eventhub_upcoming, name="eventhub_upcoming"),
     path('eventhub_evaluated', views.eventhub_evaluated, name="eventhub_evaluated"),
     path('eventhub_closed', views.eventhub_closed, name="eventhub_closed"),
-    path('suggestionbox', views.suggestionbox, name="suggestionbox"),
     path('contactUs', views.contactUs, name="contactUs"),
     path('about', views.about, name="about"),
     path('courses', views.courses, name="courses"),
