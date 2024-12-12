@@ -395,11 +395,12 @@ class DateInput(forms.DateInput):
 class EventCreationForm(ModelForm):
     class Meta:
         model = Event
-        fields = ['title', 'date', 'time', 'location', 'event_type','event_picture', 'description', 'course_attendees', 'department_attendees', 'evaluation_status']
+        fields = ['title', 'date', 'time', 'location', 'event_type','event_picture', 'description', 'course_attendees', 'department_attendees', 'evaluation_status', 'requires_attendance']
         labels = {
             'course_attendees': 'Course Attendees',
             'department_attendees': 'Department Attendees',
             'evaluation_status': 'Start Evaluations',
+            'requires_attendance': 'Requires Attendance (Generate QR Code)',
         }
 
         widgets = {
@@ -413,6 +414,7 @@ class EventCreationForm(ModelForm):
             'course_attendees': forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'}),
             'department_attendees': forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'}),
             'evaluation_status': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'requires_attendance': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
 
     def clean(self):

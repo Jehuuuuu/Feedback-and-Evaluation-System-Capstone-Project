@@ -52,9 +52,13 @@ from itertools import chain
 from django.db.models import Q
 from django.http import FileResponse
 from openpyxl import Workbook 
+from openpyxl.styles import Alignment
+from openpyxl.utils import get_column_letter
 from io import BytesIO
 import calendar
 from xhtml2pdf.default import DEFAULT_FONT
+
+
 
 scheduler = BackgroundScheduler()
 scheduler.start()
@@ -831,6 +835,14 @@ def eventhub_closed(request):
     return render(request, 'pages/eventhub_closed.html', {'student': student, 'past_events': past_events, 'is_president': is_president, 'event_notifications': event_notifications, 'notifications_unread_count': notifications_unread_count})
 
 @login_required(login_url='signin')
+def scan_qr_code(request, pk):
+    event = get_object_or_404(Event, pk=pk)
+    if not event.qr_scanned: 
+        event.qr_scanned = True
+        event.save()
+    return redirect('event_detail', pk=event.pk)
+
+@login_required(login_url='signin')
 @allowed_users(allowed_roles=['student', 'society president'])
 def event_detail(request, pk):
     user=request.user
@@ -841,7 +853,16 @@ def event_detail(request, pk):
     notifications_unread_count = unread_notifications.count()
     event = Event.objects.get(pk=pk)
     questions = SchoolEventQuestions.objects.all().order_by('order')
+    if event.requires_attendance ==  True:
+        if not event.qr_scanned:
+            messages.error(request, "You must scan the QR code to access the evaluation form.")
+            return redirect('eventhub')  # Redirect to event details or another page
+   
     if event.event_type.name == 'School Event':
+        user_evaluations = SchoolEventModel.objects.filter(
+        user=request.user,
+        event=event,
+        )
         form = SchoolEventForm()
         if request.method == 'POST':
             form = SchoolEventForm(request.POST)
@@ -873,9 +894,13 @@ def event_detail(request, pk):
                 form.save()
             messages.success(request, 'Evaluation submitted successfully.')
             return redirect('eventhub')
-        return render(request, 'pages/school_event_form.html', context = {'event': event, 'form': form, 'student': student, 'questions': questions, 'is_president': is_president, 'event_notifications': event_notifications, 'notifications_unread_count': notifications_unread_count})
+        return render(request, 'pages/school_event_form.html', context = {'event': event, 'form': form, 'student': student, 'questions': questions, 'is_president': is_president, 'event_notifications': event_notifications, 'notifications_unread_count': notifications_unread_count, 'user_evaluations': user_evaluations})
     
     elif event.event_type.name == 'Webinar/Seminar':
+        user_evaluations = WebinarSeminarModel.objects.filter(
+        user=request.user,
+        event=event,
+        )
         questions = WebinarSeminarQuestions.objects.all().order_by('order')
         form = WebinarSeminarForm()  # Assuming WebinarSeminarForm is similar to SchoolEventForm
         if request.method == 'POST':
@@ -968,7 +993,7 @@ def event_detail(request, pk):
                 messages.success(request, 'Evaluation submitted successfully.')
                 return redirect('eventhub')
 
-        return render(request, 'pages/webinar_seminar_form.html', context={'event': event, 'form': form, 'student': student, 'questions': questions, 'is_president': is_president, 'event_notifications': event_notifications, 'notifications_unread_count': notifications_unread_count})
+        return render(request, 'pages/webinar_seminar_form.html', context={'event': event, 'form': form, 'student': student, 'questions': questions, 'is_president': is_president, 'event_notifications': event_notifications, 'notifications_unread_count': notifications_unread_count, 'user_evaluations': user_evaluations})
     else:
         # Handle other event types
         pass

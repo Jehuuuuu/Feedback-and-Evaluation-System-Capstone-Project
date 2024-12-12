@@ -45,9 +45,7 @@ h5{
     margin-top: 0.5em;
     font-size: 1em;
 }
-.admininput{
-    font-size: 0.7em;
-}
+
 
 .container-body{
     background-color: #2a9134;
@@ -423,7 +421,7 @@ h5{
         font-size: 0.8rem;
     }
     .admininput{
-        font-size: 0.6rem !important;
+        font-size: 0.6rem !important;   
     }
     .dropdown-menu {
         min-width: 100px !important;

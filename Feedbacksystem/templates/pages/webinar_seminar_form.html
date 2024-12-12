@@ -9,6 +9,9 @@
     {% endblock header %}
     {% block feature %}
     <div class="container">
+    {% if user_evaluations %}
+        <p>You have already evaluated this event.</p>
+    {% else %}
     <form method="POST" action="">
         {% csrf_token %}
         <div class="table-responsive">
@@ -181,5 +184,6 @@
                 <button type="submit" class="btn btn-warning custom-btn">Submit</button>
                 </form>
             </div>
+    {% endif %}
     {% endblock feature %}
 

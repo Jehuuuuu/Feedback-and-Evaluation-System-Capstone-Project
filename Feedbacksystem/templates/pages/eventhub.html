@@ -41,7 +41,17 @@
       <h5 class="card-title">{{i.title}}</h5>
       <h6 class="card-subtitle mb-2 text-body-secondary"><small>{{i.date}}</small></h6>
       <p class="card-text">{{i.description|slice:":70"}}...</p>
-      {% if i.evaluation_status %}<a href="{% url 'event_detail' i.pk %}" class="card-link btn custom-btn">Evaluate</a>{% endif %}
+      {% if i.evaluation_status %}
+        {% if i.qr_code %}
+          {% if i.qr_scanned %}
+            <a href="{% url 'event_detail' i.pk %}" class="card-link btn custom-btn">Evaluate</a>
+          {% else %}
+            <p>Please note: To evaluate this event, you must scan the QR code available at the venue.</p>
+          {% endif %}
+        {% else %}
+        <a href="{% url 'event_detail' i.pk %}" class="card-link btn custom-btn">Evaluate</a>
+        {% endif %}       
+      {% endif %}
       <a href="#" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#eventModal{{ i.id }}">View Details</a>
     </div>
 </div>

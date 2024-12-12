@@ -3,6 +3,10 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 from django.db.models import Avg
 from notifications.models import Notification 
+from django.urls import reverse
+import qrcode
+from io import BytesIO
+from django.core.files import File
 # Create your models here.
 
 class Course(models.Model):
@@ -570,6 +574,10 @@ class Event(models.Model):
     updated = models.DateTimeField(auto_now = True, null=True, blank = True)
     created = models.DateTimeField(auto_now_add = True, null=True, blank = True)
 
+    requires_attendance = models.BooleanField(default=False)
+    qr_code = models.ImageField(upload_to='qr_codes/', null=True, blank=True)
+    qr_scanned = models.BooleanField(default=False)  # Tracks QR code scan status
+
     class Meta:
         ordering = ['-date', '-updated', '-created']
 
@@ -590,14 +598,44 @@ class Event(models.Model):
             return self.author.student.full_name()
         # Default to username if neither faculty nor student
         return self.author.username
-
+        
     def save(self, *args, **kwargs):
         # Get the current evaluation status
         evaluation_status = EvaluationStatus.objects.first()
+        
         if evaluation_status:
             self.academic_year = evaluation_status.academic_year
             self.semester = evaluation_status.semester
+
+        # Save the instance first to ensure it has a primary key
+        if not self.pk:
+            super().save(*args, **kwargs)
+        
+        # Generate QR code if attendance is required and it's not already generated
+        if self.requires_attendance and not self.qr_code:
+            self.generate_qr_code()
+
+        # Save the instance again after generating the QR code
         super().save(*args, **kwargs)
+
+
+    def generate_qr_code(self):
+        if self.requires_attendance:
+            evaluation_url = reverse('event_detail', args=[self.pk])
+            full_url = f"https://feedback-and-evaluation-system-capstone.onrender.com{evaluation_url}"  # Replace with your domain
+            qr = qrcode.QRCode(
+                version=1,
+                error_correction=qrcode.constants.ERROR_CORRECT_L,
+                box_size=10,
+                border=4,
+            )
+            qr.add_data(full_url)
+            qr.make(fit=True)
+
+            img = qr.make_image(fill='black', back_color='white')
+            buffer = BytesIO()
+            img.save(buffer, 'PNG')
+            self.qr_code.save(f'qr_code_{self.id}.png', File(buffer), save=False)
 
     @property
     def evaluation_identifier(self):

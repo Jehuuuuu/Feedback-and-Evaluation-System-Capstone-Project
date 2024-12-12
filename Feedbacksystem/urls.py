@@ -60,6 +60,7 @@ urlpatterns = [
     path('faculty_event_evaluations', views.faculty_event_evaluations, name='faculty_event_evaluations'),
     path('edit_faculty_events/<int:pk>/', views.edit_faculty_events, name='edit_faculty_events'),
     path('delete_faculty_events/<int:pk>/', views.delete_faculty_events, name='delete_faculty_events'),
+    path('scan_qr_code/<int:pk>/', views.scan_qr_code, name='scan_qr_code'),
     path('evaluate_event/<int:pk>/', views.event_detail, name='event_detail'),
     path('edit_student_profile', views.edit_student_profile, name='edit_student_profile'),
     path('view_faculty_event_evaluations/<int:pk>/', views.view_faculty_event_evaluations, name='view_faculty_event_evaluations'),
