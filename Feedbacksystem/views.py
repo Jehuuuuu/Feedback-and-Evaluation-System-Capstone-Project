@@ -237,6 +237,7 @@ def facultylogin(request):
             user = authenticate(request, username=email, password=password)
 
             if user is not None:
+                login(request, user)
                 next_url = request.GET.get('next')
 
                 # Redirect to 'next' URL if it exists, otherwise redirect to the home page
@@ -876,7 +877,7 @@ def event_detail(request, pk):
     notifications_unread_count = unread_notifications.count()
     event = Event.objects.get(pk=pk)
     questions = SchoolEventQuestions.objects.all().order_by('order')
-    
+
     # attendance = Attendance.objects.filter(user=user, event=event, attended=True).exists()
     #if not attendance: 
     #    messages.error(request, "You must scan the QR code to access this evaluation form.")
