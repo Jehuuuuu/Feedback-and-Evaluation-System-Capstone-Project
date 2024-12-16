@@ -1493,16 +1493,15 @@ def admin(request):
         evaluation_release_date_str = request.POST.get("evaluation_release_date")  # Format: YYYY-MM-DD
         evaluation_end_date_str = request.POST.get("evaluation_end_date")  # Format: YYYY-MM-DD
 
-        # Get today's date for comparison
         today = datetime.today().date()
-        print(today)
+
         if evaluation_end_date_str:
             end_date = datetime.strptime(evaluation_end_date_str, "%Y-%m-%d").date()
 
             # Check if the end date exceeds today's date
             if end_date > today:
                 # Schedule the task if the date is valid
-                trigger = DateTrigger(run_date=end_date)  # Change the timing as needed
+                trigger = DateTrigger(run_date=end_date) 
                 scheduler.add_job(close_evaluations, trigger=trigger)
             else:
                 # Display an error if the date exceeds today
