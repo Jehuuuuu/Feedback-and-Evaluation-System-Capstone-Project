@@ -40,8 +40,8 @@
             </div>
         {% endif %}
             <div class="col-12 col-md-auto mb-1">
-                <button type="button" class="btn btn-warning custom-btn" style="color: black; text-decoration: none;" data-bs-toggle="modal" data-bs-target="#exampleModal">
-                    <i class="bi bi-pencil-square"></i> <b>Filter Options</b>
+                <button type="button" class="btn btn-primary" style=" text-decoration: none;" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                    <i class="bi bi-filter-square-fill"></i> <b>Filter Options</b>
                 </button>
             </div>
              <!-- Sort Dropdown -->
@@ -169,6 +169,8 @@
                     {% endfor %}
                 </div>
             </div>
+            {{event_filter.form.event_type.label_tag}}
+            {{event_filter.form.event_type}}
             {{event_filter.form.academic_year.label_tag}}
             {{event_filter.form.academic_year}}
             {{event_filter.form.semester.label_tag}}
@@ -185,8 +187,9 @@
       </div>
       </div>
       </div>
-        <div class="table-responsive">
-            <table class="table table-bordered">
+      <div class="table-responsive">
+        <table class="table table-bordered table-sm">
+            <thead>
                 <tr>
                     <th scope="col">Title</th>
                     {% if is_head_of_osas %}
@@ -201,7 +204,8 @@
                     <th scope="col">QR Code</th>
                     <th scope="col">Options</th>
                 </tr>
-                
+            </thead>
+            <tbody>
                 {% for i in page_obj %}
                 <tr>
                     <td>{{ i.title }}</td>
@@ -215,23 +219,36 @@
                     <td>{{ i.attendees_summary }}</td>
                     <td>{{ i.evaluation_identifier }}</td>
                     <td>
-                    {% if i.qr_code %}
-                        <img src="{{ i.qr_code.url }}" alt="QR Code" width="100" height="100">
-                    {% else %}
+                        {% if i.qr_code %}
+                        <img src="{{ i.qr_code.url }}" alt="QR Code" class="img-fluid" style="max-width: 70px; height: auto;">
+                        <button class="btn btn-info btn-sm" onclick="shareQRCode('{{ i.qr_code.url }}')">
+                            <i class="bi bi-share-fill"></i> 
+                        </button>
+                        <a href="{{ i.qr_code.url }}" download="qr_code.png" class="btn btn-success btn-sm">
+                            <i class="bi bi-download"></i> 
+                        </a>
+                        {% else %}
                         <p>No QR code generated for this event.</p>
-                    {% endif %}
+                        {% endif %}
                     </td>
-                    <td style="display: flex; flex-direction: row; gap:1em; align-items: center; height: 7.5em;"> <a href="{% url 'view_faculty_event_evaluations'  i.pk  %}" style="text-decoration: none;"><button class="btn btn-primary d-flex align-items-center" style=" padding:1px 2px 1px 7px"><i class="bi bi-eye-fill" style="font-size:20px; margin-right: 5px;"></i> </button></a>
-
-                        <a href="{% url 'edit_faculty_events'  i.pk  %}" style="text-decoration: none;"><button class="btn btn-warning d-flex align-items-center" style=" padding:1px 2px 1px 7px"><i class="bi bi-pencil-square" style="font-size:20px; margin-right: 5px;"></i></button></a>
-            
-                        <a href="{% url 'delete_faculty_events'  i.pk  %}" style="text-decoration: none;"><button class="btn btn-danger d-flex align-items-center" style="padding:4px 2px 4px 7px" ><i style="font-size:16.5px; margin-right: 5px;"  class="bi bi-trash-fill" ></i></button></a>
+                    <td>
+                        <div class="d-flex flex-column flex-sm-row gap-2 align-items-center">
+                            <a href="{% url 'view_faculty_event_evaluations' i.pk %}" class="btn btn-primary btn d-flex align-items-center">
+                                <i class="bi bi-eye-fill" style="font-size:16px; "></i> 
+                            </a>
+                            <a href="{% url 'edit_faculty_events' i.pk %}" class="btn btn-warning btn d-flex align-items-center">
+                                <i class="bi bi-pencil-square" style="font-size:16px; "></i> 
+                            </a>
+                            <a href="{% url 'delete_faculty_events' i.pk %}" class="btn btn-danger btn d-flex align-items-center">
+                                <i class="bi bi-trash-fill" style="font-size:16px; "></i> 
+                            </a>
+                        </div>
                     </td>
-                      {% endfor %}
                 </tr>
-                   </table>
-        </div>
-       </div>   
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
        
     <nav aria-label="Page navigation">
         <ul class="pagination justify-content-center">
@@ -298,7 +315,35 @@
                 input.checked = false;
             }
         });
+
         }
+    async function shareQRCode(qrUrl) {
+        if (navigator.share && window.fetch) {
+            try {
+                // Fetch the QR code image as a Blob
+                const response = await fetch(qrUrl);
+                const blob = await response.blob();
+
+                // Create a file object for sharing
+                const file = new File([blob], 'qr_code.png', { type: blob.type });
+
+                // Use the Web Share API to share the file
+                await navigator.share({
+                    title: 'QR Code',
+                    text: 'Check out this QR code!',
+                    files: [file],
+                });
+
+                console.log('QR code shared successfully.');
+            } catch (error) {
+                console.error('Error sharing QR code: ', error);
+                alert('Failed to share QR code. Please try again.');
+            }
+        } else {
+            alert('Sharing files is not supported on your browser or device.');
+        }
+    }
+
 
 </script>
        

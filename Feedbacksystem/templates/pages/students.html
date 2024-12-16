@@ -1,11 +1,11 @@
 {% extends "pages/admin.html" %}
 
-{% block title %}Students{% endblock %}
+{% block title %}Active Students{% endblock %}
 
 {% block header %}
         <div class="row">
           <div class="col-md-5">
-            <h2> Manage Students</h2>
+            <h2>Active Students</h2>
           </div>
           <div class="col-lg-6 col-md-7 col-12 mt-1 "  style="margin-left: auto;">
             <form method="get" action="" class="d-flex" style="gap: 1em;">
@@ -99,50 +99,84 @@
   </div>
   </form>
   </div>
-<div class="table-responsive mt-1 ">
-  <table class="table table-bordered">
-      <tr>
-        <th scope="col">Student Number</th>
-        <th scope="col">First Name</th>
-        <th scope="col">Last Name</th>
-        <th scope="col">Email</th>
-        <th scope="col">Age</th>
-        <th scope="col">Sex</th>
-        <th scope="col">Contact Number</th>
-        <th scope="col">Status</th>
-        <th scope="col">Course</th>
-        <th scope="col">Section</th>
-        <th scope="col">Options</th>
-        
-  
-  
-      </tr>
-      {% for i in page_obj %}
-      <tr>
+  <div class="table-responsive mt-1">
+    <table class="table table-bordered table-sm text-center align-middle">
+      <thead class="table-light">
+        <tr>
+          <th scope="col" style="width: 5%;">#</th>
+          <th scope="col" style="width: 15%;">Surname</th>
+          <th scope="col" style="width: 15%;">First Name</th>
+          <th scope="col" style="width: 15%;">Middle Name</th>
+          <th scope="col" style="width: 5%;">Course</th>
+          <th scope="col" style="width: 15%;">Section</th>
+          <th scope="col" style="width: 10%;">Status</th>
+          <th scope="col" style="width: 15%;">Email</th>
+          <th scope="col" style="width: 10%;">Options</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for i in page_obj %}
+        <tr>
           <td>{{ i.pk }}</td>
-          <td>{{ i.first_name }}</td>
           <td>{{ i.last_name }}</td>
-          <td>{{ i.email}}</td>
-          <td>{{ i.age }}</td>
-          <td>{{ i.sex }}</td>
-          <td>{{ i.contact_no }}</td>
-          <td>{{ i.status }}</td>
+          <td>{{ i.first_name }}</td>
+          <td>{{ i.middle_name }}</td>
           <td>{{ i.Course }}</td>
           <td>{{ i.Section }}</td>
-          <td style="display: flex; flex-direction: row; align-items: center; height: 80px;"> 
-
-            <a style="margin-right: 10px; text-decoration: none;" href="{% url 'editstudent'  i.pk  %}"><button class="btn btn-warning d-flex align-items-center" style=" padding:1px 2px 1px 7px"><i class="bi bi-pencil-square" style="font-size:20px; margin-right: 5px;"></i></button></a>
-            
-            <a style="margin-right: 10px; text-decoration: none;" href="{% url 'deleteStudent'  i.pk  %}"><button class="btn btn-danger d-flex align-items-center" style="padding:4px 2px 4px 7px"  ><i style="font-size:24px; margin-right: 5px;" class='bx bxs-trash' ></i></button></a>
-
+          <td>{{ i.status }}</td>
+          <td>{{ i.email }}</td>
+          <td class="d-flex justify-content-center gap-1">
+            <!-- View Details Button -->
+            <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modal{{ i.pk }}">
+              <i class="bi bi-eye-fill"></i>
+            </button>
+            <!-- Edit Button -->
+            <a href="{% url 'editstudent' i.pk %}" class="btn btn-warning btn-sm">
+              <i class="bi bi-pencil-square"></i>
+            </a>
+            <!-- Delete Button -->
+            <a href="{% url 'deleteStudent' i.pk %}" class="btn btn-danger btn-sm">
+              <i class="bx bxs-trash"></i>
+            </a>
           </td>
-      </tr>
+        </tr>
   
-      {% endfor %}
+        <!-- Modal for Details -->
+        <div class="modal fade" id="modal{{ i.pk }}" tabindex="-1" aria-labelledby="modalLabel{{ i.pk }}" aria-hidden="true">
+          <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="modalLabel{{ i.pk }}">Student Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                <div class="row">
+                  <div class="col-md-6">
+                    <p><strong>Address:</strong> {{ i.address }}</p>
+                    <p><strong>Semester:</strong> {{ i.semester }}</p>
+                    <p><strong>School Year:</strong> {{ i.school_year }}</p>
+                    <p><strong>Major:</strong> {{ i.major }}</p>
+                  </div>
+                  <div class="col-md-6">
+                    <p><strong>Date Updated:</strong> {{ i.updated }}</p>
+                    <p><strong>Old/New Student:</strong> {{ i.old_or_new_student }}</p>
+                    <p><strong>Date of Birth:</strong> {{ i.birthdate }}</p>
+                    <p><strong>Gender:</strong> {{ i.gender }}</p>
+                    <p><strong>Contact:</strong> {{ i.contact_no }}</p>
+                  </div>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
   
-  </table>
-</div>
-
 <nav aria-label="Page navigation">
   <ul class="pagination justify-content-center">
       {% if page_obj.has_previous %}

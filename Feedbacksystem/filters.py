@@ -331,6 +331,14 @@ class EventFilter(django_filters.FilterSet):
          choices=EVALUATION_STATUS_CHOICES, 
          widget=forms.Select(attrs={'class': 'form-control'})
 )
+    EVENT_TYPE_CHOICES = [
+        ('1', 'School Event'),
+        ('2', 'Webinar/Seminar'),
+    ]
+    event_type = django_filters.ChoiceFilter(
+         choices=EVENT_TYPE_CHOICES, 
+         widget=forms.Select(attrs={'class': 'form-control'})
+)
     search = django_filters.CharFilter(
         method='filter_search',
         label='',
@@ -380,7 +388,7 @@ class EventFilter(django_filters.FilterSet):
 
     class Meta: 
         model = Event
-        fields =  ('course_attendees', 'department_attendees', 'evaluation_status', 'academic_year', 'semester', 'search')
+        fields =  ('course_attendees', 'department_attendees', 'evaluation_status', 'event_type', 'academic_year', 'semester', 'search')
 
 class SectionFilter(django_filters.FilterSet):
     search = django_filters.CharFilter(

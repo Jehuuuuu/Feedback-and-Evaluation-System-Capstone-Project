@@ -24,12 +24,12 @@ class StudentForm(ModelForm):
     class Meta:
         model = Student
         fields = '__all__' 
-        exclude = ['user', 'middle_name']
+        exclude = ['user']
         widgets = {
             'student_number': forms.TextInput(attrs={'class': 'form-control'}),
             'last_name': forms.TextInput(attrs={'class': 'form-control'}),
             'first_name': forms.TextInput(attrs={'class': 'form-control'}),
-            'last_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'middle_name': forms.TextInput(attrs={'class': 'form-control'}),
             'email': forms.EmailInput(attrs={'class': 'form-control'}),
             'age': forms.TextInput(attrs={'class': 'form-control'}),
             'sex': forms.TextInput(attrs={'class': 'form-control'}),

@@ -403,7 +403,8 @@ def home(request):
     upcoming_events = events.filter(date__gt=current_time, evaluation_status=False)  
     past_events = events.filter(date__lt=current_time, evaluation_status=False)  
     unevaluated_events = events.exclude(id__in=evaluated_event_ids).exclude(id__in=past_events).exclude(id__in=upcoming_events) 
-
+    for event in unevaluated_events:
+        event.attended = Attendance.objects.filter(user=user, event=event, attended=True).exists()
 
     #faculty evaluated count
        # Fetch section subjects faculty based on the student's section
@@ -769,8 +770,9 @@ def eventhub(request):
     notifications_unread_count = unread_notifications.count()
     courses = student.Course  # Get all courses the student is enrolled in
     events = Event.objects.filter(course_attendees=courses, admin_status='Approved').distinct()  # Get events related to those courses
-      # Get evaluated event IDs by the current user
-     # Get evaluated event IDs by the current user for SchoolEventModel
+
+    # Get evaluated event IDs by the current user
+    # Get evaluated event IDs by the current user for SchoolEventModel
     evaluated_school_event_ids = SchoolEventModel.objects.filter(user=user).values_list('event_id', flat=True)
     
     # Get evaluated event IDs by the current user for WebinarSeminarModel
@@ -778,13 +780,17 @@ def eventhub(request):
 
     # Combine evaluated event IDs from both models
     evaluated_event_ids = list(evaluated_school_event_ids) + list(evaluated_webinar_event_ids)
-     # Get current time
+    # Get current time
     current_time = timezone.now()
     upcoming_events = events.filter(date__gt=current_time, evaluation_status=False)  # Events in the future
     # Past events with closed evaluation
     past_events = events.filter(date__lt=current_time, evaluation_status=False)  # Past events with evaluation closed   
     # Exclude events that have been evaluated
     unevaluated_events = events.exclude(id__in=evaluated_event_ids).exclude(id__in=past_events).exclude(id__in=upcoming_events).order_by('-date') 
+
+    # Add attendance information to each event
+    for event in unevaluated_events:
+        event.attended = Attendance.objects.filter(user=user, event=event, attended=True).exists()
     return render(request, 'pages/eventhub.html', {'student': student, 'unevaluated_events': unevaluated_events, 'past_events': past_events, 'upcoming_events': upcoming_events, 'is_president': is_president, 'event_notifications': event_notifications, 'notifications_unread_count': notifications_unread_count})
 
 @login_required(login_url='signin')
@@ -858,10 +864,13 @@ def scan_qr_code(request, pk):
     attendance.save()
 
     # Redirect based on user role
-    if user.groups.filter(name='faculty').exists():
+
+    if user.groups.filter(Q(name='faculty') | Q(name='head of OSAS') | Q(name='department head/program coordinator')).exists():
         return redirect('faculty_event_detail', pk=pk)
-    elif user.groups.filter(name='student').exists():
+
+    elif user.groups.filter(Q(name='student') | Q(name='society president')).exists():
         return redirect('event_detail', pk=pk)
+
     else:
         # Default redirection if no specific group is found
         return redirect('signin')
@@ -3333,7 +3342,7 @@ def faculty(request):
                 email = data[3]
                 gender = data[4]
                 contact_number = data[5]
-                department_name = data[6]  # Replace with actual index
+                department_name = data[6]  
 
                 department = Department.objects.filter(name=department_name).first()
                 if not department:
@@ -3530,6 +3539,11 @@ def students(request):
         student_filter = StudentFilter(request.GET, queryset=students)
         students = student_filter.qs
         form = StudentForm()
+
+        evaluation_status = EvaluationStatus.objects.first() 
+        current_academic_year = evaluation_status.academic_year 
+        current_semester = evaluation_status.semester
+
         if request.method == 'POST':
             form = StudentForm(request.POST, request.FILES)
                 # Initialize counters
@@ -3539,63 +3553,83 @@ def students(request):
                 form.save(commit=True)  # Ensure commit is set to True to save to the database
                 messages.success(request, 'Student added successfully')
                 return redirect('students')
+            
+            
+        # Check for file upload
+        new_student_file = request.FILES.get('studentfile')
 
-            # Check for file upload
-            new_student_file = request.FILES.get('studentfile')
+        if new_student_file and new_student_file.name.endswith('xlsx'):
+            dataset = Dataset()
+            imported_data = dataset.load(new_student_file.read(), format='xlsx')
+            
+            for data in imported_data:
+                student_number = data[0]
+                last_name = data[1]
+                first_name = data[2]
+                middle_name = data[3]
+                course_name = data[4]
+                year = data[5]
+                address = data[6]
+                semester = data[7]
+                school_year = data[8]  
+                date_enrolled = data[9]  
+                major = data[10]  
+                section_name = data[11]  
+                old_or_new_student = data[12]  
+                status = data[13]  
+                birthdate = data[14]  
+                gender = data[15]  
+                contact_no = data[16]  
+                email = data[17]  
 
-            if new_student_file and new_student_file.name.endswith('xlsx'):
-                dataset = Dataset()
-                imported_data = dataset.load(new_student_file.read(), format='xlsx')
 
-                for data in imported_data:
-                    student_number = data[0]
-                    first_name = data[1]
-                    last_name = data[2]
-                    email = data[3]
-                    age = data[4]
-                    sex = data[5]
-                    contact_no = data[6]
-                    status = data[7]
-                    course_name = data[8]  # Replace with actual index
-                    section_name = data[9]  # Replace with actual index
 
-                    course = Course.objects.filter(name=course_name).first()
-                    section = Section.objects.filter(name=section_name).first()
 
-                    if not course:
-                        messages.error(request, f"Course with name '{course_name}' not found.")
-                        continue  # Skip this row if course doesn't exist
+                course = Course.objects.filter(name=course_name).first()
+                section = Section.objects.filter(name=section_name).first()
 
-                    if not section:
-                        messages.error(request, f"Section with name '{section_name}' not found.")
-                        continue  # Skip this row if section doesn't exist
+                if not course:
+                    messages.error(request, f"Course with name '{course_name}' not found.")
+                    continue  # Skip this row if course doesn't exist
 
-                    # Update the existing student or create a new one
-                    student, created = Student.objects.update_or_create(
-                        student_number=student_number,
-                        first_name=first_name,
-                        last_name=last_name,
-                        defaults={
-                            'email': email,
-                            'age': age,
-                            'sex': sex,
-                            'contact_no': contact_no,
-                            'status': status,
-                            'Course': course,
-                            'Section': section,
-                        }
-                    )
-                                    # Increment counters based on whether the student was created or updated
-                    if created:
-                        created_count += 1
-                    else:
-                        updated_count += 1
+                if not section:
+                    messages.error(request, f"Section with name '{section_name}' not found.")
+                    continue  # Skip this row if section doesn't exist
 
-                # After processing all data, show the success message
-                if created_count > 0:
-                    messages.success(request, f"Created {created_count} new student(s).")
-                if updated_count > 0:
-                    messages.info(request, f"Updated {updated_count} student(s).")
+                # Update the existing student or create a new one
+                student, created = Student.objects.update_or_create(
+                    student_number=student_number,
+                    defaults={
+                        'first_name': first_name,
+                        'last_name': last_name,
+                        'middle_name': middle_name,
+                        'email': email,
+                        'year': year,  
+                        'address': address,
+                        'semester': semester,
+                        'school_year': school_year,
+                        'date_enrolled': date_enrolled,
+                        'major': major,
+                        'Section': section,
+                        'old_or_new_student': old_or_new_student,
+                        'status': status,
+                        'birthdate': birthdate,
+                        'gender': gender,
+                        'contact_no': contact_no,
+                        'Course': course,
+                    }
+                )
+                                # Increment counters based on whether the student was created or updated
+                if created:
+                    created_count += 1
+                else:
+                    updated_count += 1
+
+            # After processing all data, show the success message
+            if created_count > 0:
+                messages.success(request, f"Created {created_count} new student(s).")
+            if updated_count > 0:
+                messages.info(request, f"Updated {updated_count} student(s).")
 
             else:
                 messages.info(request, 'Please upload a valid Excel file.')
@@ -3706,10 +3740,13 @@ def sections(request):
     
     for section in sections:
         student_count = Student.objects.filter(Section=section).count()  # Count students in each section
+        subject_count = SectionSubjectFaculty.objects.filter(section=section).count()
         section_data.append({
             'section': section,
             'student_count': student_count,
+            'subject_count': subject_count
         })
+
     form = SectionForm()
     if request.method == 'POST':
         form = SectionForm(request.POST)
@@ -3722,7 +3759,68 @@ def sections(request):
                 form.save()
                 messages.success(request, f"The section '{section_name}' has been created successfully.")
                 return redirect('sections')
-   
+            
+    import_subject_faculty = request.FILES.get('subjectfacultyfile')
+
+    if import_subject_faculty and import_subject_faculty.name.endswith('xlsx'):
+            dataset = Dataset()
+            imported_data = dataset.load(import_subject_faculty.read(), format='xlsx')
+            created_count = 0 
+            updated_count = 0 
+            sections_with_new_subjects_faculty = set() 
+            sections_with_updated_subjects_faculty = set()
+
+            for data in imported_data:
+                section_name = data[0]
+                subject_name = data[1]
+                faculty_full_name = data[2]  # Concatenated first and last name
+
+                section = Section.objects.filter(name=section_name).first()
+                subject = Subject.objects.filter(subject_name=subject_name).first()
+
+                # Use Concat function to concatenate first_name and last_name in the filter
+                faculty = Faculty.objects.annotate(
+                    full_name=Concat('first_name', Value(' '), 'last_name')
+                ).filter(full_name=faculty_full_name).first()
+
+
+                if not section:
+                            messages.error(request, f"Section with name '{section_name}' not found.")
+                            return redirect('sections')
+                
+                if not subject:
+                    messages.error(request, f"Subject with name '{subject_name}' not found.")
+                    break  # Skip this row if course doesn't exist
+
+                
+                
+                if not faculty:
+                    messages.error(request, f"Faculty with name '{faculty_full_name}' not found.")
+                    break  # Skip this row if section doesn't exist
+                
+                sub_faculty, created = SectionSubjectFaculty.objects.update_or_create(
+                section=section,
+                subjects=subject,
+                defaults={
+                    'faculty': faculty
+                }
+            )
+                if created:
+                    created_count += 1
+                    sections_with_new_subjects_faculty.add(section.name)
+                else:
+                    updated_count += 1
+                    sections_with_updated_subjects_faculty.add(section.name)
+                
+
+            new_sections_count = len(sections_with_new_subjects_faculty) 
+            updated_sections_count = len(sections_with_updated_subjects_faculty)
+            # After processing all data, show the success message
+            if created_count > 0:
+                messages.success(request, f"Created {created_count} new subject(s) for {new_sections_count} section(s).")
+            if updated_count > 0:
+                messages.info(request, f"Updated {updated_count} subject(s) for {updated_sections_count} section(s).")
+        
     # Ordering functionality
     ordering = request.GET.get('ordering', "")
 
@@ -3738,6 +3836,8 @@ def sections(request):
     paginator = Paginator(section_data, 5) 
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
+
+    
     context = {'sections': sections, 'form':form, 'page_obj': page_obj, 'section_filter': section_filter, 'is_admin': is_admin }
    
     return render(request, 'pages/sections.html',  context)
@@ -3787,62 +3887,6 @@ def section_details(request, pk):
             form.save(commit=True)
             messages.success(request, 'Subject and Faculty added successfully')
             return redirect('section_details', pk=pk)
-        import_subject_faculty = request.FILES.get('subjectfacultyfile')
-
-        if import_subject_faculty and import_subject_faculty.name.endswith('xlsx'):
-                dataset = Dataset()
-                imported_data = dataset.load(import_subject_faculty.read(), format='xlsx')
-
-                for data in imported_data:
-                    section_name = data[0]
-                    subject_name = data[1]
-                    faculty_full_name = data[2]  # Concatenated first and last name
-
-                    section = Section.objects.filter(name=section_name).first()
-                    subject = Subject.objects.filter(subject_name=subject_name).first()
-
-                    # Use Concat function to concatenate first_name and last_name in the filter
-                    faculty = Faculty.objects.annotate(
-                        full_name=Concat('first_name', Value(' '), 'last_name')
-                    ).filter(full_name=faculty_full_name).first()
-
-
-                    if not section:
-                                messages.error(request, f"Section with name '{section_name}' not found.")
-                                return redirect('sections')
-                    
-                    if not subject:
-                        messages.error(request, f"Subject with name '{subject_name}' not found.")
-                        break  # Skip this row if course doesn't exist
-
-                    
-                    
-                    if not faculty:
-                        messages.error(request, f"Faculty with name '{faculty_full_name}' not found.")
-                        break  # Skip this row if section doesn't exist
-                    
-                    sub_faculty, created = SectionSubjectFaculty.objects.update_or_create(
-                    section=section,
-                    subjects=subject,
-                    defaults={
-                        'faculty': faculty
-                    }
-                )
-                    if created:
-                        created_count += 1
-                    else:
-                        updated_count += 1
-
-                # After processing all data, show the success message
-                if created_count > 0:
-                    messages.success(request, f"Created {created_count} new subject(s).")
-                if updated_count > 0:
-                    messages.info(request, f"Updated {updated_count} subject(s).")
-
-
-        else:
-                messages.info(request, 'Please upload a valid Excel file.')
-        
     subjects_faculty = SectionSubjectFaculty.objects.filter(section=section)
     return render(request, 'pages/section_details.html', {'section': section, 'subjects_faculty': subjects_faculty, 'form': form, 'is_admin': is_admin})
     
@@ -5228,7 +5272,8 @@ def faculty_event_evaluations(request):
         if form.is_valid():
             event = form.save(commit=False)
             event.author = request.user  # Set the author to the currently logged-in user
-
+            if request.user.groups.filter(name='head of OSAS').exists(): 
+                event.admin_status = 'Approved'
             form.save()
             #event = form.save(commit=False)
             #event.published_by = faculty 
@@ -5771,6 +5816,9 @@ def faculty_events(request):
     past_events = events.filter(date__lt=current_time, evaluation_status=False)  # Past events with evaluation closed   
     # Exclude events that have been evaluated
     unevaluated_events = events.exclude(id__in=evaluated_event_ids).exclude(id__in=past_events).exclude(id__in=upcoming_events).order_by('-date') 
+    for event in unevaluated_events:
+        event.attended = Attendance.objects.filter(user=user, event=event, attended=True).exists()
+
     return render(request, 'pages/faculty_events.html', {'faculty': faculty, 'unevaluated_events': unevaluated_events, 'past_events': past_events, 'upcoming_events': upcoming_events, 'event_notifications': event_notifications,
         'notifications_unread_count': notifications_unread_count,
         'messages_notifications': messages_notifications,
@@ -6684,7 +6732,7 @@ def department_head_view_department(request):
     department = Department.objects.get(name=faculty.department)
         
     # Base queryset
-    faculties = Faculty.objects.filter(department=request.user.faculty.department).exclude(id=faculty.id).annotate(
+    faculties = Faculty.objects.filter(department=request.user.faculty.department).annotate(
         average_rating=Avg(
             'sectionsubjectfaculty__likertevaluation__average_rating',
             filter=Q(

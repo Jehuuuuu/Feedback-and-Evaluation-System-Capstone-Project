@@ -25,17 +25,7 @@
   <div class="col-lg-3 col-md-5 col-12 mb-2">
   <a class="btn btn-warning custom-btn" data-bs-toggle="modal" data-bs-target="#exampleModal" style = "color: black; text-decoration: none;"><i class="bi bi-plus-square-fill"></i> <b>Add Subject and Faculty</b></a>
 </div>
-  <div class="col-lg-6 col-md-5 col-12 mb-2"> 
-    <form method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-         <!-- Hide the actual file input -->
-    <input id="fileInput" type="file" name="subjectfacultyfile" accept=".xlsx" style="display: none;" onchange="this.form.submit()">
   
-    <!-- Custom button to trigger file selection -->
-    <button type="button" class="btn btn-primary" onclick="document.getElementById('fileInput').click();">
-        Bulk Import
-    </button>
-  </div>
   </form>
 </div>
 <!-- Modal --> 
@@ -64,7 +54,7 @@
         <tr>
         <th  scope="col">Subject</th>
         <th  scope="col">Subject Name</th>
-        <th  scope="col">Teacher</th>
+        <th  scope="col">Faculty</th>
         <th  scope="col">Options</th>
     </tr>
     <tr>

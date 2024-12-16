@@ -10,7 +10,7 @@ class SectionAdmin(admin.ModelAdmin):
 
 @admin.register(Student)
 class StudentsAdmin(ImportExportModelAdmin):
-    list_display = ('student_number', 'first_name', 'middle_name', 'last_name', 'email', 'age','sex', 'contact_no', 'status', 'Course', 'Section')
+    list_display = ('student_number', 'last_name', 'middle_name', 'first_name', 'email', 'birthdate','gender', 'contact_no', 'status', 'Course', 'Section')
 
     
 

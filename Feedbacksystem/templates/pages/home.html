@@ -168,11 +168,28 @@
                       <p class="card-subtitle"><small>{{ event.date }}</small></p>
                       <p class="card-text">{{ event.description|slice:":70" }}...</p>
                       {% if event.evaluation_status %}
-                      <div class="d-flex " style="gap: 0.1em;" >
+                      
+                        {% if event.qr_code %}
+                          {% if event.attended %}
+                          <div class="d-flex " style="gap: 0.1em;" >
+                            <a href="{% url 'event_detail' event.pk %}" class="card-link btn custom-btn">Evaluate</a>
+                            <a href="#" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#eventModal{{ event.id }}">View Details</a>
+                          </div>
+                          {% else %}
+                            <p class=>You must scan the QR code available at the venue.</p>
+                            <a href="#" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#eventModal{{ event.id }}">View Details</a>
+                          {% endif %}
+                        {% else %}
+                        <div class="d-flex " style="gap: 0.1em;" >
                         <a href="{% url 'event_detail' event.pk %}" class="card-link btn custom-btn">Evaluate</a>
                         <a href="#" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#eventModal{{ event.id }}">View Details</a>
                       </div>
+                        {% endif %} 
+                        
+                      
                       {% endif %}
+                      
+                   
                       <!-- Modal -->
                         <div class="modal fade" id="eventModal{{ event.id }}" tabindex="-1" aria-labelledby="eventModalLabel{{ event.id }}" aria-hidden="true">
                           <div class="modal-dialog">

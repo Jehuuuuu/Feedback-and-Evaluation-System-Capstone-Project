@@ -29,7 +29,7 @@
 
 {% endif %}
 <div class="row">
-    <div class="col-md-3 col-sm-5 col-12 mb-1"><a class="btn btn-warning custom-btn" data-bs-toggle="modal" data-bs-target="#exampleModal" style = "color: black; text-decoration: none;"><i class="bi bi-plus-square-fill"></i> <b>Add Section</b></a></div>
+    <div class="col-lg-2 col-md-3 col-sm-5 col-12 mb-1"><a class="btn btn-warning custom-btn" data-bs-toggle="modal" data-bs-target="#exampleModal" style = "color: black; text-decoration: none;"><i class="bi bi-plus-square-fill"></i> <b>Add Section</b></a></div>
     <div class="col-lg-4 col-md-5 col-sm-7 col-12">
         <select class="form-select" name="sort" id="sort-list" onchange="location = finalurl();">
         <option value="" id="placeholder" disabled selected hidden>Sort</option>
@@ -39,6 +39,17 @@
         <option id="-student_count" value="-student_count">Student Count: Descending</option>
         </select>
     </div>
+    <div class="col-lg-6 col-md-5 col-12 mb-2"> 
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+             <!-- Hide the actual file input -->
+        <input id="fileInput" type="file" name="subjectfacultyfile" accept=".xlsx" style="display: none;" onchange="this.form.submit()">
+      
+        <!-- Custom button to trigger file selection -->
+        <button type="button" class="btn btn-primary" onclick="document.getElementById('fileInput').click();">
+            Import Subjects and Faculty
+        </button>
+      </div>
 </div>
 <!-- Modal -->
 <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -70,28 +81,33 @@
     </div>
   </div>
 
-<table class="table table-bordered table-responsive mt-2">
-    <tr>
-        <th  scope="col">Section</th>
-        <th  scope="col">Student Count</th>
-        <th  scope="col">Options</th>    
-    </tr>
-    {% for i in page_obj %}
-    <tr>
-        <td>{{ i.section.name }}</td>   
-        <td>{{ i.student_count }}</td> 
-        <td style="display: flex; flex-direction: row; gap:1em; align-items: center;"> <a href="{% url 'section_details' i.section.pk %}" style="text-decoration: none;"><button class="btn btn-primary d-flex align-items-center" style=" padding:1px 2px 1px 7px"><i class="bi bi-eye-fill" style="font-size:20px; margin-right: 5px;"></i></button></a>
-
-            <a href="{% url 'editsection'  i.section.pk  %}" style="text-decoration: none;"><button class="btn btn-warning d-flex align-items-center" style=" padding:1px 2px 1px 7px"><i class="bi bi-pencil-square" style="font-size:20px; margin-right: 5px;"></i></button></a>
-
-            <a href="{% url 'deleteSection'  i.section.pk  %}" style="text-decoration: none;"><button class="btn btn-danger d-flex align-items-center" style="padding:4px 2px 4px 7px" ><i style="font-size:24px; margin-right: 5px;" class='bx bxs-trash' ></i></button></a>
-
-            </td>
-    </tr>
-
-    {% endfor %}
-
-</table>
+<div class="table-responsive">
+    
+    <table class="table table-bordered mt-1 align-middle">
+        <tr>
+            <th scope="col" style="width: 45%;" >Section</th>
+            <th scope="col" style="width: 10%;">Students</th>
+            <th scope="col" style="width: 10%;">Subjects</th>
+            <th scope="col" style="width: 15%;" >Options</th>
+        </tr>
+        {% for i in page_obj %}
+        <tr>
+            <td>{{ i.section.name }}</td>
+            <td>{{ i.student_count }}</td>
+            <td>{{ i.subject_count }}</td>
+            <td class="d-flex align-items-center gap-1"> <a href="{% url 'section_details' i.section.pk %}" style="text-decoration: none;"><button class="btn btn-primary d-flex align-items-center" style=" padding:1px 2px 1px 7px"><i class="bi bi-eye-fill" style="font-size:20px; margin-right: 5px;"></i></button></a>
+    
+                <a href="{% url 'editsection'  i.section.pk  %}" style="text-decoration: none;"><button class="btn btn-warning d-flex align-items-center" style=" padding:1px 2px 1px 7px"><i class="bi bi-pencil-square" style="font-size:20px; margin-right: 5px;"></i></button></a>
+    
+                <a href="{% url 'deleteSection'  i.section.pk  %}" style="text-decoration: none;"><button class="btn btn-danger d-flex align-items-center" style="padding:4px 2px 4px 7px" ><i style="font-size:24px; margin-right: 5px;" class='bx bxs-trash' ></i></button></a>
+    
+                </td>
+        </tr>
+    
+        {% endfor %}
+    
+    </table>
+</div>
 
 <nav aria-label="Page navigation">
   <ul class="pagination justify-content-center">

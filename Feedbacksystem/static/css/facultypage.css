@@ -112,7 +112,7 @@ main {
   width: 200px;
   position: fixed;
   height: 100%;
-  z-index: 1;
+  z-index: 5;
 }
 #sidebarCollapse{
   position: absolute;
@@ -450,7 +450,7 @@ hr{
     }
     .sidebar-collapsed #sidebar {
       margin-left: 0;
-      z-index: 2;
+      z-index: 5;
     }
     .message_description{
       visibility: hidden;

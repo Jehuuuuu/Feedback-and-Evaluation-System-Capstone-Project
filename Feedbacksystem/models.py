@@ -7,6 +7,7 @@ from django.urls import reverse
 import qrcode
 from io import BytesIO
 from django.core.files import File
+import datetime
 # Create your models here.
 
 class Course(models.Model):
@@ -196,22 +197,48 @@ class SectionSubjectFaculty(models.Model):
 
 class Student(models.Model):
     STUDENT_STATUS_CHOICES = [
-        ('Regular', 'Regular'),  
-        ('Irregular', 'Irregular'), 
+        ('REGULAR', 'REGULAR'),  
+        ('IRREGULAR', 'IRREGULAR'), 
     ]
+    GENDER_CHOICES = [
+        ('Male', 'Male'),
+        ('Female', 'Female'),
+    ]
+    SEMESTER_CHOICES = (
+        ('1st Semester', '1st Semester'),
+        ('2nd Semester', '2nd Semester'),
+    )
+    YEAR_CHOICES = (
+        ('1st Year', '1st Year'),
+        ('2nd Year', '2nd Year'),
+        ('3rd Year', '3rd Year'),
+        ('4th Year', '4th Year'),
+    )
+    OLD_NEW_STUDENT_CHOICES = (
+        ('Old Student', 'Old Student'),
+        ('New Student', 'New Student'),
+    )
     user = models.OneToOneField(User, null = True, blank=True, on_delete=models.CASCADE)
     student_number = models.CharField(max_length=9, primary_key=True)
-    first_name = models.CharField(max_length=100)
-    middle_name = models.CharField(max_length=100, null=True, blank = True)
     last_name = models.CharField(max_length=100)
-    email = models.EmailField(max_length = 64)  
-    age = models.IntegerField()
-    sex = models.CharField(max_length=6)
-    contact_no = models.CharField(max_length  = 11)
-    status = models.CharField(max_length=20, choices=STUDENT_STATUS_CHOICES, default='Regular')
-    profile_picture = models.ImageField(upload_to='profile_picture/', null=True, blank = True)
-    Course = models.ForeignKey(Course, on_delete=models.CASCADE) 
+    first_name = models.CharField(max_length=100)
+    middle_name = models.CharField(max_length=100, null=True, blank = True) 
+    Course = models.ForeignKey(Course, on_delete=models.CASCADE)
+    year = models.CharField(max_length=100)   
+    address = models.CharField(max_length=500)
+    semester = models.CharField(max_length=50, choices=SEMESTER_CHOICES)
+    school_year = models.CharField(max_length=50)
+    date_enrolled = models.CharField(max_length=50)
+    major = models.CharField(max_length=100, null=True, blank = True)
     Section = models.ForeignKey(Section, on_delete=models.CASCADE) 
+    old_or_new_student = models.CharField(max_length=50, choices=OLD_NEW_STUDENT_CHOICES)
+    status = models.CharField(max_length=20, choices=STUDENT_STATUS_CHOICES, default='REGULAR')
+    birthdate = models.CharField(max_length=50)
+    gender = models.CharField(max_length=20, choices=GENDER_CHOICES)
+    contact_no = models.CharField(max_length  = 11)
+    email = models.EmailField(max_length = 64)
+    profile_picture = models.ImageField(upload_to='profile_picture/', null=True, blank = True)
+    
 
     updated = models.DateTimeField(auto_now = True, null=True, blank = True)
     created = models.DateTimeField(auto_now_add = True, null=True, blank = True)
@@ -231,10 +258,10 @@ class Student(models.Model):
 class EvaluationStatus(models.Model):
     academic_year = models.CharField(max_length=50)
     SEMESTER_CHOICES = (
-        ('1st', '1st'),
-        ('2nd', '2nd'),
+        ('1st Semester', '1st Semester'),
+        ('2nd Semester', '2nd Semester'),
     )
-    semester = models.CharField(max_length=5, choices=SEMESTER_CHOICES)
+    semester = models.CharField(max_length=50, choices=SEMESTER_CHOICES)
     EVALUATION_STATUS_CHOICES = [
         ('In Progress', 'In Progress'),
         ('Closed', 'Closed'),
@@ -244,8 +271,8 @@ class EvaluationStatus(models.Model):
         choices=EVALUATION_STATUS_CHOICES,
         default='In Progress'
     )   
-    evaluation_end_date = models.DateField(default='2024-11-20')
-    evaluation_release_date = models.DateField(default='2024-11-20')
+    evaluation_end_date = models.DateField()
+    evaluation_release_date = models.DateField()
 
     def __str__(self):
         return f"{self.academic_year} - {self.semester}"

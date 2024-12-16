@@ -29,47 +29,47 @@
 
 <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-4 g-3" >
 
-{% for i in unevaluated_events %}
+{% for event in unevaluated_events %}
   
 <div class="card ">
     <div class="card-body">
-    {% if i.event_picture %}
+    {% if event.event_picture %}
     <img src="{{ i.event_picture.url }}"  class="card-img-top img-fluid"  alt="Event Thumbnail">
     {% else %}
     <img src="{% static 'images/cvsu_thumbnail.jpg' %}"  class="card-img-top img-fluid" alt="CvSU Thumbnail">
     {% endif %}
-      <h5 class="card-title">{{i.title}}</h5>
-      <h6 class="card-subtitle mb-2 text-body-secondary"><small>{{i.date}}</small></h6>
+      <h5 class="card-title">{{event.title}}</h5>
+      <h6 class="card-subtitle mb-2 text-body-secondary"><small>{{event.date}}</small></h6>
       <p class="card-text">{{i.description|slice:":70"}}...</p>
-      {% if i.evaluation_status %}
-        {% if i.qr_code %}
-          {% if i.qr_scanned %}
-            <a href="{% url 'event_detail' i.pk %}" class="card-link btn custom-btn">Evaluate</a>
+      {% if event.evaluation_status %}
+        {% if event.qr_code %}
+          {% if event.attended %}
+            <a href="{% url 'event_detail' event.pk %}" class="card-link btn custom-btn">Evaluate</a>
           {% else %}
             <p>Please note: To evaluate this event, you must scan the QR code available at the venue.</p>
           {% endif %}
         {% else %}
-        <a href="{% url 'event_detail' i.pk %}" class="card-link btn custom-btn">Evaluate</a>
+        <a href="{% url 'event_detail' event.pk %}" class="card-link btn custom-btn">Evaluate</a>
         {% endif %}       
       {% endif %}
-      <a href="#" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#eventModal{{ i.id }}">View Details</a>
+      <a href="#" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#eventModal{{ event.id }}">View Details</a>
     </div>
 </div>
 <!-- Modal -->
-<div class="modal fade" id="eventModal{{ i.id }}" tabindex="-1" aria-labelledby="eventModalLabel{{ i.id }}" aria-hidden="true">
+<div class="modal fade" id="eventModal{{ event.id }}" tabindex="-1" aria-labelledby="eventModalLabel{{ i.id }}" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
-          <h1 class="modal-title fs-5" id="eventModalLabel{{ i.id }}">{{i.title}}</h1>
+          <h1 class="modal-title fs-5" id="eventModalLabel{{ event.id }}">{{event.title}}</h1>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-            <p><b>Date:</b> {{ i.date }}</p>
-            <p><b>Time:</b> {{ i.time }}</p>
-            <p><b>Location:</b> {{ i.location }}</p>
-            <p><b>Description:</b> {{ i.description }}</p>
-            <p><b>Evaluation Status:</b> {{ i.evaluation_identifier }}</p>
-            <p><b>Created by:</b> {{ i.get_author_name }}</p>
+            <p><b>Date:</b> {{ event.date }}</p>
+            <p><b>Time:</b> {{ event.time }}</p>
+            <p><b>Location:</b> {{ event.location }}</p>
+            <p><b>Description:</b> {{ event.description }}</p>
+            <p><b>Evaluation Status:</b> {{ event.evaluation_identifier }}</p>
+            <p><b>Created by:</b> {{ event.get_author_name }}</p>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>  
