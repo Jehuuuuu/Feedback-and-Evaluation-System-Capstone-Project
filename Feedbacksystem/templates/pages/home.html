@@ -169,20 +169,24 @@
                       <p class="card-text">{{ event.description|slice:":70" }}...</p>
                       {% if event.evaluation_status %}
                       
-                        {% if event.qr_code %}
+                        {% if event.requires_attendance %}
                           {% if event.attended %}
                           <div class="d-flex " style="gap: 0.1em;" >
                             <a href="{% url 'event_detail' event.pk %}" class="card-link btn custom-btn">Evaluate</a>
                             <a href="#" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#eventModal{{ event.id }}">View Details</a>
                           </div>
                           {% else %}
-                            <p class=>You must scan the QR code available at the venue.</p>
+                            <p class=>You must scan the QR code available to evaluate this event.</p>
                             <a href="#" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#eventModal{{ event.id }}">View Details</a>
                           {% endif %}
                         {% else %}
                         <div class="d-flex " style="gap: 0.1em;" >
+                            {% if event.evaluation_status == 'Ongoing' %}
                         <a href="{% url 'event_detail' event.pk %}" class="card-link btn custom-btn">Evaluate</a>
                         <a href="#" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#eventModal{{ event.id }}">View Details</a>
+                            {% else %}
+                            <a href="#" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#eventModal{{ event.id }}">View Details</a>
+                            {% endif %}
                       </div>
                         {% endif %} 
                         
@@ -203,7 +207,7 @@
                                   <p><b>Time:</b> {{ event.time }}</p>
                                   <p><b>Location:</b> {{ event.location }}</p>
                                   <p><b>Description:</b> {{ event.description }}</p>
-                                  <p><b>Evaluation Status:</b> {{event.evaluation_identifier }}</p>
+                                  <p><b>Evaluation Status:</b> {{event.evaluation_status }}</p>
                                   <p><b>Created by:</b> {{ event.get_author_name }}</p>
                               </div>
                               <div class="modal-footer">

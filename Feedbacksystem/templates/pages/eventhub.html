@@ -34,15 +34,15 @@
 <div class="card ">
     <div class="card-body">
     {% if event.event_picture %}
-    <img src="{{ i.event_picture.url }}"  class="card-img-top img-fluid"  alt="Event Thumbnail">
+    <img src="{{ event.event_picture.url }}"  class="card-img-top img-fluid"  alt="Event Thumbnail">
     {% else %}
     <img src="{% static 'images/cvsu_thumbnail.jpg' %}"  class="card-img-top img-fluid" alt="CvSU Thumbnail">
     {% endif %}
       <h5 class="card-title">{{event.title}}</h5>
       <h6 class="card-subtitle mb-2 text-body-secondary"><small>{{event.date}}</small></h6>
       <p class="card-text">{{i.description|slice:":70"}}...</p>
-      {% if event.evaluation_status %}
-        {% if event.qr_code %}
+      {% if event.evaluation_status == 'Ongoing' %}
+        {% if event.requires_attendance %}
           {% if event.attended %}
             <a href="{% url 'event_detail' event.pk %}" class="card-link btn custom-btn">Evaluate</a>
           {% else %}
@@ -68,7 +68,7 @@
             <p><b>Time:</b> {{ event.time }}</p>
             <p><b>Location:</b> {{ event.location }}</p>
             <p><b>Description:</b> {{ event.description }}</p>
-            <p><b>Evaluation Status:</b> {{ event.evaluation_identifier }}</p>
+            <p><b>Evaluation Status:</b> {{ event.evaluation_status }}</p>
             <p><b>Created by:</b> {{ event.get_author_name }}</p>
         </div>
         <div class="modal-footer">

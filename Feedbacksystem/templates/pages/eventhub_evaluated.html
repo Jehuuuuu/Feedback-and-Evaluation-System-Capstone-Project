@@ -1,10 +1,10 @@
 {% extends "pages/home.html" %}
 {% load static %}
-{% block title %}Events{% endblock %}
+{% block title %}Evaluated Events{% endblock %}
 
 {% block header %}
 
-    <h2>Latest Events</h2>
+    <h2>Evaluated Events</h2>
    
     <hr>
 {% endblock header %}
@@ -54,7 +54,7 @@
           <p><b>Time:</b> {{ i.time }}</p>
           <p><b>Location:</b> {{ i.location }}</p>
           <p><b>Description:</b> {{ i.description }}</p>
-          <p><b>Evaluation Status:</b> {{ i.evaluation_identifier }}</p>
+          <p><b>Evaluation Status:</b> {{ i.evaluation_status }}</p>
           <p><b>Created by:</b> {{ i.get_author_name }}</p>
         </div>
         <div class="modal-footer">

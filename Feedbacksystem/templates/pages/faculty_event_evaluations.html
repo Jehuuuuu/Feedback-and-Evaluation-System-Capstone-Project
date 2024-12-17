@@ -122,11 +122,23 @@
                         {% endfor %}
                     </div>
                 </div>
+                <button type="button" class="btn btn-warning btn-sm mb-2 mt-2" onclick="clearAll()">Clear Selections</button>         
+                <div class="form-group">
+                    {{ form.evaluation_status.label_tag }}
+                    {{ form.evaluation_status }}
+                    </div>
+                <div id="start-date-div" class="form-group">
+                    {{ form.evaluation_start_datetime.label_tag }}
+                    {{ form.evaluation_start_datetime }}
+                </div>
+                
+                <div class="form-group">
+                    {{ form.evaluation_end_datetime.label_tag }}
+                    {{ form.evaluation_end_datetime }}
+                </div>
+                    <p class="mt-2">{{ form.requires_attendance.label_tag }} {{ form.requires_attendance }}</p>
 
-                    <p>{{ form.evaluation_status.label_tag }} {{ form.evaluation_status }}</p>
-                    <p>{{ form.requires_attendance.label_tag }} {{ form.requires_attendance }}</p>
-                    <button type="button" class="btn btn-warning btn-sm mb-2 mt-2" onclick="clearAll()">Clear Selections</button>
-                    
+
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -217,16 +229,18 @@
                     <td>{{ i.location }}</td>
                     <td>{{ i.event_type }}</td>
                     <td>{{ i.attendees_summary }}</td>
-                    <td>{{ i.evaluation_identifier }}</td>
+                    <td>{{ i.evaluation_status }}</td>
                     <td>
                         {% if i.qr_code %}
                         <img src="{{ i.qr_code.url }}" alt="QR Code" class="img-fluid" style="max-width: 70px; height: auto;">
-                        <button class="btn btn-info btn-sm" onclick="shareQRCode('{{ i.qr_code.url }}')">
-                            <i class="bi bi-share-fill"></i> 
-                        </button>
-                        <a href="{{ i.qr_code.url }}" download="qr_code.png" class="btn btn-success btn-sm">
-                            <i class="bi bi-download"></i> 
-                        </a>
+                        <div class="d-flex gap-1">
+                            <button class="btn btn-info btn-sm" onclick="shareQRCode('{{ i.qr_code.url }}')">
+                                <i class="bi bi-share-fill"></i>
+                            </button>
+                            <a href="{{ i.qr_code.url }}" download="qr_code.png" class="btn btn-success btn-sm">
+                                <i class="bi bi-download"></i>
+                            </a>
+                        </div>
                         {% else %}
                         <p>No QR code generated for this event.</p>
                         {% endif %}
@@ -344,7 +358,25 @@
         }
     }
 
+        // JavaScript function to hide/show start date input
+/*     function toggleStartDateInput() {
+        var evaluationStatus = document.getElementById('id_evaluation_status').value;
+        var startDateDiv = document.getElementById('start-date-div');
 
+        if (evaluationStatus === 'Ongoing') {
+            startDateDiv.style.display = 'none';
+        } else {
+            startDateDiv.style.display = 'block';
+        }
+        }
+
+        // Ensure the function runs when the page loads
+        window.onload = function() {
+        toggleStartDateInput();
+        document.getElementById('id_evaluation_status').addEventListener('change', function() {
+            toggleStartDateInput();
+        });
+    }; */
 </script>
        
     {% endblock feature %}

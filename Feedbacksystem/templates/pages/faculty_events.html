@@ -42,7 +42,7 @@
       <h6 class="card-subtitle mb-2 text-body-secondary">{{event.date}}</h6>
       <p class="card-text">{{i.description|slice:":70"}}...</p>
       {% if event.evaluation_status %}
-      {% if event.qr_code %}
+      {% if event.requires_attendance %}
           {% if event.attended %}
             <a href="{% url 'faculty_event_detail' event.pk %}" class="card-link btn custom-btn">Evaluate</a>
           {% else %}
@@ -68,7 +68,7 @@
             <p>Time: {{ event.time }}</p>
             <p>Location: {{ event.location }}</p>
             <p>Description: {{ event.description }}</p>
-            <p>Evaluation Status: {{ event.evaluation_identifier }}</p>
+            <p>Evaluation Status: {{ event.evaluation_status }}</p>
             <p>Created by: {{ event.get_author_name }}</p>
         </div>
         <div class="modal-footer">

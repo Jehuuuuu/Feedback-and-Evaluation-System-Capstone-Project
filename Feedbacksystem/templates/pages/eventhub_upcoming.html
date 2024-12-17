@@ -1,10 +1,10 @@
 {% extends "pages/home.html" %}
 {% load static %}
-{% block title %}Events{% endblock %}
+{% block title %}Upcoming Events{% endblock %}
 
 {% block header %}
 
-    <h2>Latest Events</h2>
+    <h2>Upcoming Events</h2>
    
     <hr>
 {% endblock header %}
@@ -38,7 +38,6 @@
       <h5 class="card-title">{{i.title}}</h5>
       <h6 class="card-subtitle mb-2 text-body-secondary"><small>{{i.date}}</small></h6>
       <p class="card-text">{{i.description|slice:":70"}}...</p>
-      {% if i.evaluation_status %}<a href="{% url 'event_detail' i.pk %}" class="card-link btn custom-btn">Evaluate</a>{% endif %}
       <a href="#" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#eventModal{{ i.id }}">View Details</a>
     </div>
 </div>
@@ -55,7 +54,7 @@
           <p><b>Time:</b> {{ i.time }}</p>
           <p><b>Location:</b> {{ i.location }}</p>
           <p><b>Description:</b> {{ i.description }}</p>
-          <p><b>Evaluation Status:</b> {{ i.evaluation_identifier }}</p>
+          <p><b>Evaluation Status:</b> {{ i.evaluation_status }}</p>
           <p><b>Created by:</b> {{ i.get_author_name }}</p>
         </div>
         <div class="modal-footer">

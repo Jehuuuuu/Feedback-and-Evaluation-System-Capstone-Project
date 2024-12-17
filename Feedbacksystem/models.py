@@ -585,7 +585,11 @@ class Event(models.Model):
     department_attendees = models.ManyToManyField(Department, blank=True)  
     description = models.TextField(null=True, blank = True)
     author = models.ForeignKey(User, on_delete=models.CASCADE) 
-    evaluation_status = models.BooleanField(default=False)
+    EVALUATION_STATUS_CHOICES = [
+        ('Ongoing', 'Ongoing'),
+        ('Closed', 'Closed'),
+    ]
+    evaluation_status = models.CharField(default='Closed', max_length=50, choices=EVALUATION_STATUS_CHOICES)
     ADMIN_STATUS_CHOICES = [
         ('Pending', 'Pending'),
         ('Approved', 'Approved'),
@@ -596,6 +600,7 @@ class Event(models.Model):
         choices=ADMIN_STATUS_CHOICES,
         default='Pending'
     )   
+    evaluation_start_datetime = models.DateTimeField(null=True, blank=True)  # End date and time
     evaluation_end_datetime = models.DateTimeField(null=True, blank=True)  # End date and time
     academic_year = models.CharField(max_length=50, null=True, blank=True)
     semester = models.CharField(max_length=50, null=True, blank=True)

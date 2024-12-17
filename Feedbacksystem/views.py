@@ -57,8 +57,8 @@ from openpyxl.utils import get_column_letter
 from io import BytesIO
 import calendar
 from xhtml2pdf.default import DEFAULT_FONT
-
-
+from .jobs import close_evaluations, approve_pending_evaluations, start_event_evaluations, end_event_evaluations
+from apscheduler.jobstores.base import JobLookupError
 
 scheduler = BackgroundScheduler()
 scheduler.start()
@@ -400,8 +400,8 @@ def home(request):
     
     # Exclude events that have been evaluated
     current_time = timezone.now()
-    upcoming_events = events.filter(date__gt=current_time, evaluation_status=False)  
-    past_events = events.filter(date__lt=current_time, evaluation_status=False)  
+    upcoming_events = events.filter(date__gt=current_time, evaluation_status='Closed')  
+    past_events = events.filter(date__lt=current_time, evaluation_status='Closed')  
     unevaluated_events = events.exclude(id__in=evaluated_event_ids).exclude(id__in=past_events).exclude(id__in=upcoming_events) 
     for event in unevaluated_events:
         event.attended = Attendance.objects.filter(user=user, event=event, attended=True).exists()
@@ -782,9 +782,9 @@ def eventhub(request):
     evaluated_event_ids = list(evaluated_school_event_ids) + list(evaluated_webinar_event_ids)
     # Get current time
     current_time = timezone.now()
-    upcoming_events = events.filter(date__gt=current_time, evaluation_status=False)  # Events in the future
+    upcoming_events = events.filter(date__gt=current_time, evaluation_status='Closed')  # Events in the future
     # Past events with closed evaluation
-    past_events = events.filter(date__lt=current_time, evaluation_status=False)  # Past events with evaluation closed   
+    past_events = events.filter(date__lt=current_time, evaluation_status='Closed')  # Past events with evaluation closed   
     # Exclude events that have been evaluated
     unevaluated_events = events.exclude(id__in=evaluated_event_ids).exclude(id__in=past_events).exclude(id__in=upcoming_events).order_by('-date') 
 
@@ -806,7 +806,7 @@ def eventhub_upcoming(request):
     events = Event.objects.filter(course_attendees=courses, admin_status='Approved').distinct()  # Get events related to those courses
     
     current_time = timezone.now()
-    upcoming_events = events.filter(date__gt=current_time, evaluation_status=False)  # Events in the future
+    upcoming_events = events.filter(date__gt=current_time, evaluation_status='Closed')  # Events in the future
 
     return render(request, 'pages/eventhub_upcoming.html', {'student': student,'upcoming_events': upcoming_events, 'is_president': is_president, 'event_notifications': event_notifications, 'notifications_unread_count': notifications_unread_count})
 
@@ -850,7 +850,7 @@ def eventhub_closed(request):
     # Get current time
     current_time = timezone.now()
     # Past events with closed evaluation
-    past_events = events.filter(date__lt=current_time, evaluation_status=False)  # Past events with evaluation closed   
+    past_events = events.filter(date__lt=current_time, evaluation_status='Closed')  # Past events with evaluation closed   
     return render(request, 'pages/eventhub_closed.html', {'student': student, 'past_events': past_events, 'is_president': is_president, 'event_notifications': event_notifications, 'notifications_unread_count': notifications_unread_count})
 
 @login_required(login_url='signin')
@@ -1571,17 +1571,6 @@ def admin(request):
                 'registered_students': registered_students
                 }
     return render(request, 'pages/admin.html', context)
-
-def close_evaluations():
-        """Close the evaluations."""
-        updated_evaluation_status = EvaluationStatus.objects.filter(evaluation_status='In Progress').update(evaluation_status='Closed')
-        print(updated_evaluation_status)
-
-def approve_pending_evaluations():
-    """Approve all pending evaluations."""
-    today = datetime.today().date()
-    updated_count = LikertEvaluation.objects.filter(admin_status='Pending').update(admin_status='Approved')
-    print(f"{updated_count} evaluations approved on {today}.")
 
 
 def evaluation_response_chart_data(request):
@@ -5268,22 +5257,87 @@ def faculty_event_evaluations(request):
      form = EventCreationForm()
      if request.method == 'POST':
         form = EventCreationForm(request.POST, request.FILES)
+
+
+        today = datetime.today().date()
+
+
         if form.is_valid():
             event = form.save(commit=False)
             event.author = request.user  # Set the author to the currently logged-in user
             if request.user.groups.filter(name='head of OSAS').exists(): 
                 event.admin_status = 'Approved'
+                form.save()
+                saved_event = Event.objects.get(pk=event.pk)
+
+                    #Notifications      
+                student_users = User.objects.filter(student__Course__in=saved_event.course_attendees.all())
+
+                faculty_users = User.objects.filter(faculty__department__in=saved_event.department_attendees.all())
+
+                notification_description = f"A new event '{event.title}' is scheduled for {event.date}. Please evaluate and provide your feedback!"
+
+                # Send notifications to student attendees
+                notify.send(
+                    sender=user,
+                    recipient=student_users,
+                    verb="New Event Created",
+                    description=notification_description,
+                    level='success'
+                )
+
+                # Send notifications to faculty attendees
+                notify.send(
+                    sender=user,
+                    recipient=faculty_users,
+                    verb="New Event Created",
+                    description=notification_description,
+                    level='success'
+                )
             form.save()
-            #event = form.save(commit=False)
-            #event.published_by = faculty 
-            #event.save()
+            evaluation_start_date_str = request.POST.get("evaluation_start_datetime")  
+            evaluation_end_date_str = request.POST.get("evaluation_end_datetime") 
 
+            event_pk = event.pk
+            print(event_pk)
+            if evaluation_start_date_str:
 
+                start_date = datetime.strptime(evaluation_start_date_str, "%Y-%m-%d").date()
+
+                # Check if the end date exceeds today's date
+                if start_date > today:
+                    # Schedule the task if the date is valid
+                    trigger = DateTrigger(run_date=start_date) 
+                    scheduler.add_job(start_event_evaluations, trigger=trigger, args=[event_pk])
+                elif start_date == today:
+                    # Schedule the task if the date is valid
+                    run_date = datetime.now() + timedelta(minutes=1)
+                    trigger = DateTrigger(run_date=run_date) 
+                    scheduler.add_job(start_event_evaluations, trigger=trigger, args=[event_pk])
+                else:
+                    # Display an error if the date exceeds today
+                    messages.error(request, "The start date cannot be in the past.")
+                    return redirect('faculty_event_evaluations')
+
+            if evaluation_end_date_str:
+                end_date = datetime.strptime(evaluation_end_date_str, "%Y-%m-%d").date()
+
+                # Check if the release date exceeds today's date
+                if end_date > today:
+                    # Schedule the task if the date is valid
+                    trigger = DateTrigger(run_date=end_date)
+                    scheduler.add_job(end_event_evaluations, trigger=trigger, args=[event_pk])
+                else:
+                    # Display an error if the date exceeds today
+                    messages.error(request, "The end date cannot be in the past.")
+                    return redirect('faculty_event_evaluations')
+       
             return redirect('faculty_event_evaluations')
         else:
-            # Print form errors for debugging
-            print(form.errors)
-    
+            # Add form errors to messages
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"Error in {field}: {error}")
 
      for i in event:
         # Get combined courses and departments names
@@ -5334,11 +5388,12 @@ def approve_event(request, event_id):
     
     event.admin_status = 'Approved'
     event.save()
-                
+
+    #Notifications      
     student_users = User.objects.filter(student__Course__in=event.course_attendees.all())
 
-    # Get user instances associated with selected department attendees
     faculty_users = User.objects.filter(faculty__department__in=event.department_attendees.all())
+
     notification_description = f"A new event '{event.title}' is scheduled for {event.date}. Please evaluate and provide your feedback!"
 
     # Send notifications to student attendees
@@ -5745,10 +5800,59 @@ def edit_faculty_events(request, pk):
     messages_unread_count = unread_messages.count()    
     event = Event.objects.get(pk=pk)
     form = EventCreationForm(instance=event)
+    today = datetime.today().date()
     if request.method == 'POST':
         form = EventCreationForm(request.POST, request.FILES, instance=event)
         if form.is_valid():
             form.save(commit=True)
+         
+            event_pk = event.pk
+
+            # Remove existing jobs if they exist
+            try:
+                scheduler.remove_job(f'start_event_{event_pk}')
+            except JobLookupError:
+                pass
+
+            try:
+                scheduler.remove_job(f'end_event_{event_pk}')
+            except JobLookupError:
+                pass
+
+            evaluation_start_date_str = request.POST.get("evaluation_start_datetime")
+            evaluation_end_date_str = request.POST.get("evaluation_end_datetime")
+
+            if evaluation_start_date_str:
+                start_date = datetime.strptime(evaluation_start_date_str, "%Y-%m-%d").date()
+                if start_date > today:
+                    # Schedule the task if the date is valid
+                    trigger = DateTrigger(run_date=start_date)
+                    scheduler.add_job(start_event_evaluations, trigger=trigger, args=[event_pk], id=f'start_event_{event_pk}')
+                elif start_date == today:
+                    # Schedule the task if the date is today
+                    run_date = datetime.now() + timedelta(minutes=1)
+                    trigger = DateTrigger(run_date=run_date)
+                    scheduler.add_job(start_event_evaluations, trigger=trigger, args=[event_pk], id=f'start_event_{event_pk}')
+                else:
+                    # Display an error if the date is in the past
+                    messages.error(request, "The start date cannot be in the past.")
+                    return redirect('faculty_event_evaluations')
+
+            if evaluation_end_date_str:
+                end_date = datetime.strptime(evaluation_end_date_str, "%Y-%m-%d").date()
+                if end_date > today:
+                    # Schedule the task if the date is valid
+                    trigger = DateTrigger(run_date=end_date)
+                    scheduler.add_job(end_event_evaluations, trigger=trigger, args=[event_pk], id=f'end_event_{event_pk}')
+                elif end_date == today:
+                    # Schedule the task to run at 11:59 PM today
+                    run_date = datetime.combine(today, datetime.min.time()) + timedelta(hours=23, minutes=59)
+                    trigger = DateTrigger(run_date=run_date)
+                    scheduler.add_job(end_event_evaluations, trigger=trigger, args=[event_pk], id=f'end_event_{event_pk}')
+                else:
+                    # Display an error if the date is in the past
+                    messages.error(request, "The end date cannot be in the past.")
+                    return redirect('faculty_event_evaluations')
             return redirect('faculty_event_evaluations')
 
            
@@ -5810,9 +5914,9 @@ def faculty_events(request):
     evaluated_event_ids = list(evaluated_school_event_ids) + list(evaluated_webinar_event_ids)
      # Get current time
     current_time = timezone.now()
-    upcoming_events = events.filter(date__gt=current_time, evaluation_status=False)  # Events in the future
+    upcoming_events = events.filter(date__gt=current_time, evaluation_status='Closed')  # Events in the future
     # Past events with closed evaluation
-    past_events = events.filter(date__lt=current_time, evaluation_status=False)  # Past events with evaluation closed   
+    past_events = events.filter(date__lt=current_time, evaluation_status='Closed')  # Past events with evaluation closed   
     # Exclude events that have been evaluated
     unevaluated_events = events.exclude(id__in=evaluated_event_ids).exclude(id__in=past_events).exclude(id__in=upcoming_events).order_by('-date') 
     for event in unevaluated_events:
@@ -5904,7 +6008,7 @@ def faculty_events_closed(request):
     # Get current time
     current_time = timezone.now()
     # Past events with closed evaluation
-    past_events = events.filter(date__lt=current_time, evaluation_status=False)  # Past events with evaluation closed   
+    past_events = events.filter(date__lt=current_time, evaluation_status='Closed')  # Past events with evaluation closed   
     return render(request, 'pages/faculty_events_closed.html', {'faculty': faculty, 'past_events': past_events, 'event_notifications': event_notifications,
         'notifications_unread_count': notifications_unread_count,
         'messages_notifications': messages_notifications,

@@ -24,9 +24,6 @@ class FeedbacksystemConfig(AppConfig):
 
         scheduler = BackgroundScheduler(jobstores=jobstores)
 
-        # Use the string reference to the job function 
-        scheduler.add_job('Feedbacksystem.jobs:test_job', 'interval', minutes=1)
-
         # Start the scheduler
         scheduler.start()
 
