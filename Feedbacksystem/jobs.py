@@ -5,6 +5,9 @@ logging.basicConfig(level=logging.INFO)
 
 logger = logging.getLogger(__name__)
 
+def test_job():
+    logger.info("Scheduler is running in production environment.")
+
 def close_evaluations():
     updated_evaluation_status = EvaluationStatus.objects.filter(evaluation_status='In Progress').update(evaluation_status='Closed')
     print(updated_evaluation_status)
