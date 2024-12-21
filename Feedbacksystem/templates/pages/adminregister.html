@@ -1,7 +1,5 @@
 {% extends "pages/admin.html" %}
-
 {% block title %}Admin Registration Form{% endblock %}
-
 {% block header %}
 
     <h2> Register Admin</h2>
@@ -11,7 +9,7 @@
 <hr>
 {% block feature %}
 {% if messages %}
-    <div class="container">
+<div class="container">
         {% for message in messages %}
             <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %} alert-dismissible fade show" role="alert">
                 {{ message }}
@@ -20,11 +18,76 @@
         {% endfor %}
     </div>
 {% endif %}
-<form method="POST" action="">
-    {% csrf_token %}
-    {{ form.as_p }}
+<div class="container col-md-6">
+    <form method="POST" action="">
+        {% csrf_token %}
+        
+        <div class="mb-3">
+            {{ form.username.label_tag }}
+            {{ form.username }}
+        </div>
+        
+        <div class="mb-3 position-relative">
+            {{ form.password1.label_tag }}
+            <div class="input-group">
+                {{ form.password1 }}
+                <button type="button" class="btn btn-outline-secondary toggle-password" data-target="id_password1">
+                    <i class="bi bi-eye"></i>
+                </button>
+            </div>
+        </div>
+        
+        <div class="mb-3 position-relative">
+            {{ form.password2.label_tag }}
+            <div class="input-group">
+                {{ form.password2 }}
+                <button type="button" class="btn btn-outline-secondary toggle-password" data-target="id_password2">
+                    <i class="bi bi-eye"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="mb-3">
+            {{ form.role.label_tag }}
+            {{ form.role }}
+        </div>
+
+        
+        <input type="submit" class="btn custom-btn w-100" value="Register">
+    </form>
+</div>
 
 
-<input type = "submit" value="Register">
-</form>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const toggleButtons = document.querySelectorAll('.toggle-password');
+        if (toggleButtons.length === 0) {
+            console.warn('No toggle-password buttons found.');
+            return;
+        }
+
+        toggleButtons.forEach(button => {
+            button.addEventListener('click', function () {
+                const targetId = this.dataset.target;
+                const input = document.getElementById(targetId);
+                const icon = this.querySelector('i');
+
+                if (input) {
+                    if (input.type === 'password') {
+                        input.type = 'text';
+                        icon.classList.replace('bi-eye', 'bi-eye-slash');
+                    } else {
+                        input.type = 'password';
+                        icon.classList.replace('bi-eye-slash', 'bi-eye');
+                    }
+                } else {
+                    console.error(`No input field found with id ${targetId}`);
+                }
+            });
+        });
+    });
+</script>
 {% endblock feature %}
+
+

@@ -113,18 +113,16 @@
       {% block header %}
         <!-- Main content area -->
         {% if messages %}
- 
         <div class="container  col-md-10 col-12" >
           {% for message in messages %}
           <div class="alert alert-dismissible {% if message.tags == 'error' %}alert-danger{% elif message.tags == 'success' %}alert-success{% endif %}" role="alert">
               {{ message }}
               <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>    
               </div>
-
           {% endfor %}
       </div>
-
         {% endif %}
+
             <div class="row">
               <div class="col-md-4 mb-2" id="chart-container">
                 <h5 style="font-weight: bold">Academic Year: {{evaluation_status.academic_year}}</h5>

@@ -38,7 +38,7 @@
    
 <form method="POST" action="">
     {% csrf_token %}
-    <a  class="admin"  style="margin-right: 1em;"href = "{% url 'signin' %}"> <i class="bi bi-arrow-bar-left"></i> Back to Login </a> 
+    <a  class="admin"  style="margin-right: 1em;"href = "{% url 'signin' %}"> <i class="bi bi-arrow-return-left"></i> Back to Login </a> 
     <label id ="admin">Admin Username:</label>
     <input class="admininput" type = "text" name="username" placeholder="Enter Admin Username">
     <label id ="admin">Admin Password:</label>

@@ -355,6 +355,7 @@ h5{
 }
 @media only screen and (max-width:590px) { 
     @media only screen and (max-width:590px) { 
+       
         .center{
             margin-left: 1.3em;
         }
@@ -429,6 +430,14 @@ h5{
 
 }
 @media only screen and (max-width:461px) {
+    .alert {
+        font-size: 0.75rem; /* Reduce the font size */
+        margin-top: 0;
+        max-width: 80%;
+        margin: 0 auto;
+        padding: 10px 5px;
+        margin-bottom: 1em;
+    }
     .container-body{
         width: 23em;
         min-height: 17em;

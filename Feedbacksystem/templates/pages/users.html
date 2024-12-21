@@ -75,7 +75,7 @@
                     {% if user.faculty_name %}
                         {{ user.faculty_name }}
                     {% endif %}
-                    {% if user.is_superuser %}
+                    {% if user.is_staff %}
                         {{user.username}}
                     {% endif %}
                 </td>

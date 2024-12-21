@@ -16,12 +16,12 @@
 
 <body>
     {% if messages %}
-    <div class="container  col-md-5 col-12" style="margin-top: 10em;">
-        {% for message in messages %}
+    <div class="container col-md-6 col-12 message_container">
+    {% for message in messages %}
         <div class="alert {% if message.tags == 'error' %}alert-danger{% elif message.tags == 'success' %}alert-success{% endif %}" role="alert">
             {{ message }}
         </div>
-        {% endfor %}
+    {% endfor %}
     </div>
     {% endif %}
     <div class="container-body mb-5" id="container">

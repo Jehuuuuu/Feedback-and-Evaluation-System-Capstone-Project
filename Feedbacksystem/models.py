@@ -151,7 +151,7 @@ class Faculty(models.Model):
         return f"{self.first_name} {self.last_name}"
     
 class Subject(models.Model):
-    subject_code = models.CharField(max_length=10)
+    subject_code = models.CharField(max_length=10, unique=True)
     subject_name = models.CharField(max_length=100)  
     
     updated = models.DateTimeField(auto_now = True, null=True, blank = True)

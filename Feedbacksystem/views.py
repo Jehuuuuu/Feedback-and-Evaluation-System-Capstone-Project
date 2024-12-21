@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from Feedbacksystem.models import Course, Section, SectionSubjectFaculty, Faculty, Department, Student, Subject, LikertEvaluation, EvaluationStatus, Event, SchoolEventModel, FacultyEvaluationQuestions, SchoolEventQuestions, WebinarSeminarModel, WebinarSeminarQuestions, StakeholderFeedbackModel, StakeholderFeedbackQuestions, Message, PeertoPeerEvaluation, PeertoPeerEvaluationQuestions, StakeholderAgency, Attendance 
-from .forms import TeacherForm, StudentForm, CourseForm, SectionForm, SectionSubjectFacultyForm, SubjectForm, StudentRegistrationForm, StudentLoginForm, LikertEvaluationForm, FacultyRegistrationForm, FacultyLoginForm, EvaluationStatusForm, DepartmentForm, EventCreationForm, SchoolEventForm, WebinarSeminarForm, StudentProfileForm, EditQuestionForm, EditSchoolEventQuestionForm,  WebinarSeminarForm, EditWebinarSeminarQuestionForm, StakeholderFeedbackForm, MessageForm, PeertoPeerEvaluationForm, FacultyProfileForm
+from .forms import TeacherForm, StudentForm, CourseForm, SectionForm, SectionSubjectFacultyForm, SubjectForm, StudentRegistrationForm, StudentLoginForm, LikertEvaluationForm, FacultyRegistrationForm, FacultyLoginForm, EvaluationStatusForm, DepartmentForm, EventCreationForm, SchoolEventForm, WebinarSeminarForm, StudentProfileForm, EditQuestionForm, EditSchoolEventQuestionForm,  WebinarSeminarForm, EditWebinarSeminarQuestionForm, StakeholderFeedbackForm, MessageForm, PeertoPeerEvaluationForm, FacultyProfileForm, AdminRegistrationForm
 from django.contrib.auth.models import User, Group
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import UserCreationForm
@@ -59,9 +59,9 @@ import calendar
 from xhtml2pdf.default import DEFAULT_FONT
 from .jobs import close_evaluations, approve_pending_evaluations, start_event_evaluations, end_event_evaluations
 from apscheduler.jobstores.base import JobLookupError
+from .scheduler import scheduler
 
-scheduler = BackgroundScheduler()
-scheduler.start()
+
 
 ITEMS_PER_PAGE = 5
             # ------------------------------------------------------
@@ -468,8 +468,12 @@ def student_profile(request):
     unread_notifications = Notification.objects.filter(recipient=user, level='success', unread=True)
     notifications_unread_count = unread_notifications.count()
     user_groups = user.groups.all()
+    all_student = Student.objects.all()
     # Example of checking if the user is in a specific group, e.g., "society president"
     is_society_president = user_groups.filter(name="society president").exists()
+    is_irregular = Student.objects.filter( Q(student_number=request.user.username) & (Q(status='IRREGULAR') | Q(status='Irregular')) ).first()
+    is_regular = Student.objects.filter( Q(student_number=request.user.username) & (Q(status='REGULAR') | Q(status='Regular')) ).first()  
+
     evaluation_status = EvaluationStatus.objects.first()
     section_subjects_faculty = SectionSubjectFaculty.objects.filter(section=student.Section)
     current_academic_year = evaluation_status.academic_year 
@@ -511,7 +515,7 @@ def student_profile(request):
         webinar_seminar_evaluations
     ))
             
-    context = {'student': student, 'section_subjects_faculty': section_subjects_faculty, 'evaluation_status_list': evaluation_status_list, 'is_society_president': is_society_president, 'is_president': is_president, 'event_notifications': event_notifications, 'notifications_unread_count': notifications_unread_count, 'recent_evaluations': recent_evaluations, 'current_semester': current_semester}
+    context = {'student': student, 'section_subjects_faculty': section_subjects_faculty, 'evaluation_status_list': evaluation_status_list, 'is_society_president': is_society_president, 'is_president': is_president, 'event_notifications': event_notifications, 'notifications_unread_count': notifications_unread_count, 'recent_evaluations': recent_evaluations, 'current_semester': current_semester, 'is_irregular': is_irregular, 'is_regular': is_regular}
     return render(request, 'pages/student_profile.html', context)
 
 def student_edit_evaluation_form(request, pk):
@@ -592,7 +596,11 @@ def facultyeval(request):
     event_notifications = Notification.objects.filter(recipient=user, level='success')
     unread_notifications = Notification.objects.filter(recipient=user, level='success', unread=True)
     notifications_unread_count = unread_notifications.count()
-    section_subjects_faculty = SectionSubjectFaculty.objects.filter(section=student.Section)
+    is_irregular = Student.objects.filter( Q(student_number=request.user.username) & (Q(status='IRREGULAR') | Q(status='Irregular')) ).first()
+    if is_irregular:
+          section_subjects_faculty = SectionSubjectFaculty.objects.values('faculty').distinct()
+    else:
+        section_subjects_faculty = SectionSubjectFaculty.objects.filter(section=student.Section)
 
     evaluated_faculty_ids = LikertEvaluation.objects.filter(
     user=request.user,
@@ -1672,21 +1680,22 @@ def faculty_response_chart_data(request, department_id):
 @allowed_users(allowed_roles=['admin'])
 def adminregister(request):
     is_admin = request.user.groups.filter(name='admin').exists()
-    form = UserCreationForm()
+    form = AdminRegistrationForm()
     if request.method == 'POST':
-        form = UserCreationForm(request.POST)
+        form = AdminRegistrationForm(request.POST)
         if form.is_valid():
-            # Create a user without saving it to the database
             user = form.save()
-            
-            # Set the user as a superuser
-            user.is_superuser = True
-            # Set the user role to admin
-            group = Group.objects.get(name = 'admin')
+
+            user.is_staff = True
+
+            role = form.cleaned_data['role']
+
+            group = Group.objects.get(name=role)
+
             user.groups.add(group)
-            # Save the user to the database
+
             user.save()
-            
+
             messages.success(request, 'Admin registration successful!')
             return redirect('adminregister')
 
@@ -3067,7 +3076,7 @@ def stakeholderevaluations(request):
     return render(request, 'pages/stakeholderevaluations.html', context)
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['admin'])
+@allowed_users(allowed_roles=['admin', 'HR admin'])
 def stakeholder_evaluations_excel(request):
     response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
     response['Content-Disposition'] = 'attachment; filename=stakeholder_evaluations.xlsx'
@@ -3914,15 +3923,51 @@ def subjects(request):
     form = SubjectForm()
     if request.method == 'POST':
         form = SubjectForm(request.POST)
+
         if form.is_valid():
             form.save()
             messages.success(request, 'Subject added successfully')
             return redirect('subjects')
+
+
     
+    import_subjects = request.FILES.get('subjectfile')
+
+    if import_subjects and import_subjects.name.endswith('xlsx'):
+        dataset = Dataset()
+        imported_data = dataset.load(import_subjects.read(), format='xlsx')
+        created_count = 0
+        updated_count = 0
+        for data in imported_data:
+            subject_code = data[0]
+            subject_name = data[1]
+
+            # Update the existing student or create a new one
+            subject_instance, created = Subject.objects.update_or_create(
+                subject_code=subject_code,
+                defaults={
+                    'subject_name': subject_name,
+                }
+            )
+
+            if created:
+                created_count += 1
+            else:
+                updated_count += 1
+
+        # After processing all data, show the success message
+        if created_count > 0:
+            messages.success(request, f"Created {created_count} new subject(s).")
+        if updated_count > 0:
+            messages.info(request, f"Updated {updated_count} subject(s).")
+
+        else:
+            messages.info(request, 'Please upload a valid Excel file.')
+            
     paginator = Paginator(subject, 5) 
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-    context = {'subject': subject, 'form': form, 'page_obj': page_obj, 'subject_filter': subject_filter,
+    context = {'form': form, 'page_obj': page_obj, 'subject_filter': subject_filter,
             'is_admin': is_admin}
     return render(request, 'pages/subjects.html', context)
 
@@ -3963,7 +4008,7 @@ def deleteSubject(request, pk):
 def users(request):
     is_admin = request.user.groups.filter(name='admin').exists()
 # Get all users
-    users = User.objects.filter(is_active=True).order_by('-date_joined')
+    users = User.objects.filter(is_active=True, is_superuser=False).order_by('-date_joined')
     user_filter = UserFilter(request.GET, queryset=users)
     users = user_filter.qs
 
@@ -4033,7 +4078,7 @@ def edit_user_group(request, user_id):
         user.groups.clear()  # Clear existing groups
         user.groups.add(*groups)  # Add the selected groups
 
-        messages.success(request, 'User roles updated successfully.')
+        messages.success(request, 'User role updated successfully.')
         return redirect('users')  # Redirect to the users page after updating groups
 
     else:

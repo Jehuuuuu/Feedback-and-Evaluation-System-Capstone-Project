@@ -6,6 +6,17 @@ from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from django.forms import formset_factory
+from django.forms.utils import ErrorList
+
+class NoErrorList(ErrorList):
+    def __str__(self):
+        return ''
+    def as_ul(self):
+        return ''
+    def as_text(self):
+        return ''
+
+
 class TeacherForm(ModelForm):
     class Meta:
         model = Faculty
@@ -105,7 +116,7 @@ class EvaluationStatusForm(ModelForm):
         }
 
 class StudentRegistrationForm(UserCreationForm):
-    student_number = forms.CharField( max_length=9, label="Student Number", widget=forms.TextInput(attrs={ 'class': 'form-control student-number', }) )
+    student_number = forms.CharField( max_length=9, label="Student Number")
     class Meta:
         model = User
         fields = ('student_number', 'password1', 'password2')
@@ -163,8 +174,12 @@ class StudentRegistrationForm(UserCreationForm):
         # Set help_text to an empty string for each field
         for field_name in self.fields:
             self.fields[field_name].help_text = ''
-
-
+        
+        for field in self.fields.values():
+            field.widget.attrs['class'] = 'form-control-sm'
+            
+        # Suppress inline error rendering
+        self.error_class = NoErrorList  
 
 class FacultyRegistrationForm(UserCreationForm):
     email = forms.EmailField(max_length=100)
@@ -218,6 +233,51 @@ class FacultyRegistrationForm(UserCreationForm):
         # Set help_text to an empty string for each field
         for field_name in self.fields:
             self.fields[field_name].help_text = ''
+        
+        for field in self.fields.values():
+            field.widget.attrs['class'] = 'form-control-sm'
+        
+        self.error_class = NoErrorList  
+            
+            
+class AdminRegistrationForm(UserCreationForm):
+    class Meta:
+        model = User
+        fields = ('username', 'password1', 'password2', 'role')
+        labels = {
+            'username': 'Admin Username',
+        }
+        widgets = {
+            'username': forms.TextInput(attrs={'class': 'form-control'}),
+            'password1': forms.PasswordInput(attrs={'class': 'form-control', 'id': 'id_password1'}),
+            'password2': forms.PasswordInput(attrs={'class': 'form-control', 'id': 'id_password2'}),
+        }
+    
+    ROLE_CHOICES = [
+        ('admin', 'Admin'),
+        ('hr_admin', 'HR Admin'),
+    ]
+    role = forms.ChoiceField(
+        choices=ROLE_CHOICES,
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        label="User Role",
+    )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        password1 = cleaned_data.get("password1")
+        password2 = cleaned_data.get("password2")
+
+        if password1 and password2 and password1 != password2:
+            self.add_error('password2', "Passwords do not match.")
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        for field in self.fields.values():
+            field.widget.attrs['class'] = 'form-control'
+
+              
 
 class StudentLoginForm(forms.Form):
     student_number = forms.CharField(
@@ -225,12 +285,25 @@ class StudentLoginForm(forms.Form):
         widget=forms.TextInput
     )
     password = forms.CharField(widget=forms.PasswordInput)
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
+        for field in self.fields.values():
+            field.widget.attrs['class'] = 'form-control-sm'
+
+           
 class FacultyLoginForm(forms.Form):
     email = forms.EmailField(max_length=100)
     password = forms.CharField(widget=forms.PasswordInput)
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
+        for field in self.fields.values():
+            field.widget.attrs['class'] = 'form-control-sm'
+
+           
 class LikertEvaluationForm(forms.Form):
     command_and_knowledge_of_the_subject = forms.ChoiceField(choices=[(5, ''), (4, ''), (3, ''),
                                         (2, ''), (1, '')],  widget=forms.RadioSelect(attrs={'class': 'likert-horizontal custom-radio'}))

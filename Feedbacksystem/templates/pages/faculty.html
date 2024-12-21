@@ -84,7 +84,7 @@
     </form>
     </div>
 
-    <div class="table-responsive mt-2 ">
+    <div class="table-responsive mt-2">
       <table class="table table-bordered table-responsive  ">
           <tr>
             <th scope="col">First Name</th>
@@ -104,13 +104,16 @@
               <td>{{ i.email }}</td>
               <td>{{ i.contact_number }}</td>
               <td>{{ i.department }}</td>
-              <td style="display: flex; flex-direction: row; gap:1em; align-items: center; height: 100px;"> <a href="{% url 'facultyevaluations' i.pk %}" style="text-decoration: none;"><button class="btn btn-primary d-flex align-items-center" style=" padding:1px 2px 1px 7px" title="View Faculty Evaluations"><i class="bi bi-eye-fill" style="font-size:20px; margin-right: 5px;"></i></button></a>
 
-              <a href="{% url 'editteacher'  i.pk  %}" style="text-decoration: none;"><button class="btn btn-warning d-flex align-items-center" style=" padding:1px 2px 1px 7px" title="Edit Faculty"><i class="bi bi-pencil-square" style="font-size:20px; margin-right: 5px;"></i></button></a>
+              <td class="d-flex justify-content-center gap-1"> 
               
-              <a href="{% url 'send_message'  i.pk  %}" style="text-decoration: none;"><button class="btn btn-success d-flex align-items-center" style=" padding:1px 2px 1px 7px" title="Message Faculty"><i class="bi bi-chat-dots" style="font-size:20px; margin-right: 5px;"></i></button></a>
+              <a href="{% url 'facultyevaluations' i.pk %}"><button class="btn btn-primary " title="View Faculty Evaluations"><i class="bi bi-eye-fill"></i></button></a>
 
-              <a href="{% url 'deleteTeacher'  i.pk  %}" style="text-decoration: none;"><button class="btn btn-danger d-flex align-items-center" style="padding:4px 2px 4px 7px" title="Delete Faculty" ><i style="font-size:24px; margin-right: 5px;" class='bx bxs-trash' ></i></button></a>
+              <a href="{% url 'editteacher'  i.pk  %}"><button class="btn btn-warning " title="Edit Faculty"><i class="bi bi-pencil-square"></i></button></a>
+              
+              <a href="{% url 'send_message'  i.pk  %}"><button class="btn btn-success " title="Message Faculty"><i class="bi bi-chat-dots"></i></button></a>
+
+              <a href="{% url 'deleteTeacher'  i.pk  %}"><button class="btn btn-danger " title="Delete Faculty" ><i class='bx bxs-trash' ></i></button></a>
 
               </td>
           </tr>

@@ -40,7 +40,7 @@
     {% endif %}
       <h5 class="card-title">{{event.title}}</h5>
       <h6 class="card-subtitle mb-2 text-body-secondary"><small>{{event.date}}</small></h6>
-      <p class="card-text">{{i.description|slice:":70"}}...</p>
+      <p class="card-text">{{event.description|slice:":70"}}</p>
       {% if event.evaluation_status == 'Ongoing' %}
         {% if event.requires_attendance %}
           {% if event.attended %}

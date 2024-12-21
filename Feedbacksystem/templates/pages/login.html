@@ -15,9 +15,8 @@
 </head>
 
 <body>
-    
         {% if messages %}
-        <div class="container col-lg-8 col-md-12 col-10 message_container">
+        <div class="container col-md-6 col-12 message_container">
             {% for message in messages %}
             <div class="alert {% if message.tags == 'error' %}alert-danger{% elif message.tags == 'success' %}alert-success{% endif %}" role="alert">
                 {{ message }}

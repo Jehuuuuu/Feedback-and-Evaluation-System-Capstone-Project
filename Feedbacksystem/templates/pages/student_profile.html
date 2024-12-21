@@ -41,8 +41,11 @@
             </ul>
           </div>
         </div>
+ 
         <div class="col-lg-9 col-md-8 col-sm-7">
+            
         <div class="tablecontainer">
+        {% if is_regular %}
            <table class="table table-bordered table-responsive ">
             <tr>
             <th  scope="col" style="color:#fafafa; background: #2a9134">Subject</th>
@@ -62,14 +65,15 @@
                 </td>
             </tr>
         {% endfor %}
-    
+     
     </table>
-
+    {% endif %}
     </div>
+    {% if is_irregular or not is_irregular %}
     <div class="recent-evaluations">
         <div class="d-flex">
             <div>
-                <h5 class="section-title">Recent Evaluations ({{current_semester}} Semester)</h5>
+                <h5 class="section-title">Recent Evaluations ({{current_semester}})</h5>
             </div>
         </div>
         <div class="table-container">
@@ -123,7 +127,7 @@
             </table>
         </div>
     </div>
-    
+        {% endif %}
     </div>
     </div>
     {% endblock feature %}

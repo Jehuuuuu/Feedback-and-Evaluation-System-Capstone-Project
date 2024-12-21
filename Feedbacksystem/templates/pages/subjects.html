@@ -19,22 +19,22 @@
 {% endblock header %}
 {% block feature %}
 {% if messages %}
- 
-        {% for message in messages %}
-            <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %} alert-dismissible fade show" role="alert">
-                {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        {% endfor %}
-
+<div class="container  col-md-10 col-12" >
+  {% for message in messages %}
+  <div class="alert alert-dismissible {% if message.tags == 'error' %}alert-danger{% elif message.tags == 'success' %}alert-success {% elif message.tags == 'info' %}alert-info{% endif %}" role="alert">
+      {{ message }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>    
+      </div>
+  {% endfor %}
+</div>
 {% endif %}
 <div class="row">
 
-  <div class="col-md-3 col-sm-5 col-12 mb-1">
+  <div class="col-lg-2 col-md-3 col-sm-5 col-12 mb-2">
     <a class="btn btn-warning custom-btn" data-bs-toggle="modal" data-bs-target="#exampleModal" style = "color: black; text-decoration: none;"><i class="bi bi-plus-square-fill"></i> <b>Add Subject</b></a>
     
   </div>
-  <div class="col-lg-4 col-md-5 col-sm-7 col-12">
+  <div class="col-lg-4 col-md-5 col-sm-7 col-12 mb-2">
     <select class="form-select" name="sort" id="sort-list" onchange="location = finalurl();">
     <option value="" id="placeholder" disabled selected hidden>Sort</option>
     <option id="subject_code" value="subject_code">Subject Code: Ascending</option>
@@ -44,7 +44,18 @@
     <option id="-created" value="-created">Recently Added</option>
     </select>
   </div>
+  <div class="col-lg-6 col-md-3 col-12 mb-2">
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+         <!-- Hide the actual file input -->
+    <input id="fileInput" type="file" name="subjectfile" accept=".xlsx" style="display: none;" onchange="this.form.submit()">
 
+    <!-- Custom button to trigger file selection -->
+    <button type="button" class="btn btn-primary" onclick="document.getElementById('fileInput').click();">
+        Bulk Import
+    </button>
+  </div>
+  </form>
 </div>
 
 
