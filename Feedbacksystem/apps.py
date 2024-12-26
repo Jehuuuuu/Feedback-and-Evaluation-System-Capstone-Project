@@ -6,6 +6,7 @@ class FeedbacksystemConfig(AppConfig):
 
     def ready(self):
         from .scheduler import scheduler
-        
+
         scheduler.start()
+ 
         print("Scheduler started successfully!")

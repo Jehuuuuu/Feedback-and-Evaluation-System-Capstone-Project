@@ -598,7 +598,8 @@ def facultyeval(request):
     notifications_unread_count = unread_notifications.count()
     is_irregular = Student.objects.filter( Q(student_number=request.user.username) & (Q(status='IRREGULAR') | Q(status='Irregular')) ).first()
     if is_irregular:
-          section_subjects_faculty = SectionSubjectFaculty.objects.values('faculty').distinct()
+        # Fetch all unique faculties for irregular students
+        section_subjects_faculty = SectionSubjectFaculty.objects.order_by('faculty__pk').distinct('faculty__pk')
     else:
         section_subjects_faculty = SectionSubjectFaculty.objects.filter(section=student.Section)
 

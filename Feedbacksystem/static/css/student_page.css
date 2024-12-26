@@ -4,7 +4,7 @@
   box-sizing: border-box;
 }
 body{
-  overflow-y: hidden; /* Hide scrollbar for sidebar */
+  overflow-y: hidden;
   scroll-behavior: smooth;
   background-color:  #faf5fF;
   color: #333;
@@ -466,6 +466,11 @@ iframe{
 
 
 @media (max-width: 576px) {
+main {
+    height: calc(80vh); /* Adjust to leave space for padding */
+    overflow-y: auto; /* Add a vertical scrollbar when content overflows */
+    margin-top: 5rem;
+  }
 .form-radio{
   min-width: 20px; /* Set the width of the custom radio button */
   height: 20px; /* Set the height of the custom radio button */
