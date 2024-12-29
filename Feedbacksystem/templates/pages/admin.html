@@ -22,254 +22,230 @@
   <div class="container-fluid" style="padding: 0;">
     <div class="header">
       <button id="sidebarCollapse" class="btn">
-        <span class="material-symbols-outlined">
-          menu
-          </span>
-    </button>
-        <a class="navbar-brand" style="color: #fafafa;" id="headerlogo">
-            <img src="{% static 'images/cvsulogo.png'%}" alt="Cavite State Univeristy Logo" width="70px" height="70px" id="cvsulogo"> 
-            
+        <span class="material-symbols-outlined">menu</span>
+      </button>
+      <a class="navbar-brand" style="color: #fafafa;" id="headerlogo">
+        <img src="{% static 'images/cvsulogo.png'%}" alt="Cavite State University Logo" width="70px" height="70px" id="cvsulogo">
+      </a>
+      <div class="title-container">
+        <div class="header-title">Feedback and Evaluation System</div>
+        <div class="subtitle">Cavite State University - Bacoor Campus</div>
+      </div>
+      <div class="profile-pic">
+        {% if student.profile_picture %}
+        <img src="{{ student.profile_picture.url }}" alt="Profile Picture" width="60" style="border-radius: 50%; margin-right: 1em;">
+        {% else %}
+        <img src="{% static 'images/Default_avatar.webp' %}" alt="Default Profile Picture" width="60" style="margin-right: 1em; border-radius: 50%;">
+        {% endif %}
+        <a style="font-weight: 500;">
+          <p id="profile_name" style="color: #fafafa; display: inline-block;">{{ request.user }}</p>
         </a>
-        <div class="title-container">
-          <div class="header-title">Feedback and Evaluation System </div>
-          <div class="subtitle">Cavite State University - Bacoor Campus</div>
-        </div>
-        <div class="profile-pic">
-          {% if student.profile_picture %}
-          <img src="{{ student.profile_picture.url }}" alt="Profile Picture" width="60" style=" border-radius: 50%; margin-right: 1em;">
-          {% else %}
-          <img src="{% static 'images/Default_avatar.webp' %}" alt="Default Profile Picture" width="60" style="margin-right: 1em; border-radius: 50%;" >
-          {% endif %}
-            <a style="font-weight: 500;"> <p id="profile_name" style="color: #fafafa; display: inline-block;">{{ request.user }}</p> </a>
-        </div>
+      </div>
     </div>
-</div>
-    <nav id="sidebar" class="sidebar lightsidebar"> 
+    <nav id="sidebar" class="sidebar lightsidebar">
       <ul class="nav flex-column nav-pills nav-container">
         {% if is_admin %}
         <li class="nav-item">
           <a class="nav-link {% if request.path == '/administrator' %} active {% endif %}" href="/administrator">
-          <i class="bi bi-grid-1x2-fill nav-icon"></i> <b>Dashboard</b>
-        
-        
-        </a>
-      </li>
-
-      <li class="nav-item dropdown">
-        <button class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-          <i class="bi bi-chat-left-fill nav-icon"></i> <b>Evaluations</b>
-        </button>
-        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+            <i class="bi bi-grid-1x2-fill nav-icon"></i> <b>Dashboard</b>
+          </a>
+        </li>
+        <li class="nav-item dropdown">
+          <button class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <i class="bi bi-chat-left-fill nav-icon"></i> <b>Evaluations</b>
+          </button>
+          <div class="dropdown-menu" aria-labelledby="navbarDropdown">
             <a class="dropdown-item" href="{% url 'admin_faculty_evaluations' %}">Faculty Evaluations</a>
             <a class="dropdown-item" href="{% url 'admin_event_evaluations' %}">Event Evaluations</a>
             <a class="dropdown-item" href="{% url 'stakeholderevaluations' %}">Stakeholder Evaluations</a>
           </div>
         </li>
-    
         <li class="nav-item">
           <a class="nav-link {% if request.path == '/forms' %} active {% endif %}" href="{% url 'forms' %}">
             <i class="bi bi-ui-radios nav-icon"></i> <b>Forms</b>
           </a>
         </li>
-      <li class="nav-item dropdown">
-        <button class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-          <i class="bi bi-duffle-fill nav-icon"></i> <b>Faculty</b>
-        </button>
-        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+        <li class="nav-item dropdown">
+          <button class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <i class="bi bi-duffle-fill nav-icon"></i> <b>Faculty</b>
+          </button>
+          <div class="dropdown-menu" aria-labelledby="navbarDropdown">
             <a class="dropdown-item" href="{% url 'faculty' %}">Faculty</a>
             <a class="dropdown-item" href="{% url 'department' %}">Departments</a>
           </div>
-      </li>
-      <li class="nav-item dropdown">
-        <button class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-          <i class="bi bi-backpack-fill nav-icon"></i> <b>Students</b>
-        </button>
-        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+        </li>
+        <li class="nav-item dropdown">
+          <button class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <i class="bi bi-backpack-fill nav-icon"></i> <b>Students</b>
+          </button>
+          <div class="dropdown-menu" aria-labelledby="navbarDropdown">
             <a class="dropdown-item" href="{% url 'students' %}">Students</a>
             <a class="dropdown-item" href="{% url 'courses' %}">Courses</a>
             <a class="dropdown-item" href="{% url 'sections' %}">Sections</a>
-            <a class="dropdown-item" href="{% url 'subjects' %}">Subjects</a>          
+            <a class="dropdown-item" href="{% url 'subjects' %}">Subjects</a>
           </div>
-      </li>
- 
-   
-    <li class="nav-item">
-      <a class="nav-link {% if request.path == '/users' %} active {% endif %}" href="{% url 'users' %}">
-        <i class="bi bi-people-fill nav-icon"></i> <b>Users</b>
-      </a>
-    </li>
-      {% endif %}
-    <li class="nav-item">
-      <a class="nav-link" href="{% url 'adminlogout' %}">
-        <i class="bi bi-box-arrow-in-left nav-icon"></i> <b>Logout</b>
-      </a>
-    </li>
-
-    </ul>
-  </nav>
-  <main role="main" class="content">
- 
-  <div class="container">
-      {% block header %}
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {% if request.path == '/users' %} active {% endif %}" href="{% url 'users' %}">
+            <i class="bi bi-people-fill nav-icon"></i> <b>Users</b>
+          </a>
+        </li>
+        {% endif %}
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'adminlogout' %}">
+            <i class="bi bi-box-arrow-in-left nav-icon"></i> <b>Logout</b>
+          </a>
+        </li>
+      </ul>
+    </nav>
+    <main role="main" class="content">
+      <div class="container">
+        {% block header %}
         <!-- Main content area -->
         {% if messages %}
-        <div class="container  col-md-10 col-12" >
+        <div class="container col-md-10 col-12">
           {% for message in messages %}
           <div class="alert alert-dismissible {% if message.tags == 'error' %}alert-danger{% elif message.tags == 'success' %}alert-success{% endif %}" role="alert">
-              {{ message }}
-              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>    
-              </div>
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
           {% endfor %}
-      </div>
+        </div>
         {% endif %}
-
-            <div class="row">
-              <div class="col-md-4 mb-2" id="chart-container">
-                <h5 style="font-weight: bold">Academic Year: {{evaluation_status.academic_year}}</h5>
-                <h5 style="font-weight: bold;">{{ evaluation_status.semester }}</h5>
-                <h5>Student Evaluation for Teachers Status: {{evaluation_status.evaluation_status}}</h5>
-                <h6>Evaluation End Date: {{evaluation_status.evaluation_end_date}}</h6>
-                <h6>Evaluation Release Date: {{evaluation_status.evaluation_release_date}}</h6>
-                <button type="button" class="btn btn-warning custom-btn mt-2"  style = "color: black; text-decoration: none; "data-bs-toggle="modal" data-bs-target="#exampleModal"><i class="bi bi-pencil-square"></i>
-                  <b>Edit</b>              
-                </button>
-                <a class="btn btn-warning custom-btn mt-2"  style = "color: black; text-decoration: none; " href="{% url 'adminregister' %}"><i class="bi bi-person-plus-fill"></i> <b>Add New Admin</b></a>
+        <div class="row">
+          <div class="col-md-4 mb-2" id="chart-container">
+            <h5 style="font-weight: bold">Academic Year: {{evaluation_status.academic_year}}</h5>
+            <h5 style="font-weight: bold;">{{ evaluation_status.semester }}</h5>
+            <h5>Student Evaluation for Teachers Status: {{evaluation_status.evaluation_status}}</h5>
+            <h6>Evaluation End Date: {{evaluation_status.evaluation_end_date}}</h6>
+            <h6>Evaluation Release Date: {{evaluation_status.evaluation_release_date}}</h6>
+            <button type="button" class="btn btn-warning custom-btn mt-2" style="color: black; text-decoration: none;" data-bs-toggle="modal" data-bs-target="#exampleModal"><i class="bi bi-pencil-square"></i>
+              <b>Edit</b>
+            </button>
+            <a class="btn btn-warning custom-btn mt-2" style="color: black; text-decoration: none;" href="{% url 'adminregister' %}"><i class="bi bi-person-plus-fill"></i> <b>Add New Admin</b></a>
+          </div>
+          <div class="col-md-2 mb-2">
+            <div class="card">
+              <div class="card-body">
+                <h5 class="card-title" style="text-align: center;">{{ total_user }}</h5>
+                <p class="card-text" style="text-align: center;"><small>Total Registered Users</small></p>
               </div>
-               <div class="col-md-2 mb-2">
-                <div class="card">
-                  <div class="card-body">
-                    <h5 class="card-title" style="text-align: center;">{{ total_user }}</h5>
-                    <p class="card-text " style="text-align: center;"><small>Registered Users</small></p>
-                </div>
-              </div>
-              </div>
-               <div class="col-md-2 mb-2">
-                <div class="card">
-                  <div class="card-body">
-                    <h5 class="card-title" style="text-align: center;">{{registered_faculty}} / {{ total_faculty }}</h5>
-                    <p class="card-text " style="text-align: center;"><small>Registered/Total Faculty</small></p>
-                </div>
-              </div>
-              </div>
-               <div class="col-md-2 mb-2">
-                <div class="card">
-                  <div class="card-body">
-                    <h5 class="card-title" style="text-align: center;">{{registered_students}} / {{ total_students }}</h5>
-                    <p class="card-text " style="text-align: center;"><small>Registered/Total Students</small></p>
-                </div>
-              </div>
-              </div>
-               <div class="col-md-2 mb-2">
-                <div class="card">
-                  <div class="card-body">
-                    <h5 class="card-title" style="text-align: center;">{{ total_sections }}</h5>
-                    <p class="card-text " style="text-align: center;">Total Section</p>
-                </div>
-              </div>
-              </div>
-            </div>
-      
-
-          <!-- Modal -->
-            <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-            <div class="modal-content">
-            <div class="modal-header">
-              <h1 class="modal-title fs-5" id="exampleModalLabel">Edit Evaluation Status</h1>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-            <form method="POST" action="">
-              {% csrf_token %}
-              <div class="form-group">
-                {{ form.academic_year.label_tag }}
-                {{ form.academic_year }}
-                </div>
-                <div class="form-group">
-                {{ form.semester.label_tag }}
-                {{ form.semester }}
-                </div>
-                <div class="form-group">
-                {{ form.evaluation_status.label_tag }}
-                {{ form.evaluation_status }}
-                </div>
-                <div class="form-group">
-                {{ form.evaluation_end_date.label_tag }}
-                {{ form.evaluation_end_date }}
-                <small class="form-text text-muted mt-1">
-                  The date on which evaluations will be closed.
-              </small>
-                </div>
-                <div class="form-group">
-                {{ form.evaluation_release_date.label_tag }}
-                {{ form.evaluation_release_date }}
-                <small class="form-text text-muted mt-1">
-                  The date on which evaluations will be released to faculty members.
-                </small>
-                </div>
-            </div>
-        <div class="modal-footer">
-        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
-        <input type = "submit" value="Save Changes" class="btn btn-success">
-      </form>
-      </div>
-      </div>
-      </div>
-      </div>
-            
-    {% endblock header %}
-    
-    {% block feature %}
-
-
-
-    </div>
-    <!-- Button with Form Dropdown -->
-<div class="dropdown">
-  <button class="btn btn-primary dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-    <i class="bi bi-funnel"></i> Filter Data
-  </button>
-  <div class="dropdown-menu filter_dropdown" aria-labelledby="filterDropdown">
-      <form method="GET" id="filterForm" class="form">
-          <div class="row">
-            <div class="mb-3 col-7">
-                {{ filterset.form.academic_year.label_tag }}
-                {{ filterset.form.academic_year }}
-            </div>
-            <div class="mb-3 col-4">
-                {{ filterset.form.semester.label_tag }}
-                {{ filterset.form.semester }}
             </div>
           </div>
-      </form>
-  </div>
-</div>
-
-    <div class="row mt-2">
-      <div class="col-md-6">
-        <div id="chart-container">
-        <h5>Sentiment Analysis of Faculty Members</h5>
-        <canvas id="myChart"></canvas>
+          <div class="col-md-2 mb-2">
+            <div class="card">
+              <div class="card-body">
+                <h5 class="card-title" style="text-align: center;">{{registered_faculty}} / {{ total_faculty }}</h5>
+                <p class="card-text" style="text-align: center;"><small>Registered / Total Faculty</small></p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-2 mb-2">
+            <div class="card">
+              <div class="card-body">
+                <h5 class="card-title" style="text-align: center;">{{registered_students}} / {{ total_students }}</h5>
+                <p class="card-text" style="text-align: center;"><small>Registered / Total Students</small></p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-2 mb-2">
+            <div class="card">
+              <div class="card-body">
+                <h5 class="card-title" style="text-align: center;">{{ total_admins }}</h5>
+                <p class="card-text" style="text-align: center;"><small>Total Administrators</small></p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Modal -->
+        <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h1 class="modal-title fs-5" id="exampleModalLabel">Edit Evaluation Status</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                <form method="POST" action="">
+                  {% csrf_token %}
+                  <div class="form-group">
+                    {{ form.academic_year.label_tag }}
+                    {{ form.academic_year }}
+                  </div>
+                  <div class="form-group">
+                    {{ form.semester.label_tag }}
+                    {{ form.semester }}
+                  </div>
+                  <div class="form-group">
+                    {{ form.evaluation_status.label_tag }}
+                    {{ form.evaluation_status }}
+                  </div>
+                  <div class="form-group">
+                    {{ form.evaluation_end_date.label_tag }}
+                    {{ form.evaluation_end_date }}
+                    <small class="form-text text-muted mt-1">
+                      The date on which evaluations will be closed.
+                    </small>
+                  </div>
+                  <div class="form-group">
+                    {{ form.evaluation_release_date.label_tag }}
+                    {{ form.evaluation_release_date }}
+                    <small class="form-text text-muted mt-1">
+                      The date on which evaluations will be released to faculty members.
+                    </small>
+                  </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+                <input type="submit" value="Save Changes" class="btn btn-success">
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endblock header %}
+        {% block feature %}
+      </div>
+      <!-- Button with Form Dropdown -->
+      <div class="dropdown">
+        <button class="btn btn-primary dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+          <i class="bi bi-funnel"></i> Filter Data
+        </button>
+        <div class="dropdown-menu filter_dropdown" aria-labelledby="filterDropdown">
+          <form method="GET" id="filterForm" class="form">
+            <div class="row">
+              <div class="mb-3 col-7">
+                {{ filterset.form.academic_year.label_tag }}
+                {{ filterset.form.academic_year }}
+              </div>
+              <div class="mb-3 col-4">
+                {{ filterset.form.semester.label_tag }}
+                {{ filterset.form.semester }}
+              </div>
+            </div>
+          </form>
         </div>
       </div>
-  
-      <div class="col-md-6">
-        <div id="chart-container">
-        <h5>Total Responses per Year/Semester</h5>
-             <canvas id="evaluationChart"></canvas>
-             </div>
-            </div>
+      <div class="row mt-2">
+        <div class="col-md-6">
+          <div id="chart-container">
+            <h5>Sentiment Analysis of Faculty Members</h5>
+            <canvas id="myChart"></canvas>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div id="chart-container">
+            <h5>Total Responses per Year/Semester</h5>
+            <canvas id="evaluationChart"></canvas>
+          </div>
+        </div>
       </div>
-
-
       <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
       <script>
-         // Get chart data from Django view
-        var chartData = {{ chart_data|safe }};
-           // Render Chart.js chart
+        // Get chart data from Django view
+        var chartData = "{{ chart_data|safe }}";
+        // Render Chart.js chart
         const ctx = document.getElementById('myChart');
-      
         new Chart(ctx, {
           type: 'bar',
           data: {
@@ -278,37 +254,37 @@
               label: '',
               data: chartData.data,
               backgroundColor: [
-              'rgba(80, 180, 120, 1)', // Positive
-              'rgba(255, 0, 0, 1)'  // Negative
-            ],
-            borderColor: [
-            'rgba(80, 180, 120, 1)',
-            'rgba(255, 0, 0, 1)'
-            ],
-            borderWidth: 1
+                'rgba(80, 180, 120, 1)', // Positive
+                'rgba(255, 0, 0, 1)' // Negative
+              ],
+              borderColor: [
+                'rgba(80, 180, 120, 1)',
+                'rgba(255, 0, 0, 1)'
+              ],
+              borderWidth: 1
             }]
           },
           options: {
             responsive: true,
-                            plugins: {
-                                legend: {
-                                    display: true,
-                                    position: 'top',
-                                    labels: {
-                                        boxWidth: 0,  // Set box width to 0 to hide the color box
-                                        font: {
-                                            size: 14
-                                        }
-                                    }
-                                },
-                                tooltip: {
-                                    callbacks: {
-                                        label: function(tooltipItem) {
-                                            return tooltipItem.label + ': ' + tooltipItem.raw;  // Show label without color
-                                        }
-                                    }
-                                }
-                            },
+            plugins: {
+              legend: {
+                display: true,
+                position: 'top',
+                labels: {
+                  boxWidth: 0, // Set box width to 0 to hide the color box
+                  font: {
+                    size: 14
+                  }
+                }
+              },
+              tooltip: {
+                callbacks: {
+                  label: function(tooltipItem) {
+                    return tooltipItem.label + ': ' + tooltipItem.raw; // Show label without color
+                  }
+                }
+              }
+            },
             scales: {
               y: {
                 beginAtZero: true
@@ -317,65 +293,61 @@
           }
         });
       </script>
-
-
-    <script>
-      // Retrieve data from the server
-      fetch('{% url "evaluation_response_chart_data" %}')
+      <script>
+        // Retrieve data from the server
+        fetch('{% url "evaluation_response_chart_data" %}')
           .then(response => response.json())
           .then(data => {
-              // Render chart
-              var ctx = document.getElementById('evaluationChart').getContext('2d');
-              var chart = new Chart(ctx, {
-                  type: 'line',
-                  data: {
-                      labels: data.labels,
-                      datasets: [{
-                          label: 'Total Responses',
-                          data: data.data,
-                          fill: false,
-                          borderColor: 'rgb(75, 192, 192)',
-                          tension: 0.1
-                      }]
-                  },
-                  options: {
-                      scales: {
-                          y: {
-                              beginAtZero: true
-                          }
-                      }
+            // Render chart
+            var ctx = document.getElementById('evaluationChart').getContext('2d');
+            var chart = new Chart(ctx, {
+              type: 'line',
+              data: {
+                labels: data.labels,
+                datasets: [{
+                  label: 'Total Responses',
+                  data: data.data,
+                  fill: false,
+                  borderColor: 'rgb(75, 192, 192)',
+                  tension: 0.1
+                }]
+              },
+              options: {
+                scales: {
+                  y: {
+                    beginAtZero: true
                   }
-              });
+                }
+              }
+            });
           });
-  </script>
-  
-  <div style="margin-top: 1em;">
-    <div id="chart-container">
-      <h5>Department Evaluation Chart</h5>
-      <select class="form-select" id="departmentSelect" style="margin-top: 1em;">
-        <option value="">Select a department</option>
-        {% for department in departments %}
+      </script>
+      <div style="margin-top: 1em;">
+        <div id="chart-container">
+          <h5>Department Evaluation Chart</h5>
+          <select class="form-select" id="departmentSelect" style="margin-top: 1em;">
+            <option value="">Select a department</option>
+            {% for department in departments %}
             <option value="{{ department.id }}">{{ department.name }}</option>
-        {% endfor %}
-      </select>
-      <canvas id="departmentChart" height="100px"></canvas>
-    </div>
-  </div>
-  
-  <div style="margin-top: 1em; display: none;" id="facultyChartContainer">
-<div id="chart-container">
-  
-        <h5 id="facultyChartTitle">Faculty Evaluations for <span id="departmentName"></span></h5>
-        <select class="form-select" id="facultyDepartmentSelect" style="margin-top: 1em;">
-          <option value="">Select a department</option>
-          {% for department in departments %}
-              <option value="{{ department.id }}">{{ department.name }}</option>
-          {% endfor %}
-        </select>
-  
-  
-      <canvas id="facultyChart" height="100px"></canvas>
-</div>
+            {% endfor %}
+          </select>
+          <canvas id="departmentChart" height="100px"></canvas>
+        </div>
+      </div>
+      <div style="margin-top: 1em; display: none;" id="facultyChartContainer">
+        <div id="chart-container">
+          <h5 id="facultyChartTitle">Faculty Evaluations for <span id="departmentName"></span></h5>
+          <select class="form-select" id="facultyDepartmentSelect" style="margin-top: 1em;">
+            <option value="">Select a department</option>
+            {% for department in departments %}
+            <option value="{{ department.id }}">{{ department.name }}</option>
+            {% endfor %}
+          </select>
+          <canvas id="facultyChart" height="100px"></canvas>
+        </div>
+      </div>
+    
+    </main>
   </div>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
@@ -492,7 +464,7 @@
     });
 
   </script>
- {% endblock feature %}
+      {% endblock feature %}
 
  
   </main>

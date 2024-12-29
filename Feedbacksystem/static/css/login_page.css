@@ -4,7 +4,7 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: 'Montserrat', sans-serif !important;
+    font-family: 'system-ui', sans-serif !important;
 }
 
 body{
@@ -38,13 +38,6 @@ h5{
   background-color: #2a9134 !important;
   color: #ffffff;
 }
-#admin{
-    font-weight: 500;
-    color: #ffffff;
-    margin-bottom: 0.5em;
-    margin-top: 0.5em;
-    font-size: 1em;
-}
 
 
 .container-body{
@@ -55,19 +48,10 @@ h5{
     overflow: hidden;
     width: 53.125em;
     max-width: 100%;
-    min-height: 32.5em;
+    min-height: 30em;
     color: #ffffff;
 }
 
-.container-body p{
-    font-size: 1em;
-    line-height: 1.2em;
-    letter-spacing: 0.1em;
-    margin: 1.2em 0;
-    font-weight: 600;
-    color: #ffffff;
-    margin-left: 2em;
-}
 
 .container-body a{
     color: #ffffff;
@@ -78,14 +62,14 @@ h5{
   
 }
 
-.container-body button{
+.container-body .form___button{
     background-color: #f7b205;
     color: #000000;
     font-size: 0.75em;
     padding: 0.625rem 2.81rem;
     border: 1px solid transparent;
     border-radius: 0.5em;
-    font-weight: 600;
+    font-weight: 700;
     letter-spacing: 0.1em;
     text-transform: uppercase;
     margin-top: 0.625rem;
@@ -96,7 +80,15 @@ h5{
     background-color: #2a9134;
     
 }
-
+.registration__form__container{
+    margin-left: 2rem;
+}
+.login__form__container{
+    margin-left: 0.5rem;
+}
+.login__form__container__header{
+    margin-right: 1rem;
+}
 .container-body form{
     background-color: #2a9134;
     display: flex;
@@ -108,18 +100,42 @@ h5{
     
 }
 
-.container-body input{
-    background-color: #eeeeee;
+
+.container-body input {
+    background-color: #f8f9fa;
     border: none;
-    margin: 0.5em 0;
-    padding: 0.625em 0.9375em;
-    font-size: 1em;
     border-radius: 0.5em;
-    width: 20em;
     outline: none;
-    font-weight: 500;
+    width: 18rem;
+    font-size: 16px; 
+    color: #333;
+    padding: 10px 12px; 
 }
 
+.input-group.form__input {
+    display: flex; 
+    align-items: center;
+    border-radius: 0.5em; 
+    overflow: hidden; 
+    width: 18rem;
+}
+
+.input-group.form__input input {
+    border-radius: 0.5em 0 0 0.5em; 
+    padding: 10px 12px; 
+    
+}
+
+.input-group.form__input .btn {
+    border-radius: 0 0.5em 0.5em 0;
+    padding: 10px 12px; 
+    font-size: 16px;
+    background-color: #f8f9fa;
+    border: none; 
+}
+.login__form__container{
+    margin-left: 0.5em;
+}
 .form-container{
     position: absolute;
     top: 0;
@@ -203,7 +219,7 @@ h5{
     align-items: center;
     justify-content: center;
     flex-direction: column;
-    padding: 0 2em;
+    padding: 0 3em;
     text-align: center;
     top: 0;
     transform: translateX(0);
@@ -212,6 +228,7 @@ h5{
 
 .toggle-panel h1 {
     margin-bottom: 1em; 
+    margin-left: 1em;
 }
 
 
@@ -263,13 +280,22 @@ li{
     padding-top: 0.5rem;
     max-width: 50rem;
     text-align: center;
-
 }
 
+.toggle-panel__header{
+margin-bottom: 0.5em;
+}
+
+.toggle-panel__header__right{
+    margin-left: 1em;
+}
 @media only screen and (min-width:1200px){
     .message_container{
         margin-top: 10em;
     }    
+    .dropdown-menu {
+        height: 6em;
+    }
 }
 
 @media only screen and (max-width:850px) { 
@@ -278,72 +304,47 @@ li{
 } 
 .container-body{
     width: 47em;
-    min-height: 31em;
+    min-height: 29em;
 }
-
-.container-body button{
-    font-size: 0.70em;
+.registration__form__container{
+    margin-right: 1em;
 }
-.container-body input{
-width: 20em;
-font-size: 0.9em;
-
-}
-.container-body p{
-    margin-left: 1.5em;
-}
-h1{
-    font-size: 1.85rem;
-}
-.toggle-right h1{
-   margin-left: 0.5em;
-}
-li{
-    font-size: 0.9rem;
-}
-h5{
-    font-size:  1.17rem;
-}
-
-
 }
 @media only screen and (max-width:744px) { 
-    .container-body{
-        width: 37em;
-        min-height: 27em;
-    }
-    .container-body p{
-        font-size: 0.85em;
-        line-height: 1em;
-        margin: 1.3em 0;
-        margin-left: 1.2em;
-    }
-    
-.container-body button{
-    font-size: 0.70em;
+.container-body{
+    width: 43em;
+    min-height: 27em;
 }
+
 .container-body input{
-    padding: 0.6em 0.85em;
-    font-size: 0.85em;
-    width: 19em;
+    width: 15rem;
 }
+
+.input-group.form__input {
+    width: 15rem;
+}
+
+.input-group.form__input input {
+    padding: 10px 12px; 
+}
+
+.input-group.form__input .btn {
+
+    padding: 10px 12px;
+    font-size: 16px;
+
+}
+
+
 h1{
-    font-size: 1.4rem;
-}
-.toggle-right h1{
-   margin-left: 1em;
-}
-li{
-    font-size: 0.8rem;
+    font-size: 2rem;
 }
 h5{
-    font-size:  0.9rem;
+    font-size:  1.050rem;
 }
 
 .toggle-panel{
-   
     padding: 0 1.5em;
-   
 }
 .dropdown-menu {
     min-width: 130px !important;
@@ -353,51 +354,46 @@ h5{
 
 }
 }
-@media only screen and (max-width:590px) { 
-    @media only screen and (max-width:590px) {    
+@media only screen and (max-width:600px) {    
     .center{
         margin-left: 1.3em;
     }
-    .container{
-        width: 29em;
+    .container-body{
+        width: 35em;
     }
-    .container p{
-        font-size: 0.70em;
-        line-height: 0.8em;
-        margin: 1em 0;
-        margin-left: 2em;
+    .container-body input {
+        width: 14rem;
+        font-size: 14px; 
+        padding: 10px 12px; 
     }
-    .container button{
-        
-        font-size: 0.5em;
-        padding: 0.4rem 2rem;
-        margin-top: 0.625rem;
-        cursor: pointer;
+
+    .input-group.form__input {
+        width: 14rem;
     }
-    .container input{
-        padding: 0.5em 0.75em;
-        font-size: 0.85em;
-        width: 18em;
+
+    .input-group.form__input input {
+        padding: 10px 12px;
+    }
+
+    .input-group.form__input .btn {
+        padding: 10px 12px; 
+        font-size: 14px;
     }
     h1{
-        font-size: 1rem;
+        font-size: 1.5rem;
     }
     .toggle-right h1{
        margin-left: 2em;
     }
     li{
-        font-size: 0.75rem;
+        font-size: 1rem;
     }
     h5{
-        font-size: 0.9rem;  /* Set the font size */
-        white-space: nowrap;  /* Prevent text from wrapping */
+        font-size: 1rem; 
+        white-space: nowrap;  
 
     }   
-    .container a{
-        font-size: 0.6em;
-        margin: 0.7em 0 0.5px;
-      
-    }
+
     .toggle-right{
        
         padding: 5em 1em 5em 1em;
@@ -417,85 +413,98 @@ h5{
         font-size: 0.6rem !important;
        
     }
-    #admin{
-        font-size: 0.8rem;
-    }
-    .admininput{
-        font-size: 0.6rem !important;   
-    }
+
     .dropdown-menu {
         min-width: 100px !important;
     }
-
+    .registration__form__container{
+        margin-right: 3rem;
+    }
 }
-@media only screen and (max-width:461px) {
+@media only screen and (max-width:539px) {
+    body{
+        height: 100vh;
+    }
     .alert {
-        font-size: 0.75rem; /* Reduce the font size */
+        font-size: 0.75rem; 
         margin-top: 0;
         max-width: 80%;
         margin: 0 auto;
         padding: 10px 5px;
         margin-bottom: 1em;
     }
-    .container-body{
-        width: 23em;
-        min-height: 17em;
-    }
     .faculty-login{
         margin-bottom: 7rem !important;
     }
-    .container-body p{
-        font-size: 0.60em;
-        line-height: 0.8em;
-        margin: 1.1em 0;
-        margin-left: 1.5em;
+    .container-body{
+        width: 24em;
+        min-height: 22em;
     }
-    .container-body input{
-        font-size: 0.8em;
-        width: 18em;
+    .container-body input {
+        width: 11rem;
+        font-size: 12px; 
+        padding: 6px 8px; 
     }
-    .container-body button{
-        font-size: 0.4em;
+
+    .input-group.form__input {
+        width: 11rem;
+    }
+
+    .input-group.form__input input {
+        padding: 6px 8px;
+    }
+
+    .input-group.form__input .btn {
+        padding: 6px 8px; 
+        font-size: 12px;
+    }
+    .registration__form__container{
+        margin-right: 6.5rem;
+        font-size: 12px;
+    }
+    .login__form__container{
+        font-size: 12px;
+        margin-left: 0.3em;
+    }
+    .container-body .form___button{
+        font-size: 0.6rem;
         padding: 0.3rem 1.7rem;
         margin-top: 0.5rem;
     }
     h1{
-        font-size: 0.85rem;
+        font-size: 1.1rem;
+    }
+    .toggle-panel__header{
+        font-size: 1rem;
+    }
+    .toggle-panel__header__right{
+        margin-left: 2em;
     }
     .toggle-right h1{
        margin-left: 2.7em;
     }
     li{
-        font-size: 0.5rem;
+        font-size: 0.7rem;
     }
     h5{
-        font-size:  0.6rem;
+        font-size:  0.9rem;
     }
     .container-body a{
-        font-size: 0.5em;
+        font-size: 0.6em;
         margin: 0.7em 0 0.5px;
       
     }
-
     .toggle-right{
-   
-        padding: 5em 1.2em 5em 1em;
+        padding: 4em 1em 5em 0.5em;
        
     }
     .toggle-left{
-       
-        padding: 5em 2.5em 4.5em 1em;
+        padding: 6em 2.5em 6em 0.3em;
 
     }
     .dropdown-item{
         font-size: 0.5rem !important;
        
-    }
-    #admin{
-        font-size: 0.7rem;
-    }
-    .admininput{
-        font-size: 0.5rem !important;
     }
     .dropdown-menu {
         min-width: 100px !important;
@@ -504,52 +513,67 @@ h5{
         font-size: 0.75rem;
         padding-inline: 1.7rem;
     }
+    
 }
-@media only screen and (max-width:368px) {
-
+@media only screen and (max-width:400px) {
     .container-body{
-        width: 21em;
-        min-height: 15em;
+        width: 22em;
+        min-height: 20em;
     }
-    .container-body p{
-        font-size: 0.55em;
-        line-height: 0.8em;
-        margin: 1em 0;
-        margin-left: 1.5em;
+
+    .container-body input {
+        width: 9rem;
+        font-size: 12px; 
+        padding: 4px 6px; 
     }
-    .container-body input{
-        font-size: 0.75em;
-        width: 18em;
+
+    .input-group.form__input {
+        width: 9rem;
     }
-    .container-body button{
-        font-size: 0.35em;
+
+    .input-group.form__input input {
+        padding: 4px 6px;
+    }
+
+    .input-group.form__input .btn {
+        padding: 4px 6px; 
+        font-size: 12px;
+    }
+    .registration__form__container{
+        font-size: 11px;
+        margin-right: 5.5rem;
+    }
+    .login__form__container{
+        font-size: 11px;
+        margin-left: 0.55em;
+    }
+
+    .container-body .form___button{
+        font-size: 0.5em;
         padding: 0.25rem 1.5rem;
-        margin-top: 0.5rem;
     }
     h1{
-        font-size: 0.75rem;
+        font-size: 1rem;
     }
     .toggle-right h1{
        margin-right: 0.5em;
     }
 
     li{
-        font-size: 0.4rem;
+        font-size: 0.6rem;
     }
     h5{
-        font-size:  0.52rem;
+        font-size:  0.8rem;
     }
     .container-body a{
-        font-size: 0.4em;
+        font-size: 0.55em;
         margin: 0.5em 0 0.5px;
     }
     .toggle-right{
-   
-        padding: 5em 0.1em 5em 1em;
+        padding: 4em 0.5em 4em 1em;
        
     }
     .toggle-left{
-       
         padding: 5em 2.5em 4.5em 1em;
 
     }
@@ -560,15 +584,8 @@ h5{
     .dropdown-menu {
         min-width: 75px !important;
     }
-    #admin{
-        font-size: 0.6rem;
-    }
-    .admininput{
-        font-size: 0.4rem !important;
-    }
     .feedback-note{
         font-size: 0.70rem;
         padding: 0.5rem;
     }
-}
 }

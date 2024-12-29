@@ -177,11 +177,12 @@
                 {% endfor %}
                 </table>
         </div>
-               
+                <div style="margin-top: 2em;">
+                    <label for="other_comments">Other Comments: </label>
+                    {{ form.other_comments }}
+                </div> 
 
-                
-                <br>
-                <button type="submit" class="btn btn-warning custom-btn">Submit</button>
+                <button type="submit" class="btn btn-warning custom-btn mt-2">Submit</button>
                 </form>
             </div>
     {% endif %}

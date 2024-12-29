@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from Feedbacksystem.models import Course, Section, SectionSubjectFaculty, Faculty, Department, Student, Subject, LikertEvaluation, EvaluationStatus, Event, SchoolEventModel, FacultyEvaluationQuestions, SchoolEventQuestions, WebinarSeminarModel, WebinarSeminarQuestions, StakeholderFeedbackModel, StakeholderFeedbackQuestions, Message, PeertoPeerEvaluation, PeertoPeerEvaluationQuestions, StakeholderAgency, Attendance 
-from .forms import TeacherForm, StudentForm, CourseForm, SectionForm, SectionSubjectFacultyForm, SubjectForm, StudentRegistrationForm, StudentLoginForm, LikertEvaluationForm, FacultyRegistrationForm, FacultyLoginForm, EvaluationStatusForm, DepartmentForm, EventCreationForm, SchoolEventForm, WebinarSeminarForm, StudentProfileForm, EditQuestionForm, EditSchoolEventQuestionForm,  WebinarSeminarForm, EditWebinarSeminarQuestionForm, StakeholderFeedbackForm, MessageForm, PeertoPeerEvaluationForm, FacultyProfileForm, AdminRegistrationForm
+from .forms import TeacherForm, StudentForm, CourseForm, SectionForm, SectionSubjectFacultyForm, SubjectForm, StudentRegistrationForm, StudentLoginForm, LikertEvaluationForm, FacultyRegistrationForm, FacultyLoginForm, EvaluationStatusForm, DepartmentForm, EventCreationForm, SchoolEventForm, WebinarSeminarForm, StudentProfileForm, EditQuestionForm, EditSchoolEventQuestionForm,  WebinarSeminarForm, EditWebinarSeminarQuestionForm, StakeholderFeedbackForm, MessageForm, PeertoPeerEvaluationForm, FacultyProfileForm, AdminRegistrationForm, EditStakeholdersQuestionForm
 from django.contrib.auth.models import User, Group
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import UserCreationForm
@@ -1479,11 +1479,12 @@ def admin(request):
     faculty = Faculty.objects.all()
     subject = Subject.objects.all()
     user = User.objects.all()
+    admins = User.objects.filter(groups__name__in=['admin', 'HR admin'])
     departments = Department.objects.all()
 
     total_students = student.count()
     total_courses = course.count()
-    total_sections = section.count()
+    total_admins = admins.count()
     total_faculty = faculty.count()
     total_subject = subject.count()
     total_user = user.count()
@@ -1567,7 +1568,7 @@ def admin(request):
                 'evaluation_status': evaluation_status,
                'total_students': total_students,
                 'total_courses': total_courses,
-                'total_sections': total_sections,
+                'total_admins': total_admins,
                 'total_faculty': total_faculty,
                 'total_subject': total_subject,
                 'total_user': total_user,
@@ -3301,6 +3302,30 @@ def edit_webinar_seminar_form_question(request, pk):
         form = EditWebinarSeminarQuestionForm(instance=question)  # Pre-populate form with existing data
     context = {'form': form, 'is_admin': is_admin}
     return render(request, 'pages/edit_webinar_seminar_form_question.html', context)
+
+@login_required(login_url='signin')
+@allowed_users(allowed_roles=['admin'])
+def edit_stakeholders_feedback_form(request):
+    is_admin = request.user.groups.filter(name='admin').exists()
+    questions = StakeholderFeedbackQuestions.objects.all()
+    return render(request, 'pages/edit_stakeholders_feedback_form.html', {'questions': questions, 'is_admin': is_admin})
+
+@login_required(login_url='signin')
+@allowed_users(allowed_roles=['admin'])
+def edit_stakeholders_feedback_form_question(request, pk):
+    is_admin = request.user.groups.filter(name='admin').exists()
+    question = StakeholderFeedbackQuestions.objects.get(pk=pk)
+    if request.method == 'POST':
+        form = EditStakeholdersQuestionForm(request.POST, instance=question)  # Use EditQuestionForm
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Form updated successfully')
+            return redirect('edit_webinar_seminar_form')  # Redirect to success view
+    else:
+        form = EditStakeholdersQuestionForm(instance=question)  # Pre-populate form with existing data
+    context = {'form': form, 'is_admin': is_admin}
+    return render(request, 'pages/edit_stakeholders_feedback_form_question.html', context)
+
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['admin'])
@@ -6270,7 +6295,7 @@ def peer_to_peer_evaluation_form(request,pk):
     notifications_unread_count = unread_notifications.count()
     messages_unread_count = unread_messages.count()
     faculty_department = Faculty.objects.filter(department=faculty.department).order_by('first_name')
-    questions = PeertoPeerEvaluationQuestions.objects.all().order_by('order')
+    questions = FacultyEvaluationQuestions.objects.all().order_by('order')
     user = request.user
     evaluation_status = EvaluationStatus.objects.first()
     user_evaluations = PeertoPeerEvaluation.objects.filter(

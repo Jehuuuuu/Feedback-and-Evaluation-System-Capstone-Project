@@ -20,14 +20,14 @@
 {% endfor %}
 
 {% endif %}
-<table class="table table-responsive table-bordered" >
+<table class="table table-responsive table-bordered " >
     <tr>
         <th scope="col"style="color:#fafafa; background: #2a9134">Question</th>
         <th  scope="col"style="color:#fafafa; background: #2a9134">Options</th>
  {% for i in questions %}
     <tr>
     <td>{{i.text}}</td>
-    <td><a class="btn btn-warning custom-btn" href="{% url 'edit_faculty_evaluation_form_question'  i.pk  %}"><i class="bi bi-pencil-square"></i> <b>Edit</b></a></td>
+    <td><a class="btn btn-warning custom-btn" href="{% url 'edit_stakeholders_feedback_form_question'  i.pk  %}"><i class="bi bi-pencil-square"></i> <b>Edit</b></a></td>
 </tr>
 {% endfor %}
     </table>

@@ -1,7 +1,7 @@
 from django.forms import ModelForm
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
-from .models import Faculty, Student, Course, Section, SectionSubjectFaculty, Subject, EvaluationStatus, Department, Event, SchoolEventModel, WebinarSeminarModel, FacultyEvaluationQuestions, SchoolEventQuestions, WebinarSeminarQuestions, LikertEvaluation, Message, PeertoPeerEvaluation
+from .models import Faculty, Student, Course, Section, SectionSubjectFaculty, Subject, EvaluationStatus, Department, Event, SchoolEventModel, WebinarSeminarModel, FacultyEvaluationQuestions, SchoolEventQuestions, WebinarSeminarQuestions, LikertEvaluation, Message, PeertoPeerEvaluation, StakeholderFeedbackQuestions
 from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
@@ -35,20 +35,29 @@ class StudentForm(ModelForm):
     class Meta:
         model = Student
         fields = '__all__' 
-        exclude = ['user']
+        exclude = ['user', 'profile_picture']
         widgets = {
             'student_number': forms.TextInput(attrs={'class': 'form-control'}),
             'last_name': forms.TextInput(attrs={'class': 'form-control'}),
             'first_name': forms.TextInput(attrs={'class': 'form-control'}),
             'middle_name': forms.TextInput(attrs={'class': 'form-control'}),
             'email': forms.EmailInput(attrs={'class': 'form-control'}),
-            'age': forms.TextInput(attrs={'class': 'form-control'}),
-            'sex': forms.TextInput(attrs={'class': 'form-control'}),
-            'contact_no': forms.TextInput(attrs={'class': 'form-control'}),
+            'year': forms.TextInput(attrs={'class': 'form-control'}),
+            'address': forms.TextInput(attrs={'class': 'form-control'}),
+            'contact_no': forms.NumberInput(attrs={'class': 'form-control'}),
             'status': forms.Select(attrs={'class': 'form-control'}),
             'Course': forms.Select(attrs={'class': 'form-control'}),
             'Section': forms.Select(attrs={'class': 'form-control'}),
+            'semester': forms.Select(attrs={'class': 'form-control'}),
+            'date_enrolled': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'school_year': forms.TextInput(attrs={'class': 'form-control'}),
+            'major': forms.TextInput(attrs={'class': 'form-control'}),
+            'old_or_new_student': forms.Select(attrs={'class': 'form-control'}),
+            'status': forms.Select(attrs={'class': 'form-control'}),
+            'birthdate': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'gender': forms.Select(attrs={'class': 'form-control'}),
         }
+
 class DepartmentForm(ModelForm):
     class Meta:
         model = Department
@@ -85,8 +94,8 @@ class SectionSubjectFacultyForm(ModelForm):
             'section': forms.Select(attrs={'class': 'form-control'}),
             'subjects': forms.Select(attrs={'class': 'form-control'}),
             'faculty': forms.Select(attrs={'class': 'form-control'}),
-
         }
+
 class SubjectForm(ModelForm):
     class Meta:
         model = Subject
@@ -94,8 +103,8 @@ class SubjectForm(ModelForm):
         widgets = {
             'subject_code': forms.TextInput(attrs={'class': 'form-control'}),
             'subject_name': forms.TextInput(attrs={'class': 'form-control'}),
-
         }
+
 class EvaluationStatusForm(ModelForm):
     class Meta:
         model = EvaluationStatus
@@ -116,10 +125,15 @@ class EvaluationStatusForm(ModelForm):
         }
 
 class StudentRegistrationForm(UserCreationForm):
-    student_number = forms.CharField( max_length=9, label="Student Number")
+    student_number = forms.CharField(label="Student Number", widget=forms.NumberInput(attrs={'type': 'number','oninput': 'if(this.value.length > 9) this.value = this.value.slice(0, 9);'}),
+                                       )
     class Meta:
         model = User
         fields = ('student_number', 'password1', 'password2')
+        widgets = {
+            'password1': forms.PasswordInput(attrs={'id': 'id_password1'}),
+            'password2': forms.PasswordInput(attrs={'id': 'id_password2'}),
+        }
 
     def clean_student_number(self):
         student_number = self.cleaned_data.get('student_number')
@@ -176,7 +190,7 @@ class StudentRegistrationForm(UserCreationForm):
             self.fields[field_name].help_text = ''
         
         for field in self.fields.values():
-            field.widget.attrs['class'] = 'form-control-sm'
+            field.widget.attrs['class'] = 'form-control'
             
         # Suppress inline error rendering
         self.error_class = NoErrorList  
@@ -187,6 +201,11 @@ class FacultyRegistrationForm(UserCreationForm):
     class Meta:
         model = User
         fields = ('email', 'password1', 'password2')
+        widgets = {
+            'password1': forms.PasswordInput(attrs={'id': 'id_password1'}),
+            'password2': forms.PasswordInput(attrs={'id': 'id_password2'}),
+        }
+
 
     def clean_email(self):
         email = self.cleaned_data.get('email')
@@ -235,7 +254,7 @@ class FacultyRegistrationForm(UserCreationForm):
             self.fields[field_name].help_text = ''
         
         for field in self.fields.values():
-            field.widget.attrs['class'] = 'form-control-sm'
+            field.widget.attrs['class'] = 'form-control'
         
         self.error_class = NoErrorList  
             
@@ -281,27 +300,30 @@ class AdminRegistrationForm(UserCreationForm):
 
 class StudentLoginForm(forms.Form):
     student_number = forms.CharField(
-        max_length=9,
-        widget=forms.TextInput
+        widget=forms.NumberInput(attrs={'type': 'number','oninput': 'if(this.value.length > 9) this.value = this.value.slice(0, 9);'}),
+        label="Student Number"
     )
-    password = forms.CharField(widget=forms.PasswordInput)
+    password = forms.CharField(
+        widget=forms.PasswordInput(attrs={'id': 'id_password'}),
+        label="Password"
+        )
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         for field in self.fields.values():
-            field.widget.attrs['class'] = 'form-control-sm'
+            field.widget.attrs['class'] = 'form-control'
 
            
 class FacultyLoginForm(forms.Form):
     email = forms.EmailField(max_length=100)
-    password = forms.CharField(widget=forms.PasswordInput)
+    password = forms.CharField(widget=forms.PasswordInput(attrs={'id': 'id_password'}))
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         for field in self.fields.values():
-            field.widget.attrs['class'] = 'form-control-sm'
+            field.widget.attrs['class'] = 'form-control'
 
            
 class LikertEvaluationForm(forms.Form):
@@ -566,6 +588,8 @@ class WebinarSeminarForm(forms.Form):
                                         (2, ''), (1, '')],  widget=forms.RadioSelect(attrs={'class': 'likert-horizontal custom-radio'}))
     overall_satisfaction = forms.ChoiceField(choices=[(5, ''), (4, ''), (3, ''),
                                         (2, ''), (1, '')],  widget=forms.RadioSelect(attrs={'class': 'likert-horizontal custom-radio'}))
+    
+    other_comments = forms.CharField(required=True, widget=forms.TextInput(attrs={'size': 60, 'class': 'form-control'}))  # Adjust size as needed
 
 class StakeholderFeedbackForm(forms.Form):
     name = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs={'class': 'form-control'}))
@@ -663,6 +687,14 @@ class EditSchoolEventQuestionForm(ModelForm):
 class EditWebinarSeminarQuestionForm(ModelForm):
     class Meta:
         model = WebinarSeminarQuestions
+        fields = ['text'] 
+        widgets = {
+            'text': forms.Textarea(attrs={'class': 'form-control'}),
+        }
+       
+class EditStakeholdersQuestionForm(ModelForm):
+    class Meta:
+        model = StakeholderFeedbackQuestions
         fields = ['text'] 
         widgets = {
             'text': forms.Textarea(attrs={'class': 'form-control'}),

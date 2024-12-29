@@ -821,6 +821,8 @@ class WebinarSeminarModel(models.Model):
     overall_satisfaction = models.IntegerField(choices=[(5, 'Greatly exceeded expectations'), (4, 'Exceeded expectations'), (3, 'Matched expectations'),
                                         (2, 'Less than expected'), (1, 'Much less than expected')])
     
+    other_comments = models.TextField()
+    
     academic_year = models.CharField(max_length=50, null=True, blank=True)
     semester = models.CharField(max_length=50, null=True, blank=True)
     average_rating = models.FloatField(null=True, blank=True)
