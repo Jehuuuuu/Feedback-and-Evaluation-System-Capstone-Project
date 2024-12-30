@@ -3334,14 +3334,14 @@ def faculty(request):
     faculty = Faculty.objects.all()  
         #filtering functionality
     faculty_filter = FacultyFilter(request.GET, queryset=faculty)
-    faculty = faculty_filter.qs
+    filtered_faculty = faculty_filter.qs
 
     # ordering functionality
    
     ordering = request.GET.get('ordering', "")
      
     if ordering:
-        faculty = faculty.order_by(ordering) 
+        filtered_faculty = faculty.order_by(ordering) 
 
     form = TeacherForm()
     if request.method == 'POST':
@@ -3360,27 +3360,46 @@ def faculty(request):
             imported_data = dataset.load(import_faculty.read(), format='xlsx')
 
             for data in imported_data:
+                last_name = data[0]
                 first_name = data[1]
-                last_name = data[2]
-                email = data[3]
-                gender = data[4]
+                middle_name = data[2]
+                gender = data[3]
+                birthday = data[4]
                 contact_number = data[5]
-                department_name = data[6]  
+                email = data[6]
+                employment_status = data[7]
+                academic_rank = data[8]
+                date_of_employment = data[9]
+                years_in_service = data[10]
+                department_name = data[11]
+                no_of_workload = data[12]
+                educational_attainment = data[13]
+                eligibility = data[14]
+
 
                 department = Department.objects.filter(name=department_name).first()
                 if not department:
                     messages.error(request, f"Department with name '{department_name}' not found.")
                     continue  # Skip this row if course doesn't exist
 
-                # Update the existing student or create a new one
+     
                 faculty, created = Faculty.objects.update_or_create(
-                    first_name=first_name,
-                    last_name=last_name,
+                    email=email,  
                     defaults={
-                        'email': email,
+                        'first_name': first_name,
+                        'last_name': last_name,
+                        'middle_name': middle_name,
                         'gender': gender,
+                        'birthday': birthday,
                         'contact_number': contact_number,
+                        'employment_status': employment_status,
+                        'academic_rank': academic_rank,
+                        'date_of_employment': date_of_employment,
+                        'years_in_service': years_in_service,
                         'department': department,
+                        'no_of_workload': no_of_workload,
+                        'educational_attainment': educational_attainment,
+                        'eligibility': eligibility,
                     }
                 )
                                 # Increment counters based on whether the student was created or updated
@@ -3400,7 +3419,7 @@ def faculty(request):
         
 
    
-    paginator = Paginator(faculty, 5)
+    paginator = Paginator(filtered_faculty, 5)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     context = {'faculty': faculty, 'form': form, 'page_obj': page_obj, 'faculty_filter': faculty_filter, 'is_admin': is_admin}
@@ -3613,11 +3632,11 @@ def students(request):
 
                 if not course:
                     messages.error(request, f"Course with name '{course_name}' not found.")
-                    continue  # Skip this row if course doesn't exist
+                    break  # Skip this row if course doesn't exist
 
                 if not section:
                     messages.error(request, f"Section with name '{section_name}' not found.")
-                    continue  # Skip this row if section doesn't exist
+                    break  # Skip this row if section doesn't exist
 
                 # Update the existing student or create a new one
                 student, created = Student.objects.update_or_create(
@@ -3654,8 +3673,6 @@ def students(request):
             if updated_count > 0:
                 messages.info(request, f"Updated {updated_count} student(s).")
 
-            else:
-                messages.info(request, 'Please upload a valid Excel file.')
 
        
         paginator = Paginator(students, 5) 
@@ -3809,17 +3826,17 @@ def sections(request):
 
                 if not section:
                             messages.error(request, f"Section with name '{section_name}' not found.")
-                            return redirect('sections')
+                            break
                 
                 if not subject:
                     messages.error(request, f"Subject with name '{subject_name}' not found.")
-                    break  # Skip this row if course doesn't exist
+                    break  
 
                 
                 
                 if not faculty:
                     messages.error(request, f"Faculty with name '{faculty_full_name}' not found.")
-                    break  # Skip this row if section doesn't exist
+                    break  
                 
                 sub_faculty, created = SectionSubjectFaculty.objects.update_or_create(
                 section=section,
@@ -3954,7 +3971,7 @@ def subjects(request):
             form.save()
             messages.success(request, 'Subject added successfully')
             return redirect('subjects')
-
+  
 
     
     import_subjects = request.FILES.get('subjectfile')
@@ -3987,8 +4004,7 @@ def subjects(request):
         if updated_count > 0:
             messages.info(request, f"Updated {updated_count} subject(s).")
 
-        else:
-            messages.info(request, 'Please upload a valid Excel file.')
+
             
     paginator = Paginator(subject, 5) 
     page_number = request.GET.get('page')

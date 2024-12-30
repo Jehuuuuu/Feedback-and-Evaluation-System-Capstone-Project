@@ -44,14 +44,33 @@ class Department(models.Model):
 
 
 class Faculty(models.Model):
+    GENDER_CHOICES = [
+        ('Male', 'Male'),
+        ('Female', 'Female'),
+    ]
+    EDUCATIONAL_ATTAINMENT_CHOICES = [
+        ('Bachelor', 'Bachelor'),
+        ('Masteral', 'Masteral'),
+        ('Doctoral', 'Doctoral'),
+    ]
     user = models.OneToOneField(User, null = True, blank=True, on_delete=models.CASCADE)
-    first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
-    gender = models.CharField(max_length=9)
+    first_name = models.CharField(max_length=100)
+    middle_name = models.CharField(max_length=100)
+    gender = models.CharField(max_length=20, choices=GENDER_CHOICES)
+    birthday = models.CharField(max_length=50)
+    contact_number = models.CharField(max_length  = 50)
     email = models.EmailField(unique=True)
-    contact_number = models.CharField(max_length  = 11)
-    profile_picture = models.ImageField(upload_to='profile_picture/', blank=True)
+    employment_status = models.CharField(max_length=50)
+    academic_rank = models.CharField(max_length=50)
+    date_of_employment = models.CharField(max_length=50)
+    years_in_service = models.CharField(max_length=50)
     department = models.ForeignKey(Department, on_delete=models.CASCADE, null=True, blank = True) 
+    no_of_workload = models.CharField(max_length=50)
+    educational_attainment = models.CharField(max_length=50, choices=EDUCATIONAL_ATTAINMENT_CHOICES)
+    eligibility = models.CharField(max_length=50)
+   
+    profile_picture = models.ImageField(upload_to='profile_picture/', blank=True)
     email_sent = models.BooleanField(default=False)  # New field to track email sent status
     is_supervisor = models.BooleanField(default=False)
 
@@ -59,7 +78,7 @@ class Faculty(models.Model):
     created = models.DateTimeField(auto_now_add = True, null=True, blank = True)
 
     class Meta:
-        ordering = ['-updated', '-created']
+        ordering = ['last_name']
         
     def __str__(self):
         return f"{self.first_name} {self. last_name}"

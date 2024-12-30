@@ -65,8 +65,8 @@
     <div class="col-lg-4 col-md-5 col-sm-12 mt-1 ">
       <select class="form-select" name="sort" id="sort-list" onchange="location = finalurl();">
       <option value="" id="placeholder" disabled selected hidden>Sort</option>
-      <option id="first_name" value="first_name">Alphabetical: Ascending</option>
-      <option id="-first_name" value="-first_name">Alphabetical: Descending</option>
+      <option id="last_name" value="last_name">Alphabetical: Ascending</option>
+      <option id="-last_name" value="-last_name">Alphabetical: Descending</option>
       <option id="-created" value="-created">Recently Added</option>
       </select>
     </div>
@@ -85,11 +85,11 @@
     </div>
 
     <div class="table-responsive mt-2">
-      <table class="table table-bordered table-responsive  ">
+      <table class="table table-bordered table-sm table-responsive  ">
           <tr>
-            <th scope="col">First Name</th>
-            <th scope="col">Last Name</th>
-            <th scope="col">Gender</th>
+            <th scope="col">Surname</th>
+            <th scope="col">First Name </th>
+            <th scope="col">Sex</th>
             <th scope="col">Email</th>
             <th scope="col">Contact Number</th>
             <th scope="col">Department</th>
@@ -98,8 +98,8 @@
           </tr>
           {% for i in page_obj %}
           <tr>
-              <td>{{ i.first_name }}</td>
               <td>{{ i.last_name }}</td>
+              <td>{{ i.first_name }}</td>
               <td>{{ i.gender }}</td>
               <td>{{ i.email }}</td>
               <td>{{ i.contact_number }}</td>
@@ -107,13 +107,13 @@
 
               <td class="d-flex justify-content-center gap-1"> 
               
-              <a href="{% url 'facultyevaluations' i.pk %}"><button class="btn btn-primary " title="View Faculty Evaluations"><i class="bi bi-eye-fill"></i></button></a>
+              <a href="{% url 'facultyevaluations' i.pk %}"><button class="btn btn-primary btn-sm " title="View Faculty Evaluations"><i class="bi bi-eye-fill"></i></button></a>
 
-              <a href="{% url 'editteacher'  i.pk  %}"><button class="btn btn-warning " title="Edit Faculty"><i class="bi bi-pencil-square"></i></button></a>
+              <a href="{% url 'editteacher'  i.pk  %}"><button class="btn btn-warning btn-sm " title="Edit Faculty"><i class="bi bi-pencil-square"></i></button></a>
               
-              <a href="{% url 'send_message'  i.pk  %}"><button class="btn btn-success " title="Message Faculty"><i class="bi bi-chat-dots"></i></button></a>
+              <a href="{% url 'send_message'  i.pk  %}"><button class="btn btn-success btn-sm " title="Message Faculty"><i class="bi bi-chat-dots"></i></button></a>
 
-              <a href="{% url 'deleteTeacher'  i.pk  %}"><button class="btn btn-danger " title="Delete Faculty" ><i class='bx bxs-trash' ></i></button></a>
+              <a href="{% url 'deleteTeacher'  i.pk  %}"><button class="btn btn-danger btn-sm " title="Delete Faculty" ><i class='bx bxs-trash' ></i></button></a>
 
               </td>
           </tr>

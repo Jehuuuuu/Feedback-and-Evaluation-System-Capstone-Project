@@ -22,13 +22,34 @@ class TeacherForm(ModelForm):
         model = Faculty
         fields = '__all__' 
         exclude = ['user', 'profile_picture', 'email_sent', 'is_supervisor']
+        labels = {
+            'last_name': 'Surname',
+            'gender': 'Sex',
+            'contact_number': 'Contact No.',
+            'employment_status': 'Status of Employment',
+            'academic_rank': 'Academic Rank',
+            'date_of_employment': 'Date of Employment',
+            'years_in_service': 'Years in Service',
+            'no_of_workload': 'Total No. of Workload',
+            'educational_attainment': 'Educational Attainment',
+            'eligibility': 'Eligibility if Yes, what kind?',
+        }
         widgets = {
             'first_name': forms.TextInput(attrs={'class': 'form-control'}),
             'last_name': forms.TextInput(attrs={'class': 'form-control'}),
-            'gender': forms.TextInput(attrs={'class': 'form-control'}),
-            'email': forms.EmailInput(attrs={'class': 'form-control'}),
-            'contact_number': forms.TextInput(attrs={'class': 'form-control'}),
+            'middle_name': forms.TextInput(attrs={'class': 'form-control'}),   
+            'gender': forms.Select(attrs={'class': 'form-control'}),
+            'birthday': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'contact_number': forms.NumberInput(attrs={'class': 'form-control'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control'}),   
+            'employment_status': forms.TextInput(attrs={'class': 'form-control'}),     
+            'academic_rank': forms.TextInput(attrs={'class': 'form-control'}),  
+            'date_of_employment': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),   
+            'years_in_service': forms.TextInput(attrs={'class': 'form-control'}),     
             'department': forms.Select(attrs={'class': 'form-control'}),
+            'no_of_workload': forms.TextInput(attrs={'class': 'form-control'}), 
+            'educational_attainment': forms.Select(attrs={'class': 'form-control'}), 
+            'eligibility': forms.TextInput(attrs={'class': 'form-control'}), 
         }
 
 class StudentForm(ModelForm):
@@ -36,6 +57,9 @@ class StudentForm(ModelForm):
         model = Student
         fields = '__all__' 
         exclude = ['user', 'profile_picture']
+        labels = {
+            'last_name': 'Surname'
+        }
         widgets = {
             'student_number': forms.TextInput(attrs={'class': 'form-control'}),
             'last_name': forms.TextInput(attrs={'class': 'form-control'}),
