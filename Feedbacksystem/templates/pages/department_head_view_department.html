@@ -33,18 +33,14 @@
             <option id="-average_rating" value="-average_rating">Average Rating: Descending</option>
         </select>
     </div>
-    <div class="col-12 col-md-auto">
-        <a class="btn btn-success w-100" style="color: white;" href="{% url 'peer_to_peer_summary_report_pdf' %}">
-            <i class="bi bi-download"></i> <b>Download Peer-to-Peer Summary Report</b>
-        </a>
-    </div>
+
     <!-- Conditional Buttons -->
     {% if department.email_sent %}
         <!-- Download Summary Report Button -->
         
         <div class="col-12 col-md-auto">
             <a class="btn btn-success w-100" style="color: white;" href="{% url 'download_report' department.id %}">
-                <i class="bi bi-download"></i> <b>Download Summary Report</b>
+                <i class="bi bi-download"></i> <b>Download SET Summary Report</b>
             </a>
         </div>
 

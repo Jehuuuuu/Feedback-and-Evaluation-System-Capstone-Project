@@ -149,7 +149,11 @@
               <img src="{% static 'images/cvsu_thumbnail.jpg' %}" class="card-img-top" alt="Default Image">
               <div class="card-body">
                   <h5 class="card-title">Faculty Evaluated: </h5>
-                  <p class="card-title"> {{ completed_count }} / {{ total_faculty }}</p>
+                  {% if is_irregular %}
+                    <p class="card-title"> {{ completed_count }} / {{ 10 }}</p>
+                  {% else %}
+                    <p class="card-title"> {{ completed_count }} / {{ total_faculty }}</p>
+                  {% endif %}
                   <a href="{% url 'facultyeval' %}" class="card-link btn custom-btn">Evaluate Now</a>
               </div>
           </div>

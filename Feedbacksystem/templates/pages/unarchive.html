@@ -1,0 +1,19 @@
+{% extends "pages/admin.html" %}
+
+{% block title %}Unarchive Student{% endblock %}
+
+{% block header %}
+
+    <h2>Confirmation</h2>
+    <hr>
+   
+{% endblock header %}
+<hr>
+{% block feature %}
+<form method="POST" action="">
+    {% csrf_token %}
+    <p> Are you sure you want to unarchive {{obj}}?</p>
+    <a href="{{request.META.HTTP_REFERER}}" style="text-decoration: none; " class="btn btn-primary">Cancel</a>
+<input type = "submit" value="Confirm" class="btn btn-success">
+</form>
+{% endblock feature %}

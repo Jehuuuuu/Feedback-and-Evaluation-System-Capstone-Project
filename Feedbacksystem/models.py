@@ -56,7 +56,7 @@ class Faculty(models.Model):
     user = models.OneToOneField(User, null = True, blank=True, on_delete=models.CASCADE)
     last_name = models.CharField(max_length=100)
     first_name = models.CharField(max_length=100)
-    middle_name = models.CharField(max_length=100)
+    middle_name = models.CharField(max_length=100, null = True, blank=True)
     gender = models.CharField(max_length=20, choices=GENDER_CHOICES)
     birthday = models.CharField(max_length=50)
     contact_number = models.CharField(max_length  = 50)
@@ -78,7 +78,7 @@ class Faculty(models.Model):
     created = models.DateTimeField(auto_now_add = True, null=True, blank = True)
 
     class Meta:
-        ordering = ['last_name']
+        ordering = ['last_name', 'first_name'] 
         
     def __str__(self):
         return f"{self.first_name} {self. last_name}"
@@ -257,13 +257,13 @@ class Student(models.Model):
     contact_no = models.CharField(max_length  = 11)
     email = models.EmailField(max_length = 64)
     profile_picture = models.ImageField(upload_to='profile_picture/', null=True, blank = True)
-    
+    is_active = models.BooleanField(default=True)
 
     updated = models.DateTimeField(auto_now = True, null=True, blank = True)
     created = models.DateTimeField(auto_now_add = True, null=True, blank = True)
   
     class Meta:
-        ordering = ['-updated', '-created'] 
+        ordering = ['last_name', 'first_name'] 
     
     def delete(self, *args, **kwargs):
         # Delete the associated user before deleting the student
@@ -862,7 +862,7 @@ class WebinarSeminarModel(models.Model):
             'usefulness_of_the_topic_discusssed_in_the_activity',
             'appropriateness_of_the_searching_methods',
             'displayed_a_thorough_knowledge_of_the_topic',
-            'thoroughly_explained_and_processed_the_learning_activities_throughout_the_training',
+            'explained_activities',
             'able_to_create_a_good_learning_environment',
             'able_to_manage_her_time_well',
             'demonstrated_keenness_to_the_participant_needs',

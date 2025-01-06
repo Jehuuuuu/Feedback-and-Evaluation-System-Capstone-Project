@@ -298,7 +298,7 @@ class AdminRegistrationForm(UserCreationForm):
     
     ROLE_CHOICES = [
         ('admin', 'Admin'),
-        ('hr_admin', 'HR Admin'),
+        ('HR admin', 'HR admin'),
     ]
     role = forms.ChoiceField(
         choices=ROLE_CHOICES,
@@ -598,7 +598,7 @@ class WebinarSeminarForm(forms.Form):
     
     displayed_a_thorough_knowledge_of_the_topic = forms.ChoiceField(choices=[(5, ''), (4, ''), (3, ''),
                                         (2, ''), (1, '')],  widget=forms.RadioSelect(attrs={'class': 'likert-horizontal custom-radio'}))
-    thoroughly_explained_and_processed_the_learning_activities_throughout_the_training = forms.ChoiceField(choices=[(5, ''), (4, ''), (3, ''),
+    explained_activities = forms.ChoiceField(choices=[(5, ''), (4, ''), (3, ''),
                                         (2, ''), (1, '')],  widget=forms.RadioSelect(attrs={'class': 'likert-horizontal custom-radio'}))
     able_to_create_a_good_learning_environment = forms.ChoiceField(choices=[(5, ''), (4, ''), (3, ''),
                                         (2, ''), (1, '')],  widget=forms.RadioSelect(attrs={'class': 'likert-horizontal custom-radio'}))

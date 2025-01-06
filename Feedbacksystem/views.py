@@ -386,6 +386,7 @@ def home(request):
     notifications_unread_count = unread_notifications.count()
     courses = student.Course 
     evaluation_status = EvaluationStatus.objects.first()
+    is_irregular = Student.objects.filter( Q(student_number=request.user.username) & (Q(status='IRREGULAR') | Q(status='Irregular')) ).first()
     #pending events to display
     events = Event.objects.filter(course_attendees=courses, admin_status="Approved").distinct()  # Get events related to those courses
     # Get evaluated event IDs by the current user
@@ -431,7 +432,7 @@ def home(request):
     paginator = Paginator(unevaluated_events, 3) 
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-    context = {'evaluation_status': evaluation_status, 'student': student, 'unevaluated_events': unevaluated_events, 'page_obj': page_obj, 'completed_count': completed_count, 'total_faculty': total_faculty, 'is_president': is_president, 'event_notifications': event_notifications, 'notifications_unread_count': notifications_unread_count}
+    context = {'evaluation_status': evaluation_status, 'student': student, 'unevaluated_events': unevaluated_events, 'page_obj': page_obj, 'completed_count': completed_count, 'total_faculty': total_faculty, 'is_president': is_president, 'event_notifications': event_notifications, 'notifications_unread_count': notifications_unread_count, 'is_irregular': is_irregular}
     return render(request, 'pages/home.html', context)
     
 @login_required(login_url='signin')
@@ -597,9 +598,16 @@ def facultyeval(request):
     unread_notifications = Notification.objects.filter(recipient=user, level='success', unread=True)
     notifications_unread_count = unread_notifications.count()
     is_irregular = Student.objects.filter( Q(student_number=request.user.username) & (Q(status='IRREGULAR') | Q(status='Irregular')) ).first()
+    
     if is_irregular:
-        # Fetch all unique faculties for irregular students
-        section_subjects_faculty = SectionSubjectFaculty.objects.order_by('faculty__pk').distinct('faculty__pk')
+        section_subjects_faculty = (
+            SectionSubjectFaculty.objects.order_by('faculty__pk')
+            .distinct('faculty__pk')
+        )
+        section_subjects_faculty = sorted(
+            section_subjects_faculty, key=lambda x: x.faculty.last_name
+        )
+
     else:
         section_subjects_faculty = SectionSubjectFaculty.objects.filter(section=student.Section)
 
@@ -1120,7 +1128,7 @@ def president_view_event_evaluations(request, pk):
     # Combine the results into one list
     evaluations = school_event_evaluations + webinar_seminar_evaluations
     
-    paginator = Paginator(evaluations, 5) 
+    paginator = Paginator(evaluations, 10) 
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
@@ -1534,6 +1542,8 @@ def admin(request):
             form.save()
              # Set email_sent to False for all departments
             Department.objects.update(email_sent=False)
+            # Set email_sent to False for all faculties
+            Faculty.objects.update(email_sent=False)
             messages.success(request, 'Status updated successfully')
 
     else:
@@ -1699,7 +1709,7 @@ def adminregister(request):
             user.save()
 
             messages.success(request, 'Admin registration successful!')
-            return redirect('adminregister')
+            return redirect('admin')
 
  
     return render(request, 'pages/adminregister.html', {'form': form, 'is_admin': is_admin})
@@ -1865,7 +1875,7 @@ def admin_send_report_to_department_heads(request):
                             description=f'The summary report for the {head.department.name} has been sent to your email.',
                             level='info')
                 
-        messages.success(request, "The summary reports have been successfully sent to the department head/program coordinators and program coordinators.") 
+        messages.success(request, "The summary reports have been successfully sent to the department head and program coordinators.") 
         return redirect('admin_faculty_evaluations')  # Redirect to a success page
 
 
@@ -2101,7 +2111,7 @@ def faculty_evaluations_summary_report_pdf(request):
     return response
 
 @login_required(login_url='signin')
-@allowed_users(allowed_roles=['department head/program coordinator'])
+@allowed_users(allowed_roles=['department head/program coordinator', 'head of OSAS'])
 def peer_to_peer_summary_report_pdf(request):
     """
     Generates a PDF summary report of peer-to-peer evaluations.
@@ -2148,7 +2158,7 @@ def peer_to_peer_summary_report_pdf(request):
             }
 
             for evaluation in evaluations:
-                category_averages = evaluation.calculate_category_averages()
+                category_averages = evaluation.calculate_average_rating()
                 for category, average in category_averages.items():
                     if average is not None:
                         category_sums[category] += average
@@ -2221,7 +2231,7 @@ def peer_to_peer_summary_report_pdf(request):
 def pending_evaluations(request):
     is_admin = request.user.groups.filter(name='admin').exists()
     evaluations = LikertEvaluation.objects.filter(admin_status='Pending').order_by('-updated')
-    paginator = Paginator(evaluations, 5) 
+    paginator = Paginator(evaluations, 10) 
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     return render(request,'pages/pending_evaluations.html',{'evaluations': evaluations, 'page_obj': page_obj, 'is_admin': is_admin})
@@ -2653,7 +2663,7 @@ def admin_event_list(request):
     if ordering:
         events = events.order_by(ordering) 
 
-    paginator = Paginator(events, 5) 
+    paginator = Paginator(events, 10) 
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     return render(request,'pages/admin_event_list.html',{'events': events, 'page_obj': page_obj, 'event_filter': event_filter, 'is_admin': is_admin})
@@ -2699,7 +2709,7 @@ def admin_event_evaluations(request, pk):
     # Combine the results into one list
     evaluations = school_event_evaluations + webinar_seminar_evaluations
     
-    paginator = Paginator(evaluations, 5) 
+    paginator = Paginator(evaluations, 10) 
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
@@ -3071,7 +3081,7 @@ def stakeholderevaluations(request):
     if ordering:
         evaluations = evaluations.order_by(ordering) 
     
-    paginator = Paginator(evaluations, 5)
+    paginator = Paginator(evaluations, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     context = {'evaluations': evaluations, 'page_obj': page_obj, 'stakeholder_evaluation_filter': stakeholder_evaluation_filter, 'is_admin': is_admin}
@@ -3419,7 +3429,7 @@ def faculty(request):
         
 
    
-    paginator = Paginator(filtered_faculty, 5)
+    paginator = Paginator(filtered_faculty, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     context = {'faculty': faculty, 'form': form, 'page_obj': page_obj, 'faculty_filter': faculty_filter, 'is_admin': is_admin}
@@ -3517,7 +3527,7 @@ def department(request):
             messages.success(request, 'Department added successfully')
             return redirect('department')
         
-    paginator = Paginator(department, 5)
+    paginator = Paginator(department, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     context = {'department': department, 'form': form, 'page_obj': page_obj, 'is_admin': is_admin}
@@ -3531,7 +3541,7 @@ def view_department(request, pk):
     is_admin = request.user.groups.filter(name='admin').exists()
     department = Department.objects.get(pk=pk)
     faculties = department.faculty_set.all()  # Retrieve all faculties in the department
-    paginator = Paginator(faculties, 5)
+    paginator = Paginator(faculties, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     context = {
@@ -3577,7 +3587,7 @@ def delete_department(request, pk):
 @allowed_users(allowed_roles=['admin'])
 def students(request):
         is_admin = request.user.groups.filter(name='admin').exists()
-        students = Student.objects.all()
+        students = Student.objects.filter(is_active=True)
         student_filter = StudentFilter(request.GET, queryset=students)
         students = student_filter.qs
         form = StudentForm()
@@ -3675,12 +3685,69 @@ def students(request):
 
 
        
-        paginator = Paginator(students, 5) 
+        paginator = Paginator(students, 20) 
         page_number = request.GET.get('page')
         page_obj = paginator.get_page(page_number)
         context = {'students': students, 'form': form, 'page_obj': page_obj, 'student_filter': student_filter, 'is_admin': is_admin}
         return render(request, 'pages/students.html',  context)
-        
+
+@login_required(login_url='signin')
+@allowed_users(allowed_roles=['admin'])   
+def archive_student(request, pk):
+    is_admin = request.user.groups.filter(name='admin').exists()
+    student = get_object_or_404(Student, pk=pk)
+    if request.method == "POST":
+        student.is_active = False
+        student.save()
+        if student.user:
+            student.user.is_active = False
+            student.user.save()
+
+        messages.success(request, f"Student {student.full_name()} has been archived.")
+        return redirect('students')
+    
+    return render(request, 'pages/archive.html', {'obj':student, 'is_admin': is_admin})
+    
+@login_required(login_url='signin')
+@allowed_users(allowed_roles=['admin'])   
+def unarchive_student(request, pk):
+    is_admin = request.user.groups.filter(name='admin').exists()
+    student = get_object_or_404(Student, pk=pk)
+    if request.method == "POST":
+        student.is_active = True
+        student.save()
+        if student.user:
+            student.user.is_active = True
+            student.user.save()
+
+        messages.success(request, f"Student {student.full_name()} has been unarchived.")
+        return redirect('archived_students')
+    
+    return render(request, 'pages/unarchive.html', {'obj':student, 'is_admin': is_admin})
+    
+
+
+@login_required(login_url='signin')
+@allowed_users(allowed_roles=['admin'])    
+def archived_students(request):
+    is_admin = request.user.groups.filter(name='admin').exists()
+    archived_students = Student.objects.filter(is_active=False)
+    student_filter = StudentFilter(request.GET, queryset=archived_students)
+    archived_students = student_filter.qs
+
+    paginator = Paginator(archived_students, 20) 
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'is_admin': is_admin,
+        'archived_students': archived_students,
+        'student_filter': student_filter,
+        'page_obj': page_obj
+    }
+
+    return render(request, 'pages/archived_students.html', context)
+
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['admin'])
@@ -3826,17 +3893,17 @@ def sections(request):
 
                 if not section:
                             messages.error(request, f"Section with name '{section_name}' not found.")
-                            break
+                            continue
                 
                 if not subject:
                     messages.error(request, f"Subject with name '{subject_name}' not found.")
-                    break  
+                    continue  
 
                 
                 
                 if not faculty:
                     messages.error(request, f"Faculty with name '{faculty_full_name}' not found.")
-                    break  
+                    continue  
                 
                 sub_faculty, created = SectionSubjectFaculty.objects.update_or_create(
                 section=section,
@@ -3873,7 +3940,7 @@ def sections(request):
     elif ordering == "-student_count":
         section_data = sorted(section_data, key=lambda x: x['student_count'], reverse=True)
 
-    paginator = Paginator(section_data, 5) 
+    paginator = Paginator(section_data, 10) 
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
@@ -4006,7 +4073,7 @@ def subjects(request):
 
 
             
-    paginator = Paginator(subject, 5) 
+    paginator = Paginator(subject, 20) 
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     context = {'form': form, 'page_obj': page_obj, 'subject_filter': subject_filter,
@@ -4080,7 +4147,7 @@ def users(request):
 
         
 
-    paginator = Paginator(users, 5) 
+    paginator = Paginator(users, 10) 
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     context = {'user_groups': user_groups, 'page_obj': page_obj, 'user_filter': user_filter,
@@ -5433,7 +5500,7 @@ def faculty_event_evaluations(request):
         i.attendees_summary = Truncator(attendees_text).chars(50)
         
 
-     paginator = Paginator(event, 5) 
+     paginator = Paginator(event, 10) 
      page_number = request.GET.get('page')
      page_obj = paginator.get_page(page_number)
 
@@ -5459,7 +5526,7 @@ def pending_events(request):
 
     notifications_unread_count = unread_notifications.count()
     messages_unread_count = unread_messages.count()    
-    paginator = Paginator(events, 5) 
+    paginator = Paginator(events, 10) 
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     return render(request,'pages/pending_events.html',{'events': events, 'page_obj': page_obj,'is_department_head': is_department_head,'faculty': faculty, 'event_notifications': event_notifications,
@@ -5534,7 +5601,7 @@ def view_faculty_event_evaluations(request, pk):
     total_average_rating = SchoolEventModel.get_event_average_rating(pk)
     # Combine the results into one list
     evaluations = school_event_evaluations + webinar_seminar_evaluations
-    paginator = Paginator(evaluations, 5) 
+    paginator = Paginator(evaluations, 10) 
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
@@ -6921,16 +6988,20 @@ def department_head_view_department(request):
 
     department = Department.objects.get(name=faculty.department)
         
-    # Base queryset
+
+
+    # Base queryset for peer-to-peer evaluations
     faculties = Faculty.objects.filter(department=request.user.faculty.department).annotate(
         average_rating=Avg(
-            'sectionsubjectfaculty__likertevaluation__average_rating',
+            'peertopeerevaluation__average_rating',
             filter=Q(
-                sectionsubjectfaculty__likertevaluation__academic_year=current_academic_year,
-                sectionsubjectfaculty__likertevaluation__semester=current_semester,
+                peertopeerevaluation__academic_year=current_academic_year,
+                peertopeerevaluation__semester=current_semester,
+                peertopeerevaluation__status='evaluated'
             ),
         )
-    )
+    ).order_by('last_name')  # Order by last_name
+
     
     is_supervisor = faculty.is_supervisor
     department_faculty_filter = FacultyFilter(request.GET, queryset=faculties)
@@ -7111,6 +7182,9 @@ def send_summary_reports(request):
             email.attach_file(pdf_path)
             email.send()
 
+            faculty.email_sent = True
+            faculty.save()
+
             notify.send(request.user, 
                         recipient=faculty.user, 
                         verb='Summary Report Sent', 
@@ -7213,7 +7287,7 @@ def department_head_pending_evaluations(request):
     notifications_unread_count = unread_notifications.count()
     messages_unread_count = unread_messages.count()
     evaluations = LikertEvaluation.objects.filter(admin_status='Approved to Department head/program coordinator',  section_subject_faculty__faculty__department=faculty.department).order_by('-updated')
-    paginator = Paginator(evaluations, 5) 
+    paginator = Paginator(evaluations, 10) 
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
