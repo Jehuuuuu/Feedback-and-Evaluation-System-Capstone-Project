@@ -36,11 +36,11 @@
             <div class="col-12 col-md-auto mb-1"><button class = "btn btn-warning custom-btn" data-bs-toggle="modal" data-bs-target="#createEventModal"> <i class="bi bi-plus-square-fill"> </i>Create Event </button></div>
         {% if is_head_of_osas %}
             <div class="col-12 col-md-auto mb-1">
-                <a href="{% url 'pending_events' %}" class="btn btn-secondary" ><b>Pending Events</b></a>
+                <a href="{% url 'pending_events' %}" class="btn custom-btn" ><b>Pending Events</b></a>
             </div>
         {% endif %}
             <div class="col-12 col-md-auto mb-1">
-                <button type="button" class="btn btn-primary" style=" text-decoration: none;" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                <button type="button" class="btn custom-btn" style=" text-decoration: none;" data-bs-toggle="modal" data-bs-target="#exampleModal">
                     <i class="bi bi-filter-square-fill"></i> <b>Filter Options</b>
                 </button>
             </div>

@@ -93,13 +93,13 @@
     <input id="fileInput" type="file" name="studentfile" accept=".xlsx" style="display: none;" onchange="this.form.submit()">
 
     <!-- Custom button to trigger file selection -->
-    <button type="button" class="btn btn-primary" onclick="document.getElementById('fileInput').click();">
+    <button type="button" class="btn custom-btn" onclick="document.getElementById('fileInput').click();">
         Bulk Import
     </button>
   </div>
   </form>
   <div class="col-lg-2 col-md-3 col-6 mb-2">
-    <a href="{% url 'archived_students' %}" type="button" class="btn btn-secondary">
+    <a href="{% url 'archived_students' %}" type="button" class="btn custom-btn">
       <i class="bi bi-archive-fill"></i> <small><b>Archived Students</b></small>
     </a>
   </div>
