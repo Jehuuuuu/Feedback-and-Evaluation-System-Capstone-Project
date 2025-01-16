@@ -168,7 +168,6 @@
     </ul>
   </nav>
   <main role="main" class="content">
-    <!-- Main content area -->
     {% if messages %}
     <div>
         {% for message in messages %}
@@ -289,7 +288,7 @@
 <div class="d-flex" style="gap: 1em;">
   <div class="dropdown mb-2">
     <button class="btn btn-primary dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-      <i class="bi bi-funnel-fill"></i> Filter Data
+      <i class="bi bi-funnel-fill"></i> <b>Filter Data</b>
 
     </button>
     <div class="dropdown-menu filter_dropdown" aria-labelledby="filterDropdown">
@@ -308,7 +307,7 @@
     </div>
   </div>
   {% if faculty.email_sent == True and not is_filtered %}
-   <a href="{% url 'faculty_evaluations_individual_summary_report_pdf' %}" class="btn custom-btn mb-2"><b>View Summary Report</b></a> 
+   <a href="{% url 'faculty_evaluations_individual_summary_report_pdf' %}" class="btn custom-btn mb-2"><i class="bi bi-clipboard2-fill"></i> <b>View Summary Report</b></a> 
    {% endif %}
 </div>
     <div class="row">

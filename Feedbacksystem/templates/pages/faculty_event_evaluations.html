@@ -33,10 +33,10 @@
         {% endif %}
         
         <div class="row g-2">
-            <div class="col-12 col-md-auto mb-1"><button class = "btn btn-warning custom-btn" data-bs-toggle="modal" data-bs-target="#createEventModal"> <i class="bi bi-plus-square-fill"> </i>Create Event </button></div>
+            <div class="col-12 col-md-auto mb-1"><button class = "btn btn-warning custom-btn" data-bs-toggle="modal" data-bs-target="#createEventModal"> <i class="bi bi-plus-square-fill"> </i> <b>Create Event</b> </button></div>
         {% if is_head_of_osas %}
             <div class="col-12 col-md-auto mb-1">
-                <a href="{% url 'pending_events' %}" class="btn custom-btn" ><b>Pending Events</b></a>
+                <a href="{% url 'pending_events' %}" class="btn custom-btn" ><i class="bi bi-hourglass-split"></i> <b>Pending Events</b></a>
             </div>
         {% endif %}
             <div class="col-12 col-md-auto mb-1">
@@ -88,6 +88,10 @@
                 <div class="form-group">
                 {{ form.event_type.label_tag }}
                 {{ form.event_type }}
+                </div>
+                <div class="form-group">
+                {{ form.event_venue_type.label_tag }}
+                {{ form.event_venue_type }}
                 </div>
                 <div class="form-group">
                 {{ form.event_picture.label_tag }}
@@ -247,13 +251,13 @@
                     </td>
                     <td>
                         <div class="d-flex flex-column flex-sm-row gap-2 align-items-center">
-                            <a href="{% url 'view_faculty_event_evaluations' i.pk %}" class="btn btn-primary btn d-flex align-items-center">
+                            <a href="{% url 'view_faculty_event_evaluations' i.pk %}" class="btn-sm btn-primary btn d-flex align-items-center">
                                 <i class="bi bi-eye-fill" style="font-size:16px; "></i> 
                             </a>
-                            <a href="{% url 'edit_faculty_events' i.pk %}" class="btn btn-warning btn d-flex align-items-center">
+                            <a href="{% url 'edit_faculty_events' i.pk %}" class="btn-sm btn-warning btn d-flex align-items-center">
                                 <i class="bi bi-pencil-square" style="font-size:16px; "></i> 
                             </a>
-                            <a href="{% url 'delete_faculty_events' i.pk %}" class="btn btn-danger btn d-flex align-items-center">
+                            <a href="{% url 'delete_faculty_events' i.pk %}" class="btn-sm btn-danger btn d-flex align-items-center">
                                 <i class="bi bi-trash-fill" style="font-size:16px; "></i> 
                             </a>
                         </div>

@@ -1,7 +1,6 @@
 {% extends "pages/facultydashboard.html" %}
 {% load static %}
 {% block title %}Events{% endblock %}
-
 {% block header %}
 
     <h2>Latest Events</h2>
@@ -32,27 +31,31 @@
 {% for event in unevaluated_events %}
   
 <div class="card">
-    <div class="card-body">
-    {% if event.event_picture %}
-    <img src="{{ event.event_picture.url }}"  class="card-img-top img-fluid"  alt="Event Thumbnail">
-    {% else %}
-    <img src="{% static 'images/cvsu_thumbnail.jpg' %}"  class="card-img-top img-fluid" alt="CvSU Thumbnail">
-    {% endif %}
-      <h5 class="card-title">{{event.title}}</h5>
-      <h6 class="card-subtitle mb-2 text-body-secondary">{{event.date}}</h6>
-      <p class="card-text">{{i.description|slice:":70"}}...</p>
-      {% if event.evaluation_status == 'Ongoing' %}
-        {% if event.requires_attendance %}
-          {% if event.attended %}
-            <a href="{% url 'faculty_event_detail' event.pk %}" class="card-link btn custom-btn">Evaluate</a>
-          {% else %}
-            <p>Please note: To evaluate this event, you must scan the QR code available at the venue.</p>
-          {% endif %}
+    <div class="card-body position-relative">
+        {% if event.event_picture %}
+            <img src="{{ event.event_picture.url }}" class="card-img-top img-fluid" alt="Event Thumbnail">
         {% else %}
-        <a href="{% url 'faculty_event_detail' event.pk %}" class="card-link btn custom-btn">Evaluate</a>
-        {% endif %}  
-      {% endif %}
-      <a href="#" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#eventModal{{ event.id }}">View Details</a>
+            <img src="{% static 'images/cvsu_thumbnail.jpg' %}" class="card-img-top img-fluid" alt="CvSU Thumbnail">
+        {% endif %}
+        <h5 class="card-title">{{ event.title }}</h5>
+        <div class="event-tags">
+            <span class="event-tag event-type-{{ event.event_type|slugify }}">{{ event.event_type }}</span>
+            <span class="event-tag venue-type-{{ event.event_venue_type|slugify }}">{{ event.event_venue_type }}</span>
+        </div>
+        <h6 class="card-subtitle mb-2 text-body-secondary">{{ event.date }}</h6>
+        <p class="card-text">{{ event.description|slice:":70" }}...</p>
+        {% if event.evaluation_status == 'Ongoing' %}
+            {% if event.requires_attendance %}
+                {% if event.attended %}
+                    <a href="{% url 'faculty_event_detail' event.pk %}" class="card-link btn custom-btn">Evaluate</a>
+                {% else %}
+                    <p>Please note: To evaluate this event, you must scan the QR code available at the venue.</p>
+                {% endif %}
+            {% else %}
+                <a href="{% url 'faculty_event_detail' event.pk %}" class="card-link btn custom-btn">Evaluate</a>
+            {% endif %}
+        {% endif %}
+        <a href="#" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#eventModal{{ event.id }}">View Details</a>
     </div>
 </div>
 <!-- Modal -->

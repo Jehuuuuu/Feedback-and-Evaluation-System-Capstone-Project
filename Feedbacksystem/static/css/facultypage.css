@@ -412,6 +412,43 @@ hr{
   font-size: 1em;
   color: #555;
 }
+.event-tags {
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+.event-tag {
+  display: inline-block;
+  padding: 5px 10px;
+  border-radius: 15px;
+  font-size: 0.8rem;
+  margin-right: 5px;
+  margin-bottom: 5px;
+  white-space: nowrap;
+  color: #ffffff;
+  background-color: #28a745;
+}
+
+.event-type-school-event {
+  background-color: #007bff; 
+}
+
+.event-type-webinar-seminar {
+  background-color: #28a745; 
+}
+
+.event-type-training-workshop {
+  background-color: #ffc107; 
+}
+
+
+.venue-type-in-campus-event {
+  background-color: #17a2b8; 
+}
+
+.venue-type-off-campus-event {
+  background-color: #dc3545; 
+}
 
 @media (max-width:900px) {
 .header-title{

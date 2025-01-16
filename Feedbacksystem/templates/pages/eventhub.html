@@ -39,6 +39,10 @@
     <img src="{% static 'images/cvsu_thumbnail.jpg' %}"  class="card-img-top img-fluid" alt="CvSU Thumbnail">
     {% endif %}
       <h5 class="card-title">{{event.title}}</h5>
+      <div class="event-tags">
+        <span class="event-tag event-type-{{ event.event_type|slugify }}">{{ event.event_type }}</span>
+        <span class="event-tag venue-type-{{ event.event_venue_type|slugify }}">{{ event.event_venue_type }}</span>
+      </div>
       <h6 class="card-subtitle mb-2 text-body-secondary"><small>{{event.date}}</small></h6>
       <p class="card-text">{{event.description|slice:":70"}}</p>
       {% if event.evaluation_status == 'Ongoing' %}

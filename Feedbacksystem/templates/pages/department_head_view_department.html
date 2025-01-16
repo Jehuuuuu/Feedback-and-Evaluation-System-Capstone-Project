@@ -29,6 +29,8 @@
     <div class="col-12 col-md-5">
         <select class="form-select" name="sort" id="sort-list" onchange="location = finalurl();">
             <option value="" id="placeholder" disabled selected hidden>Sort</option>
+            <option id="last_name" value="last_name">Alphabetical: Ascending</option>
+            <option id="-last_name" value="-last_name">Alphabetical: Descending</option>
             <option id="average_rating" value="average_rating">Average Rating: Ascending</option>
             <option id="-average_rating" value="-average_rating">Average Rating: Descending</option>
         </select>
@@ -39,15 +41,15 @@
         <!-- Download Summary Report Button -->
         
         <div class="col-12 col-md-auto">
-            <a class="btn btn-success w-100" style="color: white;" href="{% url 'download_report' department.id %}">
-                <i class="bi bi-download"></i> <b>Download SET Summary Report</b>
+            <a class="btn custom-btn w-100" style="color: white;" href="{% url 'download_report' department.id %}">
+                <i class="bi bi-clipboard2-fill"></i> <b>View SET Department Summary Report</b>
             </a>
         </div>
 
 
         <!-- Send Summary Reports Button -->
         <div class="col-12 col-md-auto">
-            <button class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#facultySummaryModal">
+            <button class="btn custom-btn w-100" data-bs-toggle="modal" data-bs-target="#facultySummaryModal">
                 <i class="bi bi-send"></i> <b>Send Summary Reports</b>
             </button>
         </div>
@@ -149,11 +151,30 @@
                     {% if i.average_rating == 0.0 or i.average_rating is None %}
                         No evaluators yet
                     {% else %}
-                        {{ i.average_rating }}
+                    <span {% if i.average_rating >= 5.0 %} style="color: #339933;" 
+                        {% elif i.average_rating >= 4.0 %} style="color: #66CC66;" 
+                        {% elif i.average_rating >= 3.0 %} style="color: #FFD700;" 
+                        {% elif i.average_rating >= 2.0 %} style="color: #FF9900;" 
+                        {% elif i.average_rating >= 1.0 %} style="color: #cc0000;" 
+                        {% endif %} > <b>{{ i.average_rating }} </b>
+                    </span>
                     {% endif %}
                 </td>
                 
-                <td>{{ i.get_rating_category }}</td>
+                <td>
+                    {% if i.average_rating == 0.0 or i.average_rating is None %}
+                    No evaluators yet
+                    {% else %}
+                    <span {% if i.average_rating >= 5.0 %} style="color: #339933;" 
+                    {% elif i.average_rating >= 4.0 %} style="color: #66CC66;" 
+                    {% elif i.average_rating >= 3.0 %} style="color: #FFD700;" 
+                    {% elif i.average_rating >= 2.0 %} style="color: #FF9900;" 
+                    {% elif i.average_rating >= 1.0 %} style="color: #cc0000;" 
+                    {% endif %}>
+                    <b>{{ i.get_rating_category }}</b>
+                    </span>
+                    {% endif %}
+                </td>
                 <td>{{ i.is_supervisor|yesno:"Yes,No" }}</td>
                 <td style="display: flex; flex-direction: row; gap:1em; align-items: center; width: 160px;"> <!--<a href="{% url 'department_head_faculty_evaluations' i.pk %}" style="text-decoration: none;"><button class="btn btn-primary d-flex align-items-center" style=" padding:1px 2px 1px 7px"><i class="bi bi-eye-fill" style="font-size:20px; margin-right: 5px;"></i> </button></a> -->
                 <a href="{% url 'department_head_send_message'  i.pk  %}" style="text-decoration: none;"><button class="btn btn-success d-flex align-items-center" style=" padding:1px 2px 1px 7px" title="Message Faculty"><i class="bi bi-chat-dots" style="font-size:20px; margin-right: 5px;"></i></button></a>

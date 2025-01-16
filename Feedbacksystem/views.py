@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.utils.html import escape
 from django.contrib import messages
 from Feedbacksystem.models import Course, Section, SectionSubjectFaculty, Faculty, Department, Student, Subject, LikertEvaluation, EvaluationStatus, Event, SchoolEventModel, FacultyEvaluationQuestions, SchoolEventQuestions, WebinarSeminarModel, WebinarSeminarQuestions, StakeholderFeedbackModel, StakeholderFeedbackQuestions, Message, PeertoPeerEvaluation, PeertoPeerEvaluationQuestions, StakeholderAgency, Attendance 
 from .forms import TeacherForm, StudentForm, CourseForm, SectionForm, SectionSubjectFacultyForm, SubjectForm, StudentRegistrationForm, StudentLoginForm, LikertEvaluationForm, FacultyRegistrationForm, FacultyLoginForm, EvaluationStatusForm, DepartmentForm, EventCreationForm, SchoolEventForm, WebinarSeminarForm, StudentProfileForm, EditQuestionForm, EditSchoolEventQuestionForm,  WebinarSeminarForm, EditWebinarSeminarQuestionForm, StakeholderFeedbackForm, MessageForm, PeertoPeerEvaluationForm, FacultyProfileForm, AdminRegistrationForm, EditStakeholdersQuestionForm
@@ -49,7 +50,7 @@ from django.templatetags.static import static
 import os
 from django.conf import settings
 from itertools import chain
-from django.db.models import Q
+from django.db.models import Q, FloatField
 from django.http import FileResponse
 from openpyxl import Workbook 
 from openpyxl.styles import Alignment
@@ -60,6 +61,7 @@ from xhtml2pdf.default import DEFAULT_FONT
 from .jobs import close_evaluations, approve_pending_evaluations, start_event_evaluations, end_event_evaluations
 from apscheduler.jobstores.base import JobLookupError
 from .scheduler import scheduler
+from django.db.models.functions import Coalesce, Round
 
 
 
@@ -909,7 +911,7 @@ def event_detail(request, pk):
     #    messages.error(request, "You must scan the QR code to access this evaluation form.")
      #   return redirect('eventhub') # Redirect to home if user has not attended the event
     
-    if event.event_type.name == 'School Event':
+    if event.event_type.name == 'School Event' or event.event_type.name == 'Training Workshop':
         user_evaluations = SchoolEventModel.objects.filter(
         user=request.user,
         event=event,
@@ -1800,7 +1802,8 @@ def admin_send_report_to_department_heads(request):
                         'Sensitivity and Support to Students': 0,
                         'Overall': 0
                     }
-
+                    MAX_SCORE = 5
+                    NUM_CATEGORIES = len(category_sums) - 1  # Exclude 'Overall' key
                     for evaluation in evaluations:
                         category_averages = evaluation.calculate_category_averages()
                         for category, average in category_averages.items():
@@ -1810,11 +1813,17 @@ def admin_send_report_to_department_heads(request):
 
                     category_averages = {category: round(total / num_evaluators, 2) for category, total in category_sums.items()}
                     avg_rating = category_averages['Overall']
+
+                    # Calculate overall percentage of category averages
+                    total_score = sum(category_averages[category] for category in category_sums if category != 'Overall')
+                    max_possible_score = MAX_SCORE * NUM_CATEGORIES
+                    overall_percentage = round((total_score / max_possible_score) * 100, 2)
+
                     rating_category = (
-                        "Poor" if avg_rating <= 1.49 else
-                        "Unsatisfactory" if avg_rating <= 2.49 else
-                        "Satisfactory" if avg_rating <= 3.49 else
-                        "Very Satisfactory" if avg_rating <= 4.49 else
+                        "Poor" if avg_rating <= 1.99 else
+                        "Unsatisfactory" if avg_rating <= 2.99 else
+                        "Satisfactory" if avg_rating <= 3.99 else
+                        "Very Satisfactory" if avg_rating <= 4.99 else
                         "Outstanding"
                     )
 
@@ -1829,6 +1838,7 @@ def admin_send_report_to_department_heads(request):
                         'classroom_management_avg': category_averages['Classroom Management'],
                         'sensitivity_support_students_avg': category_averages['Sensitivity and Support to Students'],
                         'overall_avg': category_averages['Overall'],
+                        'overall_percentage': overall_percentage,
                         'rating_category': rating_category
                     })
 
@@ -1840,23 +1850,24 @@ def admin_send_report_to_department_heads(request):
                             'other_suggestions_for_improvement': evaluation.other_suggestions_for_improvement,
                             'comments': evaluation.comments
                         })
-
+            department_name = department.name
             # Render the summary report for this department
             image_path = os.path.join(settings.BASE_DIR, 'static/images/cvsulogo.png')
-            html = render_to_string('pages/faculty_evaluations_summary_report.html', {
+            html = render_to_string('pages/faculty_evaluations_department_summary_report.html', {
                 'summary_data': summary_data,
                 'image_path': image_path,
                 'comments_data': comments_data,
                 'current_academic_year': current_academic_year,
-                'current_semester': current_semester
+                'current_semester': current_semester,
+                'department_name': department_name
             })
 
             pdf_path = os.path.join(settings.MEDIA_ROOT, f'faculty_evaluations_summary_{department.id}.pdf')
             with open(pdf_path, 'wb') as pdf_file:
-                pisa_status = pisa.CreatePDF(html, dest=pdf_file)
+                pisa_status = pisa.CreatePDF(html, dest=pdf_file, link_callback=link_callback)
 
             if pisa_status.err:
-                return HttpResponse(f'Error generating PDF for department {department.name}')
+                return HttpResponse(f'Error generating PDF for department {department.id}')
 
             # Send the email to all department head/program coordinators of this department
             for head in heads:
@@ -2030,6 +2041,8 @@ def faculty_evaluations_summary_report_pdf(request):
     summary_data = []
     comments_data = []
 
+  
+
     # Loop through each faculty and calculate the required aggregates
     for faculty in faculties:
         faculty_id = faculty['faculty']
@@ -2049,7 +2062,8 @@ def faculty_evaluations_summary_report_pdf(request):
                 'Sensitivity and Support to Students': 0,
                 'Overall': 0
             }
-
+            MAX_SCORE = 5
+            NUM_CATEGORIES = len(category_sums) - 1  # Exclude 'Overall' key
             for evaluation in evaluations:
                 category_averages = evaluation.calculate_category_averages()
                 for category, average in category_averages.items():
@@ -2061,16 +2075,21 @@ def faculty_evaluations_summary_report_pdf(request):
             category_averages = {category: round(total / num_evaluators, 2) for category, total in category_sums.items()}
             avg_rating = category_averages['Overall']
 
+            # Calculate overall percentage of category averages
+            total_score = sum(category_averages[category] for category in category_sums if category != 'Overall')
+            max_possible_score = MAX_SCORE * NUM_CATEGORIES
+            overall_percentage = round((total_score / max_possible_score) * 100, 2)
+
             if avg_rating is not None:
-                if 1.0 <= avg_rating <= 1.49:
+                if 1.0 <= avg_rating <= 1.99:
                     rating_category = "Poor"
-                elif 1.5 <= avg_rating <= 2.49:
+                elif 2.0 <= avg_rating <= 2.99:
                     rating_category = "Unsatisfactory"
-                elif 2.5 <= avg_rating <= 3.49:
+                elif 3.0 <= avg_rating <= 3.99:
                     rating_category = "Satisfactory"
-                elif 3.5 <= avg_rating <= 4.49:
+                elif 4.0 <= avg_rating <= 4.99:
                     rating_category = "Very Satisfactory"
-                elif 4.5 <= avg_rating <= 5.0:
+                elif 5.0 <= avg_rating <= 5.0:
                     rating_category = "Outstanding"
                 else:
                     rating_category = "No Rating"
@@ -2088,6 +2107,7 @@ def faculty_evaluations_summary_report_pdf(request):
                 'classroom_management_avg': category_averages['Classroom Management'],
                 'sensitivity_support_students_avg': category_averages['Sensitivity and Support to Students'],
                 'overall_avg': category_averages['Overall'],
+                'overall_percentage': overall_percentage,
                 'rating_category': rating_category
             })
 
@@ -2103,8 +2123,8 @@ def faculty_evaluations_summary_report_pdf(request):
 
     # Create the PDF
     response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = 'attachment; filename="faculty_evaluations_summary.pdf"'
-    pisa_status = pisa.CreatePDF(html, dest=response)
+    response['Content-Disposition'] = 'attachment; filename="SET-Summary-Report.pdf"'
+    pisa_status = pisa.CreatePDF(html, dest=response, link_callback=link_callback)
 
     if pisa_status.err:
         return HttpResponse('We had some errors with code %s' % pisa_status.err)
@@ -2219,49 +2239,11 @@ def peer_to_peer_summary_report_pdf(request):
     # Create the PDF
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="peer_to_peer_summary_report.pdf"'
-    pisa_status = pisa.CreatePDF(html, dest=response)
+    pisa_status = pisa.CreatePDF(html, dest=response, link_callback=link_callback)
 
     if pisa_status.err:
         return HttpResponse('We had some errors with code %s' % pisa_status.err)
     return response
-
-
-@login_required(login_url='signin')
-@allowed_users(allowed_roles=['admin'])
-def pending_evaluations(request):
-    is_admin = request.user.groups.filter(name='admin').exists()
-    evaluations = LikertEvaluation.objects.filter(admin_status='Pending').order_by('-updated')
-    paginator = Paginator(evaluations, 10) 
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-    return render(request,'pages/pending_evaluations.html',{'evaluations': evaluations, 'page_obj': page_obj, 'is_admin': is_admin})
-
-@login_required(login_url='signin')
-@allowed_users(allowed_roles=['admin'])
-def approve_evaluation(request, pk):
-    evaluation = get_object_or_404(LikertEvaluation, pk=pk, admin_status='Pending')
-    
-    evaluation.admin_status = 'Approved to Department head/program coordinator'
-    evaluation.save()
-                
-    return redirect('pending_evaluations')
-
-@login_required(login_url='signin')
-@allowed_users(allowed_roles=['admin'])
-def reject_evaluation(request, pk):
-    evaluation = get_object_or_404(LikertEvaluation, pk=pk, admin_status='Pending')
-    
-    evaluation.admin_status = 'Rejected'
-    evaluation.save()
-                
-    return redirect('pending_evaluations')
-
-@login_required(login_url='signin')
-@allowed_users(allowed_roles=['admin']) 
-def approve_all_pending_evaluations(request):
-     if request.method == 'POST': LikertEvaluation.objects.filter(admin_status='Pending').update(admin_status='Approved to Department head/program coordinator') 
-     messages.success(request, 'All pending evaluations have been approved.') 
-     return redirect('pending_evaluations')
 
 
 @login_required(login_url='signin')
@@ -4284,12 +4266,24 @@ def hr_dashboard(request):
 
     return render(request, 'pages/hr_dashboard.html', context)
 
+def link_callback(uri, rel):
+    """ Convert HTML URIs to absolute system paths so xhtml2pdf can access those resources """
+    if uri.startswith(settings.MEDIA_URL):
+        path = os.path.join(settings.MEDIA_ROOT, uri.replace(settings.MEDIA_URL, ""))
+    elif uri.startswith(settings.STATIC_URL):
+        path = os.path.join(settings.BASE_DIR, 'Feedbacksystem/static', uri.replace(settings.STATIC_URL, ""))
+    else:
+        raise Exception(f"Unsupported URI: {uri}. It must start with {settings.MEDIA_URL} or {settings.STATIC_URL}.")
+    
+    if not os.path.isfile(path):
+        raise Exception(f"File does not exist: {path}")
+    return path
+
 def stakeholders_generate_summary_report(request):
     months = request.GET.getlist('months')
     filtered_evaluations = StakeholderFeedbackModel.objects.all()
 
     if months:
-
         months = [int(month) for month in months]  # Convert months to integers
         filtered_evaluations = filtered_evaluations.filter(date__month__in=months)
 
@@ -4298,18 +4292,21 @@ def stakeholders_generate_summary_report(request):
             return redirect('hr_dashboard')
 
         if len(months) == 1:
-            title_period = f"Stakeholders' Feedback Monthly Report\n{calendar.month_name[months[0]]}"
+            year = filtered_evaluations.first().date.year if filtered_evaluations.exists() else ''
+            title_period = f"Stakeholders' Feedback Monthly Report\n{calendar.month_name[months[0]]} {year}"
         elif len(months) == 3:
             start_month = calendar.month_name[months[0]]
             end_month = calendar.month_name[months[-1]]
             year = filtered_evaluations.first().date.year if filtered_evaluations.exists() else ''
             title_period = f"Stakeholders' Feedback Quarterly Report\n{start_month} - {end_month} {year}"
         elif len(months) == 12:
-            title_period = "Stakeholders' Feedback Yearly Report - {year}"
+            year = filtered_evaluations.first().date.year if filtered_evaluations.exists() else ''
+            title_period = f"Stakeholders' Feedback Yearly Report - {year}"
         
         else:
             start_month = calendar.month_name[months[0]]
             end_month = calendar.month_name[months[-1]]
+            year = filtered_evaluations.first().date.year if filtered_evaluations.exists() else ''
             title_period = f"Stakeholders' Feedback Summary Report\n{start_month} - {end_month} {year}"
 
     else:
@@ -4373,11 +4370,11 @@ def stakeholders_generate_summary_report(request):
     })
 
     response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = 'attachment; filename=summary_report.pdf'
+    response['Content-Disposition'] = 'attachment; filename=Stakeholders-Feedback-Summary-Report.pdf'
     pisa_status = pisa.CreatePDF(html, dest=response,
                                   default_font=DEFAULT_FONT, 
                                   encoding='utf-8', 
-                                  link_callback=None, 
+                                  link_callback=link_callback, 
                                   how_error_as_pdf=False, 
                                   context=None, 
                                   default_css=None,
@@ -4706,6 +4703,9 @@ def faculty_evaluations_individual_summary_report_pdf(request):
             'Overall': 0
         }
 
+        MAX_SCORE = 5
+        NUM_CATEGORIES = len(category_sums) - 1  # Exclude 'Overall' key
+
         for evaluation in evaluations:
             category_averages = evaluation.calculate_category_averages()
             for category, average in category_averages.items():
@@ -4716,6 +4716,11 @@ def faculty_evaluations_individual_summary_report_pdf(request):
         # Calculate averages
         category_averages = {category: round(total / num_evaluators, 2) for category, total in category_sums.items()}
         avg_rating = category_averages['Overall']
+
+        # Calculate overall percentage of category averages
+        total_score = sum(category_averages[category] for category in category_sums if category != 'Overall')
+        max_possible_score = MAX_SCORE * NUM_CATEGORIES
+        overall_percentage = round((total_score / max_possible_score) * 100, 2)
 
         if avg_rating is not None:
             if 1.0 <= avg_rating <= 1.49:
@@ -4744,6 +4749,7 @@ def faculty_evaluations_individual_summary_report_pdf(request):
             'classroom_management_avg': category_averages['Classroom Management'],
             'sensitivity_support_students_avg': category_averages['Sensitivity and Support to Students'],
             'overall_avg': category_averages['Overall'],
+            'overall_percentage': overall_percentage,
             'rating_category': rating_category
         })
 
@@ -4757,12 +4763,12 @@ def faculty_evaluations_individual_summary_report_pdf(request):
             })
 
     # Render the summary data to an HTML template
-    html = render_to_string('pages/faculty_evaluations_summary_report.html', {'summary_data': summary_data, 'image_path': image_path, 'comments_data': comments_data, 'current_academic_year': current_academic_year, 'current_semester': current_semester})
+    html = render_to_string('pages/faculty_evaluations_individual_summary_report.html', {'summary_data': summary_data, 'image_path': image_path, 'comments_data': comments_data, 'current_academic_year': current_academic_year, 'current_semester': current_semester, 'faculty_name': faculty_name})
 
     # Create the PDF
     response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = 'attachment; filename="faculty_evaluations_summary.pdf"'
-    pisa_status = pisa.CreatePDF(html, dest=response)
+    response['Content-Disposition'] = 'attachment; filename="SET-Individual-Summary-Report.pdf"'
+    pisa_status = pisa.CreatePDF(html, dest=response, link_callback=link_callback)
 
     if pisa_status.err:
         return HttpResponse('We had some errors with code %s' % pisa_status.err)
@@ -5959,10 +5965,8 @@ def edit_faculty_events(request, pk):
         form = EventCreationForm(request.POST, request.FILES, instance=event)
         if form.is_valid():
             form.save(commit=True)
-         
             event_pk = event.pk
 
-            # Remove existing jobs if they exist
             try:
                 scheduler.remove_job(f'start_event_{event_pk}')
             except JobLookupError:
@@ -5976,38 +5980,37 @@ def edit_faculty_events(request, pk):
             evaluation_start_date_str = request.POST.get("evaluation_start_datetime")
             evaluation_end_date_str = request.POST.get("evaluation_end_datetime")
 
+            # Log date strings
+            print(f"Start Date: {evaluation_start_date_str}, End Date: {evaluation_end_date_str}")
+
             if evaluation_start_date_str:
                 start_date = datetime.strptime(evaluation_start_date_str, "%Y-%m-%d").date()
-                if start_date > today:
-                    # Schedule the task if the date is valid
-                    trigger = DateTrigger(run_date=start_date)
-                    scheduler.add_job(start_event_evaluations, trigger=trigger, args=[event_pk], id=f'start_event_{event_pk}')
-                elif start_date == today:
-                    # Schedule the task if the date is today
-                    run_date = datetime.now() + timedelta(minutes=1)
-                    trigger = DateTrigger(run_date=run_date)
-                    scheduler.add_job(start_event_evaluations, trigger=trigger, args=[event_pk], id=f'start_event_{event_pk}')
+                if start_date >= today:
+                    run_date = datetime.now() + timedelta(minutes=1) if start_date == today else start_date
+                    try:
+                        trigger = DateTrigger(run_date=run_date)
+                        scheduler.add_job(start_event_evaluations, trigger=trigger, args=[event_pk], id=f'start_event_{event_pk}')
+                    except Exception as e:
+                        print(f"Scheduler Error (start): {e}")
                 else:
-                    # Display an error if the date is in the past
                     messages.error(request, "The start date cannot be in the past.")
-                    return redirect('faculty_event_evaluations')
 
             if evaluation_end_date_str:
                 end_date = datetime.strptime(evaluation_end_date_str, "%Y-%m-%d").date()
-                if end_date > today:
-                    # Schedule the task if the date is valid
-                    trigger = DateTrigger(run_date=end_date)
-                    scheduler.add_job(end_event_evaluations, trigger=trigger, args=[event_pk], id=f'end_event_{event_pk}')
-                elif end_date == today:
-                    # Schedule the task to run at 11:59 PM today
-                    run_date = datetime.combine(today, datetime.min.time()) + timedelta(hours=23, minutes=59)
-                    trigger = DateTrigger(run_date=run_date)
-                    scheduler.add_job(end_event_evaluations, trigger=trigger, args=[event_pk], id=f'end_event_{event_pk}')
+                if end_date >= today:
+                    run_date = datetime.now() + timedelta(minutes=1) if end_date == today else end_date
+                    try:
+                        trigger = DateTrigger(run_date=run_date)
+                        scheduler.add_job(end_event_evaluations, trigger=trigger, args=[event_pk], id=f'end_event_{event_pk}')
+                    except Exception as e:
+                        print(f"Scheduler Error (end): {e}")
                 else:
-                    # Display an error if the date is in the past
                     messages.error(request, "The end date cannot be in the past.")
-                    return redirect('faculty_event_evaluations')
+
+            # Default redirect after processing
             return redirect('faculty_event_evaluations')
+        else:
+            print(form.errors)  # Debug form errors   
 
            
     context = {'event': event, 'faculty': faculty, 'form':form, 'event_notifications': event_notifications,
@@ -6097,10 +6100,10 @@ def faculty_events_upcoming(request):
     notifications_unread_count = unread_notifications.count()
     messages_unread_count = unread_messages.count()  
     department = faculty.department  # Get the department the faculty is a part of
-    events = Event.objects.filter(department_attendees=department).distinct()  # Get events related to those department
+    events = Event.objects.filter(department_attendees=department, admin_status='Approved').distinct()  # Get events related to those department
     
     current_time = timezone.now()
-    upcoming_events = events.filter(date__gt=current_time, evaluation_status=False)  # Events in the future
+    upcoming_events = events.filter(date__gt=current_time, evaluation_status='Closed')  # Events in the future
 
     return render(request, 'pages/faculty_events_upcoming.html', {'faculty': faculty,'upcoming_events': upcoming_events, 'event_notifications': event_notifications,
         'notifications_unread_count': notifications_unread_count,
@@ -6185,7 +6188,7 @@ def faculty_event_detail(request, pk):
     messages_unread_count = unread_messages.count() 
     event = Event.objects.get(pk=pk)
     questions = SchoolEventQuestions.objects.all().order_by('order')
-    if event.event_type.name == 'School Event':
+    if event.event_type.name == 'School Event' or event.event_type.name == 'Training Workshop':
         form = SchoolEventForm()
         if request.method == 'POST':
             form = SchoolEventForm(request.POST)
@@ -6992,15 +6995,19 @@ def department_head_view_department(request):
 
     # Base queryset for peer-to-peer evaluations
     faculties = Faculty.objects.filter(department=request.user.faculty.department).annotate(
-        average_rating=Avg(
-            'peertopeerevaluation__average_rating',
+       average_rating=Round(
+           Coalesce(
+        Avg(
+            'sectionsubjectfaculty__likertevaluation__average_rating',
             filter=Q(
-                peertopeerevaluation__academic_year=current_academic_year,
-                peertopeerevaluation__semester=current_semester,
-                peertopeerevaluation__status='evaluated'
+                sectionsubjectfaculty__likertevaluation__academic_year=current_academic_year,
+                sectionsubjectfaculty__likertevaluation__semester=current_semester,
             ),
-        )
-    ).order_by('last_name')  # Order by last_name
+        ),
+        Value(0), output_field=FloatField()  # Default value for null average_rating
+       ), 2
+      )
+    ).order_by('-average_rating')  
 
     
     is_supervisor = faculty.is_supervisor
@@ -7012,7 +7019,7 @@ def department_head_view_department(request):
 
     # Handle sorting
     ordering = request.GET.get('sort')
-    if ordering in ['average_rating', '-average_rating']:
+    if ordering in ['last_name', '-last_name', 'average_rating', '-average_rating']:
         faculties = faculties.order_by(ordering)
  
 
@@ -7167,7 +7174,7 @@ def send_summary_reports(request):
 
             pdf_path = os.path.join(settings.MEDIA_ROOT, f'faculty_evaluations_summary_{faculty.id}.pdf')
             with open(pdf_path, 'wb') as pdf_file:
-                pisa_status = pisa.CreatePDF(html, dest=pdf_file)
+                pisa_status = pisa.CreatePDF(html, dest=pdf_file, link_callback=link_callback)
 
             if pisa_status.err:
                 return HttpResponse(f'Error generating PDF for faculty {faculty.full_name}')

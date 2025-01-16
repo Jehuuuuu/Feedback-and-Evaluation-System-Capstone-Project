@@ -102,35 +102,7 @@
         {% endfor %}
     </table>
   </div>
-      {% if is_paginated %}
-      <nav class="pagination justify-content-center" aria-label="...">
-        <ul class="pagination">
-            {% if page_obj.has_previous %}
-            <li class="page-item">
-                <a class="page-link" href="?page={{ page_obj.previous_page_number }}&{{ request.GET.urlencode|cut:'page=' }}">Previous</a>
-            </li>
-            {% endif %}
-    
-            {% for i in paginator.page_range %}
-            {% if i == page_obj.number %}
-            <li class="page-item active" aria-current="page">
-                <a class="page-link" href="?page={{ i }}&{{ request.GET.urlencode|cut:'page=' }}">{{ i }}</a>
-            </li>
-            {% else %}
-            <li class="page-item">
-                <a class="page-link" href="?page={{ i }}&{{ request.GET.urlencode|cut:'page=' }}">{{ i }}</a>
-            </li>
-            {% endif %}
-            {% endfor %}
-    
-            {% if page_obj.has_next %}
-            <li class="page-item">
-                <a class="page-link" href="?page={{ page_obj.next_page_number }}&{{ request.GET.urlencode|cut:'page=' }}">Next</a>
-            </li>
-            {% endif %}
-        </ul>
-    </nav>
-    {% endif %}
+  
  <script>
   // for getting the sorting status to be displayed in sorting dropdown placeholder
   function get(name) {

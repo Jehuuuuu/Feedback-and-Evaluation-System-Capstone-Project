@@ -1,38 +1,55 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Summary Report</title>
+    <title>Stakeholders' Feedback Summary Report</title>
     <style>
         body { font-family: Arial, sans-serif; }
         table { width: 100%; border-collapse: collapse; }
         th, td {
             border: 1px solid #dddddd;
             text-align: left;
-            padding:10px 8px 10px 3px;
+            padding:5px 3px 3px 3px;
             word-wrap: break-word; /* Ensure long text breaks within the cell */
-            font-size: 0.8rem;
+            font-size: 1rem;
             white-space: nowrap; /* Prevent text from wrapping */
         }
-        th { background-color: #f2f2f2; }
-        .total { font-weight: bold; }
+        th { 
+            background-color: #f2f2f2; 
+        }
+        .total { 
+            font-weight: bold; 
+        }
         @page {
-        size: letter landscape;
-        margin: 2cm;
-    }
-    h1{
-        text-align: center;
-    }
+            size: letter landscape;
+            margin: 2cm;
+        }
+        h1 {
+            text-align: center;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 0.5em;
+            width: 900px;
+        }
+        .header img {
+            width: 400px; 
+            height: 120px; 
+        }
     </style>
 </head>
 <body>
+    <div class="header">
+        <img src="{% static 'images/cvsuheader.png' %}" alt="CvSU Logo">
+    </div>
     <h1>{{ title_period }}</h1>
 
     <table>
         <thead>
             <tr>
                 <th>#</th>
-                <th>Unit/Department</th>
+                <th style="font-size: 0.9rem;">Unit/Department</th>
                 <th>No. of Clients</th>
                 <th>Courtesy</th>
                 <th>Quality</th>

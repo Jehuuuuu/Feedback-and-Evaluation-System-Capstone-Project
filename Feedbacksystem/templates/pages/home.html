@@ -142,7 +142,7 @@
     {% block feature %}
     <div class="container">
       <h2 class="mt-4 mb-4 success">Pending Evaluations</h2>
-      <div class="row">
+      <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-4 g-3">
         {% if completed_count != total_faculty or unevaluated_events %}
         <div class="col-md-3 mb-4">
           <div class="card border-0">
@@ -159,72 +159,74 @@
           </div>
       </div>
       
-          {% for event in page_obj %}
-          <div class="col-md-3 mb-4">
-              <div class="card border-0">
-                  {% if event.event_picture %}
-                  <img src="{{ event.event_picture.url }}" class="card-img-top" alt="Event Picture">
-                  {% else %}
-                  <img src="{% static 'images/cvsu_thumbnail.jpg' %}" class="card-img-top" alt="Default Image">
-                  {% endif %}
-                  <div class="card-body">
-                      <h5 class="card-title">{{ event.title }}</h5>
-                      <p class="card-subtitle"><small>{{ event.date }}</small></p>
-                      <p class="card-text">{{ event.description|slice:":70" }}...</p>
-                      {% if event.evaluation_status %}
-                      
-                        {% if event.requires_attendance %}
-                          {% if event.attended %}
-                          <div class="d-flex " style="gap: 0.1em;" >
-                            <a href="{% url 'event_detail' event.pk %}" class="card-link btn custom-btn">Evaluate</a>
-                            <a href="#" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#eventModal{{ event.id }}">View Details</a>
-                          </div>
-                          {% else %}
-                            <p class=>You must scan the QR code available to evaluate this event.</p>
-                            <a href="#" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#eventModal{{ event.id }}">View Details</a>
-                          {% endif %}
-                        {% else %}
-                        <div class="d-flex " style="gap: 0.1em;" >
-                            {% if event.evaluation_status == 'Ongoing' %}
+         
+    {% for event in page_obj %}
+    <div class="col mb-4">
+        <div class="card h-100">
+            {% if event.event_picture %}
+            <img src="{{ event.event_picture.url }}" class="card-img-top" alt="Event Picture">
+            {% else %}
+            <img src="{% static 'images/cvsu_thumbnail.jpg' %}" class="card-img-top" alt="Default Image">
+            {% endif %}
+            <div class="card-body d-flex flex-column">
+                <h5 class="card-title">{{ event.title }}</h5>
+                <div class="event-tags">
+                    <span class="event-tag event-type-{{ event.event_type|slugify }}">{{ event.event_type }}</span>
+                    <span class="event-tag venue-type-{{ event.event_venue_type|slugify }}">{{ event.event_venue_type }}</span>
+                </div>
+                <p class="card-subtitle"><small>{{ event.date }}</small></p>
+                <p class="card-text">{{ event.description|slice:":70" }}...</p>
+                <div class="mt-auto">
+                    {% if event.evaluation_status %}
+                    {% if event.requires_attendance %}
+                    {% if event.attended %}
+                    <div class="d-flex" style="gap: 0.1em;">
                         <a href="{% url 'event_detail' event.pk %}" class="card-link btn custom-btn">Evaluate</a>
                         <a href="#" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#eventModal{{ event.id }}">View Details</a>
-                            {% else %}
-                            <a href="#" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#eventModal{{ event.id }}">View Details</a>
-                            {% endif %}
-                      </div>
-                        {% endif %} 
-                        
-                      
-                      {% endif %}
-                      
-                   
-                      <!-- Modal -->
-                        <div class="modal fade" id="eventModal{{ event.id }}" tabindex="-1" aria-labelledby="eventModalLabel{{ event.id }}" aria-hidden="true">
-                          <div class="modal-dialog">
-                            <div class="modal-content">
-                              <div class="modal-header">
-                                <h1 class="modal-title fs-5" id="eventModalLabel{{ event.id }}">{{event.title}}</h1>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                              </div>
-                              <div class="modal-body">
-                                  <p><b>Date:</b> {{ event.date }}</p>
-                                  <p><b>Time:</b> {{ event.time }}</p>
-                                  <p><b>Location:</b> {{ event.location }}</p>
-                                  <p><b>Description:</b> {{ event.description }}</p>
-                                  <p><b>Evaluation Status:</b> {{event.evaluation_status }}</p>
-                                  <p><b>Created by:</b> {{ event.get_author_name }}</p>
-                              </div>
-                              <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>  
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-
-                  </div>
-              </div>
-          </div>
-          {% endfor %}
+                    </div>
+                    {% else %}
+                    <p>You must scan the QR code available to evaluate this event.</p>
+                    <a href="#" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#eventModal{{ event.id }}">View Details</a>
+                    {% endif %}
+                    {% else %}
+                    <div class="d-flex" style="gap: 0.1em;">
+                        {% if event.evaluation_status == 'Ongoing' %}
+                        <a href="{% url 'event_detail' event.pk %}" class="card-link btn custom-btn">Evaluate</a>
+                        <a href="#" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#eventModal{{ event.id }}">View Details</a>
+                        {% else %}
+                        <a href="#" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#eventModal{{ event.id }}">View Details</a>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Modal -->
+    <div class="modal fade" id="eventModal{{ event.id }}" tabindex="-1" aria-labelledby="eventModalLabel{{ event.id }}" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="eventModalLabel{{ event.id }}">{{ event.title }}</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p><b>Date:</b> {{ event.date }}</p>
+                    <p><b>Time:</b> {{ event.time }}</p>
+                    <p><b>Location:</b> {{ event.location }}</p>
+                    <p><b>Description:</b> {{ event.description }}</p>
+                    <p><b>Evaluation Status:</b> {{ event.evaluation_status }}</p>
+                    <p><b>Created by:</b> {{ event.get_author_name }}</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
       </div>
   
       <nav aria-label="Page navigation">

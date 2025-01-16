@@ -10,6 +10,17 @@
 {% endblock header %}
 <hr>
 {% block feature %}
+{% if messages %}
+<div class="container col-md-6 col-12 message_container">
+    {% for message in messages %}
+    <div class="alert alert-dismissible {% if message.tags == 'error' %}alert-danger{% elif message.tags == 'success' %}alert-success{% endif %}" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
 <div class="container">
     <div class="row justify-content-center" >
         <div class="col-md-6">
@@ -34,6 +45,10 @@
                 <div class="form-group">
                 {{ form.event_type.label_tag }}
                 {{ form.event_type }}
+                </div>
+                <div class="form-group">
+                {{ form.event_venue_type.label_tag }}
+                {{ form.event_venue_type }}
                 </div>
                 <div class="form-group">
                 {{ form.event_picture.label_tag }}

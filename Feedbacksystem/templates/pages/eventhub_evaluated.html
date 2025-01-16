@@ -36,6 +36,10 @@
     <img src="{% static 'images/cvsu_thumbnail.jpg' %}"  class="card-img-top img-fluid" alt="CvSU Thumbnail">
     {% endif %}
       <h5 class="card-title">{{i.title}}</h5>
+      <div class="event-tags">
+        <span class="event-tag event-type-{{ i.event_type|slugify }}">{{ i.event_type }}</span>
+        <span class="event-tag venue-type-{{ i.event_venue_type|slugify }}">{{ i.event_venue_type }}</span>
+      </div>
       <h6 class="card-subtitle mb-2 text-body-secondary"><small>{{i.date}}</small></h6>
       <p class="card-text">{{i.description|slice:":70"}}...</p>
       <a href="#" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#eventModal{{ i.id }}">View Details</a>

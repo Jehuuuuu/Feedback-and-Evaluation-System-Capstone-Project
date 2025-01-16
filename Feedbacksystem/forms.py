@@ -514,12 +514,16 @@ class DateInput(forms.DateInput):
 class EventCreationForm(ModelForm):
     class Meta:
         model = Event
-        fields = ['title', 'date', 'time', 'location', 'event_type','event_picture', 'description', 'course_attendees', 'department_attendees', 'evaluation_status','evaluation_start_datetime', 'evaluation_end_datetime','requires_attendance']
+        fields = ['title', 'date', 'time', 'location', 'event_type', 'event_venue_type','event_picture', 'description', 'course_attendees', 'department_attendees', 'evaluation_status','evaluation_start_datetime', 'evaluation_end_datetime','requires_attendance']
         labels = {
             'course_attendees': 'Course Attendees',
             'department_attendees': 'Department Attendees',
             'evaluation_status': 'Evaluation Status',
             'requires_attendance': 'Requires Attendance (Generate QR Code)',
+            'evaluation_start_datetime': 'Evaluation Start Date:',
+            'evaluation_end_datetime': 'Evaluation End Date:',
+            'event_type': 'Event Type:',
+            'event_venue_type': 'Event Venue Type:',
         }
 
         widgets = {
@@ -528,6 +532,7 @@ class EventCreationForm(ModelForm):
             'time': forms.TimeInput(attrs={'class': 'form-control'}),
             'location': forms.TextInput(attrs={'class': 'form-control'}),
             'event_type': forms.Select(attrs={'class': 'form-control'}),
+            'event_venue_type': forms.Select(attrs={'class': 'form-control'}),
             'description': forms.Textarea(attrs={'class': 'form-control'}),
             'event_picture': forms.ClearableFileInput(attrs={'class': 'form-control '}),
             'course_attendees': forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'}),

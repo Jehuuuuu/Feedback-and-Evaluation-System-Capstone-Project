@@ -594,16 +594,22 @@ class TypeOfEvent(models.Model):
 
 
 class Event(models.Model):
+    EVENT_VENUE_TYPE = [
+        ('In-Campus Event', 'In-Campus Event'),
+        ('Off-Campus Event', 'Off-Campus Event'),
+    ]
     title = models.CharField(max_length = 200)
     date = models.DateField()
     time = models.CharField(max_length = 50)
     location = models.CharField(max_length = 200)
     event_picture = models.ImageField(upload_to='event_picture/', null=True, blank = True) 
     event_type = models.ForeignKey(TypeOfEvent, on_delete=models.CASCADE) 
+    event_venue_type = models.CharField(max_length=50, choices=EVENT_VENUE_TYPE) 
     course_attendees = models.ManyToManyField(Course, blank=True)  
     department_attendees = models.ManyToManyField(Department, blank=True)  
     description = models.TextField(null=True, blank = True)
     author = models.ForeignKey(User, on_delete=models.CASCADE) 
+
     EVALUATION_STATUS_CHOICES = [
         ('Ongoing', 'Ongoing'),
         ('Closed', 'Closed'),
