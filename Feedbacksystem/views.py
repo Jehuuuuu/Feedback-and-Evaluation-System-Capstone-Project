@@ -8,7 +8,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import UserCreationForm
 from django.db.models import Avg, Value, CharField
 from django.http import Http404
-from .utils import load_prediction_models, single_prediction
+from .utils import load_prediction_models, single_prediction, sentiment_pipeline
 from .filters import EvaluationFilter, FacultyFilter, StudentFilter, UserFilter, EventFilter, SectionFilter, SubjectFilter, StakeholderFilter, LikertEvaluationFilter, PeertoPeerEvaluationFilter
 from .resources import StudentResource
 from tablib import Dataset
@@ -62,8 +62,7 @@ from .jobs import close_evaluations, approve_pending_evaluations, start_event_ev
 from apscheduler.jobstores.base import JobLookupError
 from .scheduler import scheduler
 from django.db.models.functions import Coalesce, Round
-
-
+from transformers import pipeline
 
 ITEMS_PER_PAGE = 5
             # ------------------------------------------------------
@@ -316,7 +315,7 @@ def stakeholder_feedback_form(request):
     if request.method == 'POST':
         form = StakeholderFeedbackForm(request.POST)
         if form.is_valid():
-                 # Process the evaluation form
+
             name = form.cleaned_data['name']
             agency_name = form.cleaned_data['agency']
             email = form.cleaned_data['email']
@@ -330,10 +329,10 @@ def stakeholder_feedback_form(request):
             cleanliness = form.cleaned_data['cleanliness']
             comfort = form.cleaned_data['comfort']
             suggestions_and_comments = form.cleaned_data['suggestions_and_comments']
-            predicted_sentiment = single_prediction(suggestions_and_comments)
-            # Use get_object_or_404 to handle missing agency
+            predicted_sentiment = sentiment_pipeline(suggestions_and_comments)[0]
+            sentiment_label = predicted_sentiment['label']
             agency_instance = get_object_or_404(StakeholderAgency, name=agency_name)
-            # Save the data to database
+
             form = StakeholderFeedbackModel(
                 name=name,
                 agency=agency_instance,
@@ -348,10 +347,9 @@ def stakeholder_feedback_form(request):
                 cleanliness=cleanliness,
                 comfort=comfort,
                 suggestions_and_comments=suggestions_and_comments,
-                predicted_sentiment = predicted_sentiment
+                predicted_sentiment = sentiment_label
             )           
             form.save()
-            print(questions)
             messages.success(request, 'Form Submitted Successfully')
             return redirect('signin')
     context = {'questions': questions, 'form': form}
@@ -707,7 +705,8 @@ def evaluate_subject_faculty(request,pk):
             strengths_of_the_faculty = form.cleaned_data['strengths_of_the_faculty']
             other_suggestions_for_improvement =  form.cleaned_data['other_suggestions_for_improvement']
             comments = form.cleaned_data['comments']
-            predicted_sentiment = single_prediction(comments)
+            predicted_sentiment = sentiment_pipeline(comments)[0]
+            sentiment_label = predicted_sentiment['label']
 
           
             # Save the data to the database
@@ -754,7 +753,7 @@ def evaluate_subject_faculty(request,pk):
                 strengths_of_the_faculty=strengths_of_the_faculty,
                 other_suggestions_for_improvement=other_suggestions_for_improvement,
                 comments=comments,
-                predicted_sentiment=predicted_sentiment
+                predicted_sentiment=sentiment_label
             )
 
             # Attempt to save the instance
@@ -929,7 +928,8 @@ def event_detail(request, pk):
                 venue_and_physical_arrangement = form.cleaned_data['venue_and_physical_arrangement']
                 overall_assessment = form.cleaned_data['overall_assessment']
                 suggestions_and_comments = form.cleaned_data['suggestions_and_comments']
-                predicted_sentiment = single_prediction(suggestions_and_comments)
+                predicted_sentiment = sentiment_pipeline(suggestions_and_comments)[0]
+                sentiment_label = predicted_sentiment['label']
                 # Save the data to database
                 form = SchoolEventModel(
                     user=user,
@@ -942,7 +942,7 @@ def event_detail(request, pk):
                     venue_and_physical_arrangement=venue_and_physical_arrangement,
                     overall_assessment=overall_assessment,
                     suggestions_and_comments=suggestions_and_comments,
-                    predicted_sentiment = predicted_sentiment
+                    predicted_sentiment = sentiment_label
                 )
                 form.save()
             messages.success(request, 'Evaluation submitted successfully.')
@@ -996,7 +996,8 @@ def event_detail(request, pk):
 
                 overall_satisfaction = form.cleaned_data['overall_satisfaction']
 
-                predicted_sentiment = single_prediction(suggestions_and_comments)
+                predicted_sentiment = sentiment_pipeline(suggestions_and_comments)[0]
+                sentiment_label = predicted_sentiment['label']
 
                 # Save the data to the database
                 form = WebinarSeminarModel(
@@ -1040,7 +1041,7 @@ def event_detail(request, pk):
 
                     overall_satisfaction=overall_satisfaction,
 
-                    predicted_sentiment = single_prediction(predicted_sentiment)
+                    predicted_sentiment = sentiment_label
                 )
                 form.save()
                 messages.success(request, 'Evaluation submitted successfully.')
@@ -1560,8 +1561,8 @@ def admin(request):
     else:
         data = filterset.qs
 
-    positive_count = data.filter(predicted_sentiment='Positive').count()
-    negative_count = data.filter(predicted_sentiment='Negative').count()
+    positive_count = data.filter(predicted_sentiment='positive').count()
+    negative_count = data.filter(predicted_sentiment='negative').count()
 
     # Prepare data for Chart.js
     chart_data = {
@@ -1641,8 +1642,8 @@ def department_response_chart_data(request):
             total_evaluations = LikertEvaluation.objects.filter(section_subject_faculty__faculty=faculty).count()
 
             # Get positive and negative evaluations for this faculty
-            positive_evaluations = LikertEvaluation.objects.filter(section_subject_faculty__faculty=faculty, predicted_sentiment="Positive", academic_year=current_academic_year, semester=current_semester).count()
-            negative_evaluations = LikertEvaluation.objects.filter(section_subject_faculty__faculty=faculty, predicted_sentiment="Negative", academic_year=current_academic_year, semester=current_semester).count()
+            positive_evaluations = LikertEvaluation.objects.filter(section_subject_faculty__faculty=faculty, predicted_sentiment="positive", academic_year=current_academic_year, semester=current_semester).count()
+            negative_evaluations = LikertEvaluation.objects.filter(section_subject_faculty__faculty=faculty, predicted_sentiment="negative", academic_year=current_academic_year, semester=current_semester).count()
 
             # Add the positive and negative evaluations to department totals
             total_positive += positive_evaluations
@@ -1673,8 +1674,8 @@ def faculty_response_chart_data(request, department_id):
         evaluation_status = EvaluationStatus.objects.first()
         current_academic_year = evaluation_status.academic_year 
         current_semester = evaluation_status.semester
-        positive_evaluations = LikertEvaluation.objects.filter(section_subject_faculty__faculty=faculty, predicted_sentiment="Positive", academic_year=current_academic_year, semester=current_semester).count()
-        negative_evaluations = LikertEvaluation.objects.filter(section_subject_faculty__faculty=faculty, predicted_sentiment="Negative", academic_year=current_academic_year, semester=current_semester).count()
+        positive_evaluations = LikertEvaluation.objects.filter(section_subject_faculty__faculty=faculty, predicted_sentiment="positive", academic_year=current_academic_year, semester=current_semester).count()
+        negative_evaluations = LikertEvaluation.objects.filter(section_subject_faculty__faculty=faculty, predicted_sentiment="negative", academic_year=current_academic_year, semester=current_semester).count()
 
         faculty_labels.append(f"{faculty.first_name} {faculty.last_name}")
 
@@ -4205,8 +4206,8 @@ def hr_dashboard(request):
 
     total_clients = data.count()
         # Compute evaluation counts
-    positive_evaluations = data.filter(predicted_sentiment='Positive').count()
-    negative_evaluations = data.filter(predicted_sentiment='Negative').count()
+    positive_evaluations = data.filter(predicted_sentiment='positive').count()
+    negative_evaluations = data.filter(predicted_sentiment='negative').count()
     total_evaluations = data.count()
 
     # Sentiment score calculation
@@ -4467,8 +4468,8 @@ def facultydashboard(request):
     filtered_semester = request.GET.get('semester', current_semester)
 
     # Compute evaluation counts
-    positive_evaluations = data.filter(predicted_sentiment='Positive').count()
-    negative_evaluations = data.filter(predicted_sentiment='Negative').count()
+    positive_evaluations = data.filter(predicted_sentiment='positive').count()
+    negative_evaluations = data.filter(predicted_sentiment='negative').count()
     total_evaluations = data.count()
 
     # Sentiment score calculation
@@ -4615,8 +4616,8 @@ def facultydashboard(request):
             fields[field] = fields[field] / total_evaluations if total_evaluations else 0
     
      # Compute evaluation counts
-    positive_evaluations = data.filter(predicted_sentiment='Positive').count()
-    negative_evaluations = data.filter(predicted_sentiment='Negative').count()
+    positive_evaluations = data.filter(predicted_sentiment='positive').count()
+    negative_evaluations = data.filter(predicted_sentiment='negative').count()
     context = {
         'faculty': faculty,
         'evaluation_status': evaluation_status,
@@ -4652,8 +4653,8 @@ def get_evaluation_data(request):
     current_semester = evaluation_status.semester
     
     teacher_evaluations = LikertEvaluation.objects.filter(section_subject_faculty__faculty=faculty,academic_year=current_academic_year, semester=current_semester, admin_status='Approved' )
-    positive_evaluations = teacher_evaluations.filter(predicted_sentiment='Positive').count()
-    negative_evaluations = teacher_evaluations.filter(predicted_sentiment='Negative').count()
+    positive_evaluations = teacher_evaluations.filter(predicted_sentiment='positive').count()
+    negative_evaluations = teacher_evaluations.filter(predicted_sentiment='negative').count()
 
     data = {
         'positive_evaluations': positive_evaluations,
@@ -6202,7 +6203,8 @@ def faculty_event_detail(request, pk):
                 venue_and_physical_arrangement = form.cleaned_data['venue_and_physical_arrangement']
                 overall_assessment = form.cleaned_data['overall_assessment']
                 suggestions_and_comments = form.cleaned_data['suggestions_and_comments']
-                predicted_sentiment = single_prediction(suggestions_and_comments)
+                predicted_sentiment = sentiment_pipeline(suggestions_and_comments)[0]
+                sentiment_label = predicted_sentiment['label']
                 # Save the data to database
                 form = SchoolEventModel(
                     user=user,
@@ -6215,7 +6217,7 @@ def faculty_event_detail(request, pk):
                     venue_and_physical_arrangement=venue_and_physical_arrangement,
                     overall_assessment=overall_assessment,
                     suggestions_and_comments=suggestions_and_comments,
-                    predicted_sentiment=predicted_sentiment
+                    predicted_sentiment=sentiment_label
                 )
                 form.save()
             messages.success(request, 'Evaluation submitted successfully.')
@@ -6268,7 +6270,8 @@ def faculty_event_detail(request, pk):
 
                 overall_satisfaction = form.cleaned_data['overall_satisfaction']
 
-                predicted_sentiment = single_prediction(suggestions_and_comments)
+                predicted_sentiment = sentiment_pipeline(suggestions_and_comments)[0]
+                sentiment_label = predicted_sentiment['label']
 
                 # Save the data to the database
                 form = WebinarSeminarModel(
@@ -6312,7 +6315,7 @@ def faculty_event_detail(request, pk):
 
                     overall_satisfaction=overall_satisfaction,
 
-                    predicted_sentiment=predicted_sentiment
+                    predicted_sentiment=sentiment_label
 
                 )
                 form.save()
@@ -6447,7 +6450,8 @@ def peer_to_peer_evaluation_form(request,pk):
             strengths_of_the_faculty = form.cleaned_data['strengths_of_the_faculty']
             other_suggestions_for_improvement =  form.cleaned_data['other_suggestions_for_improvement']
             comments = form.cleaned_data['comments']
-            predicted_sentiment = single_prediction(comments)
+            predicted_sentiment = sentiment_pipeline(comments)[0]
+            sentiment_label = predicted_sentiment['label']
 
           
             # Save the data to the database
@@ -6494,7 +6498,7 @@ def peer_to_peer_evaluation_form(request,pk):
                 strengths_of_the_faculty=strengths_of_the_faculty,
                 other_suggestions_for_improvement=other_suggestions_for_improvement,
                 comments=comments,
-                predicted_sentiment=predicted_sentiment
+                predicted_sentiment=sentiment_label
             )
 
             # Attempt to save the instance

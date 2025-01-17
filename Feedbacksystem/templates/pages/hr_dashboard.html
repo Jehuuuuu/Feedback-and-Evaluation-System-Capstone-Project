@@ -313,12 +313,12 @@
         <h5>Recent feedback</h5>
         {% for i in recent_comments %}
         <tr>
-          {% if i.predicted_sentiment == 'Positive' %}
+          {% if i.predicted_sentiment == 'positive' %}
           <td class="text-success">
               {{ i.suggestions_and_comments | truncatechars:40 }}
           </td>
           {% endif %}
-          {% if i.predicted_sentiment == 'Negative' %}
+          {% if i.predicted_sentiment == 'negative' %}
           <td class="text-danger">
               {{ i.suggestions_and_comments | truncatechars:40 }}
           </td>

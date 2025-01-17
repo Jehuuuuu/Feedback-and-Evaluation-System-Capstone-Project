@@ -11,7 +11,7 @@ import base64
 import re
 import os
 import nltk
-
+from transformers import pipeline, XLMRobertaTokenizer, XLMRobertaForSequenceClassification 
 try:
     stopwords.words("english")
 except LookupError:
@@ -66,3 +66,14 @@ def single_prediction(comments):
     y_predictions = y_predictions.argmax(axis=1)[0]
 
     return "Positive" if y_predictions == 1 else "Negative"
+
+
+
+
+model_path = "cardiffnlp/twitter-xlm-roberta-base-sentiment" 
+
+model = XLMRobertaForSequenceClassification.from_pretrained(model_path)
+
+tokenizer = XLMRobertaTokenizer.from_pretrained(model_path) 
+
+sentiment_pipeline = pipeline("sentiment-analysis", model=model, tokenizer=tokenizer)
