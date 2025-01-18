@@ -3051,12 +3051,16 @@ def view_admin_schoolevent_evaluations(request, pk):
 @allowed_users(allowed_roles=['admin', 'HR admin'])
 def stakeholderevaluations(request):
     is_admin = request.user.groups.filter(name='admin').exists()
+    evaluation_status = EvaluationStatus.objects.first()
+    current_academic_year = evaluation_status.academic_year 
+    selected_academic_year = request.GET.get('academic_year', current_academic_year)
     evaluations = StakeholderFeedbackModel.objects.all()
+    
 
            #filter and search
     stakeholder_evaluation_filter = StakeholderFilter(request.GET, queryset=evaluations)
     evaluations = stakeholder_evaluation_filter.qs
-    
+    total_entries = evaluations.count()
        
         # ordering functionality
     ordering = request.GET.get('ordering', "")  
@@ -3066,7 +3070,7 @@ def stakeholderevaluations(request):
     paginator = Paginator(evaluations, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-    context = {'evaluations': evaluations, 'page_obj': page_obj, 'stakeholder_evaluation_filter': stakeholder_evaluation_filter, 'is_admin': is_admin}
+    context = {'evaluations': evaluations, 'page_obj': page_obj, 'stakeholder_evaluation_filter': stakeholder_evaluation_filter, 'is_admin': is_admin, 'selected_academic_year': selected_academic_year, 'total_entries': total_entries}
     return render(request, 'pages/stakeholderevaluations.html', context)
 
 @login_required(login_url='signin')

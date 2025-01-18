@@ -5,7 +5,8 @@
 {% block header %}
 <div class="row">
     <div class="col-md-7">
-      <h2>Stakeholder Feedback and Evaluations</h2>
+      <h4>Stakeholder Feedback and Evaluations {{selected_academic_year}}</h4>
+     
     </div>
     <div class="col-lg-4 col-md-5 mt-1 evaluations_search" style="margin-left: auto;">
       <form method="get" action="" class="d-flex" style="gap: 1em;">
@@ -15,6 +16,7 @@
         </form>
       </div>
   </div>
+  <p><strong>Total Evaluations:</strong> <span class="badge bg-secondary">{{ total_entries }}
     <hr>    
 {% endblock header %}
 {% block feature %}
@@ -189,4 +191,3 @@
       
       </script>
 {% endblock feature %}
-
