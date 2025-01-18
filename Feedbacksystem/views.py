@@ -8,7 +8,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import UserCreationForm
 from django.db.models import Avg, Value, CharField
 from django.http import Http404
-from .utils import load_prediction_models, single_prediction, sentiment_pipeline
+from .utils import sentiment_pipeline
 from .filters import EvaluationFilter, FacultyFilter, StudentFilter, UserFilter, EventFilter, SectionFilter, SubjectFilter, StakeholderFilter, LikertEvaluationFilter, PeertoPeerEvaluationFilter
 from .resources import StudentResource
 from tablib import Dataset
@@ -62,7 +62,6 @@ from .jobs import close_evaluations, approve_pending_evaluations, start_event_ev
 from apscheduler.jobstores.base import JobLookupError
 from .scheduler import scheduler
 from django.db.models.functions import Coalesce, Round
-from transformers import pipeline
 
 ITEMS_PER_PAGE = 5
             # ------------------------------------------------------

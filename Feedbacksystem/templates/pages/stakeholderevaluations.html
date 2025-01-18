@@ -88,10 +88,32 @@
           <tr>
               <td>{{ i.agency }} </td>
               <td>{{ i.date }} </td>
-              <td>{{ i.average_rating }}</td>
-              <td>{{ i.get_rating_category }}</td>
+              <td>
+                <span {% if i.average_rating >= 5.0 %} style="color: #339933;" 
+                {% elif i.average_rating >= 4.0 %} style="color: #66CC66;" 
+                {% elif i.average_rating >= 3.0 %} style="color: #FFD700;" 
+                {% elif i.average_rating >= 2.0 %} style="color: #FF9900;" 
+                {% elif i.average_rating >= 1.0 %} style="color: #cc0000;" 
+                {% endif %} > <b>{{ i.average_rating }} </b>
+            </span>
+            </td>
+              <td>
+                <span {% if i.average_rating >= 5.0 %} style="color: #339933;" 
+                {% elif i.average_rating >= 4.0 %} style="color: #66CC66;" 
+                {% elif i.average_rating >= 3.0 %} style="color: #FFD700;" 
+                {% elif i.average_rating >= 2.0 %} style="color: #FF9900;" 
+                {% elif i.average_rating >= 1.0 %} style="color: #cc0000;" 
+                {% endif %}>
+                <b>{{ i.get_rating_category }}</b></span>
+              </td>
               <td>{{ i.suggestions_and_comments|truncatechars:50 }}</td>
-              <td>{{ i.predicted_sentiment }}</td>
+              <td>
+                <span {% if i.predicted_sentiment == 'positive' %} style="color: #339933;" 
+                    {% elif i.predicted_sentiment == 'negative' %} style="color:  #cc0000;" 
+                    {% endif %}>
+                <b>{{ i.predicted_sentiment }}</b>
+                  </span>
+              </td>
               <td style="display: flex; flex-direction: row; align-items: center;">
                 <a href="{% url 'admin_view_stakeholder_form' i.pk %}" style="margin-right: 10px; text-decoration: none;">
                   <button class="btn btn-primary d-flex align-items-center" style=" padding:1px 2px 1px 7px">
