@@ -4,11 +4,24 @@ services:
     env: python
     buildCommand: |
       pip install -r requirements.txt
+      python -m nltk.downloader punkt  # For tokenizer dependencies, if needed
       bash build.sh  # If this is needed for static files or other setup
     startCommand: |
-      gunicorn Feedbacksystem.wsgi:application --bind 0.0.0.0:$PORT --timeout 300 --workers 3
+      gunicorn Feedbacksystem.wsgi:application --bind 0.0.0.0:$PORT --timeout 120 --workers 3 --worker-class gevent
+    resources:
+      limits:
+        memory: 2Gi  
+      requests:
+        memory: 1Gi
+
   - type: worker
     name: apscheduler-worker
     env: python
     buildCommand: "pip install -r requirements.txt"
     startCommand: "python manage.py run_scheduler"
+    resources:
+      limits:
+        memory: 512Mi
+      requests:
+        memory: 256Mi
+
