@@ -6,7 +6,7 @@ services:
       pip install -r requirements.txt
       bash build.sh  # If this is needed for static files or other setup
     startCommand: |
-      gunicorn Feedbacksystem.wsgi:application --bind 0.0.0.0:$PORT
+      gunicorn Feedbacksystem.wsgi:application --bind 0.0.0.0:$PORT --timeout 300 --workers 3
   - type: worker
     name: apscheduler-worker
     env: python

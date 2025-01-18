@@ -323,6 +323,11 @@
               {{ i.suggestions_and_comments | truncatechars:40 }}
           </td>
           {% endif %}
+          {% if i.predicted_sentiment == 'neutral' %}
+          <td>
+              {{ i.suggestions_and_comments | truncatechars:40 }}
+          </td>
+          {% endif %}
         </tr>
         {% endfor %}
     </table>
@@ -334,12 +339,12 @@
             var sentimentChart = new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: ['Positive', 'Negative'],  // Labels for the X-axis
+                    labels: ['Positive', 'Negative', 'Neutral'],  // Labels for the X-axis
                     datasets: [{
                         label: 'Stakeholder Feedback Sentiment Distribution',  // Dataset label
-                        data: [{{ positive_evaluations }}, {{ negative_evaluations }}],
-                        backgroundColor: ['#4caf50', '#f44336'],
-                        borderColor: ['#4caf50', '#f44336'],
+                        data: [{{ positive_evaluations }}, {{ negative_evaluations }}, {{ neutral_evaluations }}],  // Data values
+                        backgroundColor: ['#4caf50', '#f44336', '#898E8C'],
+                        borderColor: ['#4caf50', '#f44336', '#898E8C'],
                         borderWidth: 1
                     }]
                 },

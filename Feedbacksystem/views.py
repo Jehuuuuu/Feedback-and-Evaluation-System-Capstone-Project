@@ -4208,6 +4208,7 @@ def hr_dashboard(request):
         # Compute evaluation counts
     positive_evaluations = data.filter(predicted_sentiment='positive').count()
     negative_evaluations = data.filter(predicted_sentiment='negative').count()
+    neutral_evaluations = data.filter(predicted_sentiment='neutral').count()
     total_evaluations = data.count()
 
     # Sentiment score calculation
@@ -4261,8 +4262,8 @@ def hr_dashboard(request):
         'recent_comments': recent_comments,
         'positive_evaluations': positive_evaluations,
         'negative_evaluations': negative_evaluations,
-        'agency_ratings': agency_ratings
-
+        'neutral_evaluations': neutral_evaluations,
+        'agency_ratings': agency_ratings,
     }
 
     return render(request, 'pages/hr_dashboard.html', context)
