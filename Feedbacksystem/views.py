@@ -8,7 +8,6 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import UserCreationForm
 from django.db.models import Avg, Value, CharField
 from django.http import Http404
-from .utils import sentiment_pipeline
 from .filters import EvaluationFilter, FacultyFilter, StudentFilter, UserFilter, EventFilter, SectionFilter, SubjectFilter, StakeholderFilter, LikertEvaluationFilter, PeertoPeerEvaluationFilter
 from .resources import StudentResource
 from tablib import Dataset
@@ -62,7 +61,7 @@ from .jobs import close_evaluations, approve_pending_evaluations, start_event_ev
 from apscheduler.jobstores.base import JobLookupError
 from .scheduler import scheduler
 from django.db.models.functions import Coalesce, Round
-
+from .utils import generate_wordcloud, get_sentiment
 ITEMS_PER_PAGE = 5
             # ------------------------------------------------------
             #                Login-Page Views
@@ -328,8 +327,23 @@ def stakeholder_feedback_form(request):
             cleanliness = form.cleaned_data['cleanliness']
             comfort = form.cleaned_data['comfort']
             suggestions_and_comments = form.cleaned_data['suggestions_and_comments']
-            predicted_sentiment = sentiment_pipeline(suggestions_and_comments)[0]
-            sentiment_label = predicted_sentiment['label']
+            predicted_sentiment = get_sentiment(suggestions_and_comments)
+            sentiment_label = 'None'
+            if predicted_sentiment and isinstance(predicted_sentiment, list):
+                try:
+                    # Access the first list in the response, then sort by score
+                    sentiment_list = predicted_sentiment[0]
+                    # Get the prediction with the highest score (sorted descending)
+                    top_prediction = max(sentiment_list, key=lambda x: x['score'])
+                    
+                    # Directly use the label from the API response
+                    sentiment_label = top_prediction['label'].capitalize()  # "Negative", "Neutral", or "Positive"
+                
+                except (IndexError, KeyError, TypeError) as e:
+                    print(f"Error processing sentiment: {e}")
+                    sentiment_label = "None"
+
+
             agency_instance = get_object_or_404(StakeholderAgency, name=agency_name)
 
             form = StakeholderFeedbackModel(
@@ -704,8 +718,21 @@ def evaluate_subject_faculty(request,pk):
             strengths_of_the_faculty = form.cleaned_data['strengths_of_the_faculty']
             other_suggestions_for_improvement =  form.cleaned_data['other_suggestions_for_improvement']
             comments = form.cleaned_data['comments']
-            predicted_sentiment = sentiment_pipeline(comments)[0]
-            sentiment_label = predicted_sentiment['label']
+            predicted_sentiment = get_sentiment(comments)
+            sentiment_label = 'None'
+            if predicted_sentiment and isinstance(predicted_sentiment, list):
+                try:
+                    # Access the first list in the response, then sort by score
+                    sentiment_list = predicted_sentiment[0]
+                    # Get the prediction with the highest score (sorted descending)
+                    top_prediction = max(sentiment_list, key=lambda x: x['score'])
+                    
+                    # Directly use the label from the API response
+                    sentiment_label = top_prediction['label'].capitalize()  # "Negative", "Neutral", or "Positive"
+                
+                except (IndexError, KeyError, TypeError) as e:
+                    print(f"Error processing sentiment: {e}")
+                    sentiment_label = "None"
 
           
             # Save the data to the database
@@ -927,8 +954,21 @@ def event_detail(request, pk):
                 venue_and_physical_arrangement = form.cleaned_data['venue_and_physical_arrangement']
                 overall_assessment = form.cleaned_data['overall_assessment']
                 suggestions_and_comments = form.cleaned_data['suggestions_and_comments']
-                predicted_sentiment = sentiment_pipeline(suggestions_and_comments)[0]
-                sentiment_label = predicted_sentiment['label']
+                predicted_sentiment = get_sentiment(suggestions_and_comments)
+                sentiment_label = 'None'
+                if predicted_sentiment and isinstance(predicted_sentiment, list):
+                    try:
+                        # Access the first list in the response, then sort by score
+                        sentiment_list = predicted_sentiment[0]
+                        # Get the prediction with the highest score (sorted descending)
+                        top_prediction = max(sentiment_list, key=lambda x: x['score'])
+                        
+                        # Directly use the label from the API response
+                        sentiment_label = top_prediction['label'].capitalize()  # "Negative", "Neutral", or "Positive"
+                    
+                    except (IndexError, KeyError, TypeError) as e:
+                        print(f"Error processing sentiment: {e}")
+                        sentiment_label = "None"
                 # Save the data to database
                 form = SchoolEventModel(
                     user=user,
@@ -995,8 +1035,21 @@ def event_detail(request, pk):
 
                 overall_satisfaction = form.cleaned_data['overall_satisfaction']
 
-                predicted_sentiment = sentiment_pipeline(suggestions_and_comments)[0]
-                sentiment_label = predicted_sentiment['label']
+                predicted_sentiment = get_sentiment(suggestions_and_comments)
+                sentiment_label = 'None'
+                if predicted_sentiment and isinstance(predicted_sentiment, list):
+                    try:
+                        # Access the first list in the response, then sort by score
+                        sentiment_list = predicted_sentiment[0]
+                        # Get the prediction with the highest score (sorted descending)
+                        top_prediction = max(sentiment_list, key=lambda x: x['score'])
+                        
+                        # Directly use the label from the API response
+                        sentiment_label = top_prediction['label'].capitalize()  # "Negative", "Neutral", or "Positive"
+                    
+                    except (IndexError, KeyError, TypeError) as e:
+                        print(f"Error processing sentiment: {e}")
+                        sentiment_label = "None"
 
                 # Save the data to the database
                 form = WebinarSeminarModel(
@@ -1560,8 +1613,8 @@ def admin(request):
     else:
         data = filterset.qs
 
-    positive_count = data.filter(predicted_sentiment='positive').count()
-    negative_count = data.filter(predicted_sentiment='negative').count()
+    positive_count = data.filter(predicted_sentiment='Positive').count()
+    negative_count = data.filter(predicted_sentiment='Negative').count()
 
     # Prepare data for Chart.js
     chart_data = {
@@ -1629,7 +1682,7 @@ def department_response_chart_data(request):
         # Get all faculty members in this department
         faculty_list = Faculty.objects.filter(department=department)
 
-        # Initialize counters for positive and negative evaluations
+        # Initialize counters for Positive and Negative evaluations
         total_positive = 0
         total_negative = 0
 
@@ -1640,18 +1693,18 @@ def department_response_chart_data(request):
             # Get total evaluations for this faculty
             total_evaluations = LikertEvaluation.objects.filter(section_subject_faculty__faculty=faculty).count()
 
-            # Get positive and negative evaluations for this faculty
-            positive_evaluations = LikertEvaluation.objects.filter(section_subject_faculty__faculty=faculty, predicted_sentiment="positive", academic_year=current_academic_year, semester=current_semester).count()
-            negative_evaluations = LikertEvaluation.objects.filter(section_subject_faculty__faculty=faculty, predicted_sentiment="negative", academic_year=current_academic_year, semester=current_semester).count()
+            # Get Positive and Negative evaluations for this faculty
+            positive_evaluations = LikertEvaluation.objects.filter(section_subject_faculty__faculty=faculty, predicted_sentiment="Positive", academic_year=current_academic_year, semester=current_semester).count()
+            negative_evaluations = LikertEvaluation.objects.filter(section_subject_faculty__faculty=faculty, predicted_sentiment="Negative", academic_year=current_academic_year, semester=current_semester).count()
 
-            # Add the positive and negative evaluations to department totals
+            # Add the Positive and Negative evaluations to department totals
             total_positive += positive_evaluations
             total_negative += negative_evaluations
 
         # Add department name to labels
         department_labels.append(department.name)
 
-        # Add positive and negative evaluation counts to data
+        # Add Positive and Negative evaluation counts to data
         department_data.append([total_positive, total_negative])
 
     # Prepare JSON response with labels and data
@@ -1673,8 +1726,8 @@ def faculty_response_chart_data(request, department_id):
         evaluation_status = EvaluationStatus.objects.first()
         current_academic_year = evaluation_status.academic_year 
         current_semester = evaluation_status.semester
-        positive_evaluations = LikertEvaluation.objects.filter(section_subject_faculty__faculty=faculty, predicted_sentiment="positive", academic_year=current_academic_year, semester=current_semester).count()
-        negative_evaluations = LikertEvaluation.objects.filter(section_subject_faculty__faculty=faculty, predicted_sentiment="negative", academic_year=current_academic_year, semester=current_semester).count()
+        positive_evaluations = LikertEvaluation.objects.filter(section_subject_faculty__faculty=faculty, predicted_sentiment="Positive", academic_year=current_academic_year, semester=current_semester).count()
+        negative_evaluations = LikertEvaluation.objects.filter(section_subject_faculty__faculty=faculty, predicted_sentiment="Negative", academic_year=current_academic_year, semester=current_semester).count()
 
         faculty_labels.append(f"{faculty.first_name} {faculty.last_name}")
 
@@ -4209,9 +4262,9 @@ def hr_dashboard(request):
 
     total_clients = data.count()
         # Compute evaluation counts
-    positive_evaluations = data.filter(predicted_sentiment='positive').count()
-    negative_evaluations = data.filter(predicted_sentiment='negative').count()
-    neutral_evaluations = data.filter(predicted_sentiment='neutral').count()
+    positive_evaluations = data.filter(predicted_sentiment='Positive').count()
+    negative_evaluations = data.filter(predicted_sentiment='Negative').count()
+    neutral_evaluations = data.filter(predicted_sentiment='Neutral').count()
     total_evaluations = data.count()
 
     # Sentiment score calculation
@@ -4245,7 +4298,25 @@ def hr_dashboard(request):
             avg = data.filter(agency=agency).aggregate(avg_rating=Avg(category))['avg_rating']
             averages[category] = round(avg, 1) if avg else 0
         agency_category_averages[agency.name] = averages
+     # Fetch evaluations and categorize them
+    positive_wordclouds = StakeholderFeedbackModel.objects.filter(predicted_sentiment='Positive')
+    negative_wordclouds = StakeholderFeedbackModel.objects.filter(predicted_sentiment='Negative')
+    neutral_wordclouds = StakeholderFeedbackModel.objects.filter(predicted_sentiment='Neutral')
+    all_wordclouds = StakeholderFeedbackModel.objects.all()
 
+    # Combine texts for word clouds
+    positive_text = " ".join([eval.suggestions_and_comments for eval in positive_wordclouds])
+    negative_text = " ".join([eval.suggestions_and_comments for eval in negative_wordclouds])
+    neutral_text = " ".join([eval.suggestions_and_comments for eval in neutral_wordclouds])
+    all_text = " ".join([eval.suggestions_and_comments for eval in all_wordclouds])
+
+    # Generate word clouds
+    wordclouds = {
+        'Positive': generate_wordcloud(positive_text, colormap='Greens'),
+        'Negative': generate_wordcloud(negative_text, colormap='Reds'),
+        'Neutral': generate_wordcloud(neutral_text, colormap='Blues'),
+        'All': generate_wordcloud(all_text, colormap='viridis'),
+    }
     context = {
         'user': user,
         'evaluation_status': evaluation_status,
@@ -4267,6 +4338,7 @@ def hr_dashboard(request):
         'negative_evaluations': negative_evaluations,
         'neutral_evaluations': neutral_evaluations,
         'agency_ratings': agency_ratings,
+        'wordclouds': wordclouds
     }
 
     return render(request, 'pages/hr_dashboard.html', context)
@@ -4472,8 +4544,8 @@ def facultydashboard(request):
     filtered_semester = request.GET.get('semester', current_semester)
 
     # Compute evaluation counts
-    positive_evaluations = data.filter(predicted_sentiment='positive').count()
-    negative_evaluations = data.filter(predicted_sentiment='negative').count()
+    positive_evaluations = data.filter(predicted_sentiment='Positive').count()
+    negative_evaluations = data.filter(predicted_sentiment='Negative').count()
     total_evaluations = data.count()
 
     # Sentiment score calculation
@@ -4620,8 +4692,8 @@ def facultydashboard(request):
             fields[field] = fields[field] / total_evaluations if total_evaluations else 0
     
      # Compute evaluation counts
-    positive_evaluations = data.filter(predicted_sentiment='positive').count()
-    negative_evaluations = data.filter(predicted_sentiment='negative').count()
+    positive_evaluations = data.filter(predicted_sentiment='Positive').count()
+    negative_evaluations = data.filter(predicted_sentiment='Negative').count()
     context = {
         'faculty': faculty,
         'evaluation_status': evaluation_status,
@@ -4657,8 +4729,8 @@ def get_evaluation_data(request):
     current_semester = evaluation_status.semester
     
     teacher_evaluations = LikertEvaluation.objects.filter(section_subject_faculty__faculty=faculty,academic_year=current_academic_year, semester=current_semester, admin_status='Approved' )
-    positive_evaluations = teacher_evaluations.filter(predicted_sentiment='positive').count()
-    negative_evaluations = teacher_evaluations.filter(predicted_sentiment='negative').count()
+    positive_evaluations = teacher_evaluations.filter(predicted_sentiment='Positive').count()
+    negative_evaluations = teacher_evaluations.filter(predicted_sentiment='Negative').count()
 
     data = {
         'positive_evaluations': positive_evaluations,
@@ -6207,8 +6279,21 @@ def faculty_event_detail(request, pk):
                 venue_and_physical_arrangement = form.cleaned_data['venue_and_physical_arrangement']
                 overall_assessment = form.cleaned_data['overall_assessment']
                 suggestions_and_comments = form.cleaned_data['suggestions_and_comments']
-                predicted_sentiment = sentiment_pipeline(suggestions_and_comments)[0]
-                sentiment_label = predicted_sentiment['label']
+                predicted_sentiment = get_sentiment(suggestions_and_comments)
+                sentiment_label = 'None'
+                if predicted_sentiment and isinstance(predicted_sentiment, list):
+                    try:
+                        # Access the first list in the response, then sort by score
+                        sentiment_list = predicted_sentiment[0]
+                        # Get the prediction with the highest score (sorted descending)
+                        top_prediction = max(sentiment_list, key=lambda x: x['score'])
+                        
+                        # Directly use the label from the API response
+                        sentiment_label = top_prediction['label'].capitalize()  # "Negative", "Neutral", or "Positive"
+                    
+                    except (IndexError, KeyError, TypeError) as e:
+                        print(f"Error processing sentiment: {e}")
+                        sentiment_label = "None"
                 # Save the data to database
                 form = SchoolEventModel(
                     user=user,
@@ -6274,8 +6359,21 @@ def faculty_event_detail(request, pk):
 
                 overall_satisfaction = form.cleaned_data['overall_satisfaction']
 
-                predicted_sentiment = sentiment_pipeline(suggestions_and_comments)[0]
-                sentiment_label = predicted_sentiment['label']
+                predicted_sentiment = get_sentiment(suggestions_and_comments)
+                sentiment_label = 'None'
+                if predicted_sentiment and isinstance(predicted_sentiment, list):
+                    try:
+                        # Access the first list in the response, then sort by score
+                        sentiment_list = predicted_sentiment[0]
+                        # Get the prediction with the highest score (sorted descending)
+                        top_prediction = max(sentiment_list, key=lambda x: x['score'])
+                        
+                        # Directly use the label from the API response
+                        sentiment_label = top_prediction['label'].capitalize()  # "Negative", "Neutral", or "Positive"
+                    
+                    except (IndexError, KeyError, TypeError) as e:
+                        print(f"Error processing sentiment: {e}")
+                        sentiment_label = "None"
 
                 # Save the data to the database
                 form = WebinarSeminarModel(
@@ -6454,8 +6552,21 @@ def peer_to_peer_evaluation_form(request,pk):
             strengths_of_the_faculty = form.cleaned_data['strengths_of_the_faculty']
             other_suggestions_for_improvement =  form.cleaned_data['other_suggestions_for_improvement']
             comments = form.cleaned_data['comments']
-            predicted_sentiment = sentiment_pipeline(comments)[0]
-            sentiment_label = predicted_sentiment['label']
+            predicted_sentiment = get_sentiment(comments)
+            sentiment_label = 'None'
+            if predicted_sentiment and isinstance(predicted_sentiment, list):
+                try:
+                    # Access the first list in the response, then sort by score
+                    sentiment_list = predicted_sentiment[0]
+                    # Get the prediction with the highest score (sorted descending)
+                    top_prediction = max(sentiment_list, key=lambda x: x['score'])
+                    
+                    # Directly use the label from the API response
+                    sentiment_label = top_prediction['label'].capitalize()  # "Negative", "Neutral", or "Positive"
+                
+                except (IndexError, KeyError, TypeError) as e:
+                    print(f"Error processing sentiment: {e}")
+                    sentiment_label = "None"
 
           
             # Save the data to the database

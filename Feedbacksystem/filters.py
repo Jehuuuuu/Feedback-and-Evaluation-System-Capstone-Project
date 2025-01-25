@@ -468,9 +468,19 @@ class StakeholderFilter(django_filters.FilterSet):
         queryset=StakeholderAgency.objects.all(),
         label='Agency',
         widget=forms.Select(attrs={'class': 'form-control'}),
+    ) 
+    PREDICTED_SENTIMENT_CHOICES = [
+        ('Positive', 'Positive'),
+        ('Negative', 'Negative'),
+        ('Neutral', 'Neutral'),
+    ]
+
+    predicted_sentiment = django_filters.ChoiceFilter(
+         choices=PREDICTED_SENTIMENT_CHOICES, 
+         label='Polarity', 
+         widget=forms.Select(attrs={'class': 'form-control'})
     )
-    
-    
+
     search = django_filters.CharFilter(
         method='filter_search',
         label='',

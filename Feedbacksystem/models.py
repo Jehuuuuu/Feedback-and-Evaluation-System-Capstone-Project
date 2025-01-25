@@ -996,7 +996,7 @@ class StakeholderFeedbackModel(models.Model):
                                         (2, 'Barely Satisfied'), (1, 'Not satisfied')])
     
     suggestions_and_comments = models.TextField()
-    predicted_sentiment = models.CharField(max_length=50)
+    predicted_sentiment = models.CharField(max_length=200)
 
     academic_year = models.CharField(max_length=50, null=True, blank=True)
     semester = models.CharField(max_length=50, null=True, blank=True)
@@ -1050,7 +1050,7 @@ class StakeholderFeedbackModel(models.Model):
     class Meta:
         ordering = ['-updated', '-created']
     def __str__(self):
-        return self.name
+        return self.suggestions_and_comments
     
 class StakeholderFeedbackQuestions(models.Model):
     text = models.CharField(max_length=255)

@@ -34,6 +34,8 @@
       {{stakeholder_evaluation_filter.form.month}}
       {{stakeholder_evaluation_filter.form.agency.label_tag}}
       {{stakeholder_evaluation_filter.form.agency}}
+      {{stakeholder_evaluation_filter.form.predicted_sentiment.label_tag}}
+      {{stakeholder_evaluation_filter.form.predicted_sentiment}}
       {{stakeholder_evaluation_filter.form.academic_year.label_tag}}
       {{stakeholder_evaluation_filter.form.academic_year}}
       {{stakeholder_evaluation_filter.form.semester.label_tag}}
@@ -108,10 +110,10 @@
                 {% endif %}>
                 <b>{{ i.get_rating_category }}</b></span>
               </td>
-              <td>{{ i.suggestions_and_comments|truncatechars:50 }}</td>
+              <td>{{ i.suggestions_and_comments }}</td>
               <td>
-                <span {% if i.predicted_sentiment == 'positive' %} style="color: #339933;" 
-                    {% elif i.predicted_sentiment == 'negative' %} style="color:  #cc0000;" 
+                <span {% if i.predicted_sentiment == 'Positive'%} style="color: #339933;" 
+                    {% elif i.predicted_sentiment == 'Negative' %} style="color:  #cc0000;" 
                     {% endif %}>
                 <b>{{ i.predicted_sentiment }}</b>
                   </span>

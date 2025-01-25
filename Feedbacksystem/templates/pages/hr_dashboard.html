@@ -310,28 +310,58 @@
       <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
       <canvas id="sentimentchart" width="200" height="200"></canvas>
       <table class="table table-bordered">
-        <h5>Recent feedback</h5>
+        <div class="d-flex mt-2 mb-2 gap-1">
+            <h5>Recent feedback</h5>
+            <button type="button" class="btn custom-btn btn-sm" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                View Wordclouds
+            </button>
+        </div>
         {% for i in recent_comments %}
         <tr>
-          {% if i.predicted_sentiment == 'positive' %}
+          {% if i.predicted_sentiment == 'Positive' %}
           <td class="text-success">
-              {{ i.suggestions_and_comments | truncatechars:40 }}
+              {{ i.suggestions_and_comments | truncatechars:50 }}
           </td>
           {% endif %}
-          {% if i.predicted_sentiment == 'negative' %}
+          {% if i.predicted_sentiment == 'Negative' %}
           <td class="text-danger">
-              {{ i.suggestions_and_comments | truncatechars:40 }}
+              {{ i.suggestions_and_comments | truncatechars:50 }}
           </td>
           {% endif %}
-          {% if i.predicted_sentiment == 'neutral' %}
+          {% if i.predicted_sentiment == 'Neutral' %}
           <td>
-              {{ i.suggestions_and_comments | truncatechars:40 }}
+              {{ i.suggestions_and_comments | truncatechars:50 }}
           </td>
           {% endif %}
         </tr>
         {% endfor %}
     </table>
     <a href="{% url 'stakeholderevaluations' %}">View all</a>
+
+    <!-- Modal -->
+    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+            <h1 class="modal-title fs-5" id="exampleModalLabel">Feedback Wordclouds</h1>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="wordcloud-container">
+                    {% for sentiment, wordcloud in wordclouds.items %}
+                    <div class="wordcloud">
+                        <h2>{{ sentiment }}</h2>
+                        <img src="data:image/png;base64,{{ wordcloud }}" alt="{{ sentiment }} Word Cloud" style="width: 100%; height: auto;">
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+        </div>
+    </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
