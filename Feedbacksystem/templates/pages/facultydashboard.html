@@ -228,11 +228,11 @@
 {% elif avg_rating >= 3.0 %}
     <h1 class="card-title mb-2" data-bs-toggle="tooltip" 
         data-bs-placement="bottom" 
-        title="Average rating based on student evaluations" style="color: #FFD700;">
+        title="Average rating based on student evaluations" style="color: #CC9900;">
         {{ avg_rating }}
         <h6 class="card-subtitle" data-bs-toggle="tooltip" 
             data-bs-placement="bottom" 
-            title="Overall performance is satisfactory based on the ratings received" style="color: #FFD700"><small>Satisfactory</small></h6>
+            title="Overall performance is satisfactory based on the ratings received" style="color: #CC9900"><small>Satisfactory</small></h6>
     </h1>
 {% elif avg_rating >= 2.0 %}
     <h1 class="card-title mb-2" data-bs-toggle="tooltip" 
@@ -346,12 +346,12 @@
             var sentimentChart = new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: ['Positive', 'Negative'],  // Labels for the X-axis
+                    labels: ['Positive', 'Negative', 'Neutral'],  // Labels for the X-axis
                     datasets: [{
                         label: 'Sentiment Distribution of Student Evaluations',  // Dataset label
-                        data: [{{ positive_evaluations }}, {{ negative_evaluations }}],
-                        backgroundColor: ['#4caf50', '#f44336'],
-                        borderColor: ['#4caf50', '#f44336'],
+                        data: [{{ positive_evaluations }}, {{ negative_evaluations }}, {{neutral_evaluations}}],
+                        backgroundColor: ['#4caf50', '#f44336', '#898E8C'],
+                        borderColor: ['#4caf50', '#f44336', '#898E8C'],
                         borderWidth: 1
                     }]
                 },
@@ -433,6 +433,7 @@
               }]
           },
           options: {
+            indexAxis: 'y',
                             responsive: true,
                             plugins: {
                                 legend: {

@@ -49,7 +49,7 @@ from django.templatetags.static import static
 import os
 from django.conf import settings
 from itertools import chain
-from django.db.models import Q, FloatField
+from django.db.models import Q, FloatField, Count, Case, When, IntegerField
 from django.http import FileResponse
 from openpyxl import Workbook 
 from openpyxl.styles import Alignment
@@ -1615,12 +1615,7 @@ def admin(request):
 
     positive_count = data.filter(predicted_sentiment='Positive').count()
     negative_count = data.filter(predicted_sentiment='Negative').count()
-
-    # Prepare data for Chart.js
-    chart_data = {
-        'labels': ['Positive', 'Negative'],
-        'data': [positive_count, negative_count],
-    }
+    neutral_count = data.filter(predicted_sentiment='Neutral').count()
 
     context = {'student': student, 
                'course': course,
@@ -1638,15 +1633,33 @@ def admin(request):
                 'total_subject': total_subject,
                 'total_user': total_user,
                 'data': data,
-                'chart_data': chart_data,
                 'filterset': filterset,
                 'is_admin': is_admin,
                 'is_hr_admin': is_hr_admin,
                 'registered_faculty': registered_faculty,
-                'registered_students': registered_students
+                'registered_students': registered_students,
+                'positive_count': positive_count,
+                'negative_count': negative_count,
+                'neutral_count': neutral_count
                 }
     return render(request, 'pages/admin.html', context)
 
+def get_all_evaluation_data(request):
+    evaluation_status = EvaluationStatus.objects.first()
+    current_academic_year = evaluation_status.academic_year 
+    current_semester = evaluation_status.semester
+    
+    faculty_evaluations = LikertEvaluation.objects.filter(academic_year=current_academic_year, semester=current_semester)
+    positive_evaluations = faculty_evaluations.filter(predicted_sentiment='Positive').count()
+    negative_evaluations = faculty_evaluations.filter(predicted_sentiment='Negative').count()
+    neutral_evaluations = faculty_evaluations.filter(predicted_sentiment='Neutral').count()
+
+    data = {
+        'positive_evaluations': positive_evaluations,
+        'negative_evaluations': negative_evaluations,
+        'neutral_evaluations': neutral_evaluations,
+    }
+    return JsonResponse(data)
 
 def evaluation_response_chart_data(request):
     # Retrieve data from the model
@@ -1670,75 +1683,114 @@ def evaluation_response_chart_data(request):
     return JsonResponse(chart_data)
 
 def department_response_chart_data(request):
-    # Get all departments
-    
-    departments = Department.objects.all()
+    evaluation_status = EvaluationStatus.objects.first()
+    current_academic_year = evaluation_status.academic_year 
+    current_semester = evaluation_status.semester
 
-    # Prepare data for chart
-    department_labels = []
-    department_data = []
+    departments = Department.objects.annotate(
+        total_positive=Count(
+            Case(
+                When(
+                    Q(faculty__sectionsubjectfaculty__likertevaluation__predicted_sentiment="Positive") &
+                    Q(faculty__sectionsubjectfaculty__likertevaluation__academic_year=current_academic_year) &
+                    Q(faculty__sectionsubjectfaculty__likertevaluation__semester=current_semester),
+                    then=1
+                ),
+                output_field=IntegerField()
+            )
+        ),
+        total_negative=Count(
+            Case(
+                When(
+                    Q(faculty__sectionsubjectfaculty__likertevaluation__predicted_sentiment="Negative") &
+                    Q(faculty__sectionsubjectfaculty__likertevaluation__academic_year=current_academic_year) &
+                    Q(faculty__sectionsubjectfaculty__likertevaluation__semester=current_semester),
+                    then=1
+                ),
+                output_field=IntegerField()
+            )
+        ),
+        total_neutral=Count(
+            Case(
+                When(
+                    Q(faculty__sectionsubjectfaculty__likertevaluation__predicted_sentiment="Neutral") &
+                    Q(faculty__sectionsubjectfaculty__likertevaluation__academic_year=current_academic_year) &
+                    Q(faculty__sectionsubjectfaculty__likertevaluation__semester=current_semester),
+                    then=1
+                ),
+                output_field=IntegerField()
+            )
+        )
+    )
 
-    for department in departments:
-        # Get all faculty members in this department
-        faculty_list = Faculty.objects.filter(department=department)
-
-        # Initialize counters for Positive and Negative evaluations
-        total_positive = 0
-        total_negative = 0
-
-        for faculty in faculty_list:
-            evaluation_status = EvaluationStatus.objects.first()
-            current_academic_year = evaluation_status.academic_year 
-            current_semester = evaluation_status.semester
-            # Get total evaluations for this faculty
-            total_evaluations = LikertEvaluation.objects.filter(section_subject_faculty__faculty=faculty).count()
-
-            # Get Positive and Negative evaluations for this faculty
-            positive_evaluations = LikertEvaluation.objects.filter(section_subject_faculty__faculty=faculty, predicted_sentiment="Positive", academic_year=current_academic_year, semester=current_semester).count()
-            negative_evaluations = LikertEvaluation.objects.filter(section_subject_faculty__faculty=faculty, predicted_sentiment="Negative", academic_year=current_academic_year, semester=current_semester).count()
-
-            # Add the Positive and Negative evaluations to department totals
-            total_positive += positive_evaluations
-            total_negative += negative_evaluations
-
-        # Add department name to labels
-        department_labels.append(department.name)
-
-        # Add Positive and Negative evaluation counts to data
-        department_data.append([total_positive, total_negative])
-
-    # Prepare JSON response with labels and data
     chart_data = {
-        'labels': department_labels,
-        'data': department_data,
+        'labels': [dept.name for dept in departments],
+        'data': [
+            [dept.total_positive, dept.total_negative, dept.total_neutral]
+            for dept in departments
+        ],
     }
 
     return JsonResponse(chart_data)
 
 def faculty_response_chart_data(request, department_id):
-    # Get faculty members for the selected department
-    faculty_list = Faculty.objects.filter(department_id=department_id)
+    evaluation_status = EvaluationStatus.objects.first()
+    current_academic_year = evaluation_status.academic_year
+    current_semester = evaluation_status.semester
+    # 1. Rename annotations to avoid method conflicts
+    # 2. Add explicit ordering
+    faculty_queryset = Faculty.objects.filter(
+        department_id=department_id
+    ).annotate(
+        total_positive=Count(
+            Case(
+                When(
+                    Q(sectionsubjectfaculty__likertevaluation__predicted_sentiment="Positive") &
+                    Q(sectionsubjectfaculty__likertevaluation__academic_year=current_academic_year) &
+                    Q(sectionsubjectfaculty__likertevaluation__semester=current_semester),
+                    then=1
+                ),
+                output_field=IntegerField()
+            )
+        ),
+        total_negative=Count(
+            Case(
+                When(
+                    Q(sectionsubjectfaculty__likertevaluation__predicted_sentiment="Negative") &
+                    Q(sectionsubjectfaculty__likertevaluation__academic_year=current_academic_year) &
+                    Q(sectionsubjectfaculty__likertevaluation__semester=current_semester),
+                    then=1
+                ),
+                output_field=IntegerField()
+            )
+        )
+    ).order_by('last_name', 'first_name')  # 3. Required for consistent pagination
 
-    faculty_labels = []
-    faculty_data = []
+    paginator = Paginator(faculty_queryset, 10)
+    page_number = request.GET.get('page', 1)
 
-    for faculty in faculty_list:
-        evaluation_status = EvaluationStatus.objects.first()
-        current_academic_year = evaluation_status.academic_year 
-        current_semester = evaluation_status.semester
-        positive_evaluations = LikertEvaluation.objects.filter(section_subject_faculty__faculty=faculty, predicted_sentiment="Positive", academic_year=current_academic_year, semester=current_semester).count()
-        negative_evaluations = LikertEvaluation.objects.filter(section_subject_faculty__faculty=faculty, predicted_sentiment="Negative", academic_year=current_academic_year, semester=current_semester).count()
+    try:
+        page_obj = paginator.page(page_number)
+    except (PageNotAnInteger, EmptyPage):
+        page_obj = paginator.page(1)
 
-        faculty_labels.append(f"{faculty.first_name} {faculty.last_name}")
-
-        faculty_data.append([positive_evaluations, negative_evaluations])
-
-    # Prepare JSON response for faculty chart
+    # Convert to serializable types
     chart_data = {
-        'labels': faculty_labels,
-        'data': faculty_data,
+        'labels': [
+            f"{faculty.first_name} {faculty.last_name}" 
+            for faculty in page_obj
+        ],
+        'data': [
+            [faculty.total_positive, faculty.total_negative]
+            for faculty in page_obj
+        ],
+        'pagination': {
+            'current_page': page_obj.number,
+            'total_pages': paginator.num_pages,
+            'has_next': bool(page_obj.has_next()),
+            'has_previous': bool(page_obj.has_previous()),
+        }
     }
-
     return JsonResponse(chart_data)
 
 
@@ -4269,10 +4321,10 @@ def hr_dashboard(request):
 
     # Sentiment score calculation
     sentiment_score = (positive_evaluations - negative_evaluations) / total_evaluations if total_evaluations else 0
-    rounded_sentiment_score = round(sentiment_score, 1)
+    rounded_sentiment_score = round(sentiment_score, 2)
     # Average rating calculation
     avg_rating = data.aggregate(average_rating=Avg('average_rating'))['average_rating']
-    avg_rating = round(avg_rating, 1) if avg_rating else None
+    avg_rating = round(avg_rating, 2) if avg_rating else None
 
       # Fetch recent comments
     recent_comments = data.values('suggestions_and_comments', 'predicted_sentiment')[:3]
@@ -4546,6 +4598,7 @@ def facultydashboard(request):
     # Compute evaluation counts
     positive_evaluations = data.filter(predicted_sentiment='Positive').count()
     negative_evaluations = data.filter(predicted_sentiment='Negative').count()
+    neutral_evaluations = data.filter(predicted_sentiment='Neutral').count()
     total_evaluations = data.count()
 
     # Sentiment score calculation
@@ -4689,11 +4742,12 @@ def facultydashboard(request):
     # Average each field
     for category, fields in categories.items():
         for field in fields:
-            fields[field] = fields[field] / total_evaluations if total_evaluations else 0
+            fields[field] = round(fields[field] / total_evaluations, 1) if total_evaluations else 0
     
      # Compute evaluation counts
     positive_evaluations = data.filter(predicted_sentiment='Positive').count()
     negative_evaluations = data.filter(predicted_sentiment='Negative').count()
+    neutral_evaluations = data.filter(predicted_sentiment='Neutral').count()
     context = {
         'faculty': faculty,
         'evaluation_status': evaluation_status,
@@ -4711,6 +4765,7 @@ def facultydashboard(request):
         'rounded_sentiment_score': rounded_sentiment_score,
         'positive_evaluations': positive_evaluations,
         'negative_evaluations': negative_evaluations,
+        'neutral_evaluations': neutral_evaluations,
         'current_academic_year': current_academic_year,
         'current_semester': current_semester,
         'is_head_of_osas': is_head_of_osas,
@@ -4731,12 +4786,15 @@ def get_evaluation_data(request):
     teacher_evaluations = LikertEvaluation.objects.filter(section_subject_faculty__faculty=faculty,academic_year=current_academic_year, semester=current_semester, admin_status='Approved' )
     positive_evaluations = teacher_evaluations.filter(predicted_sentiment='Positive').count()
     negative_evaluations = teacher_evaluations.filter(predicted_sentiment='Negative').count()
+    neutral_evaluations = teacher_evaluations.filter(predicted_sentiment='Neutral').count()
 
     data = {
         'positive_evaluations': positive_evaluations,
         'negative_evaluations': negative_evaluations,
+        'neutral_evaluations': neutral_evaluations,
     }
     return JsonResponse(data)
+
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['faculty', 'head of OSAS', 'department head/program coordinator'])
 def faculty_evaluations_individual_summary_report_pdf(request):

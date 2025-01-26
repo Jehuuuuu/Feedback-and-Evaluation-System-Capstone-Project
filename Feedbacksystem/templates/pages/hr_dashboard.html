@@ -15,9 +15,6 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
   <link rel="stylesheet" href="{% static 'css/facultypage.css'%}">
-  <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
-  
-
 </head>
 
 <body>
@@ -120,11 +117,11 @@
 {% elif avg_rating >= 3.0 %}
     <h1 class="card-title mb-2" data-bs-toggle="tooltip" 
         data-bs-placement="bottom" 
-        title="Average rating based on student evaluations" style="color: #FFD700;">
+        title="Average rating based on student evaluations" style="color: #CC9900;">
         {{ avg_rating }}
         <h6 class="card-subtitle" data-bs-toggle="tooltip" 
             data-bs-placement="bottom" 
-            title="Overall performance is satisfactory based on the ratings received" style="color: #FFD700"><small>Satisfactory</small></h6>
+            title="Overall performance is satisfactory based on the ratings received" style="color: #CC9900"><small>Satisfactory</small></h6>
     </h1>
 {% elif avg_rating >= 2.0 %}
     <h1 class="card-title mb-2" data-bs-toggle="tooltip" 
@@ -180,7 +177,7 @@
 <div class="d-flex" style="gap: 1em;">
     <div class="dropdown mb-2">
       <button class="btn btn-primary dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-          <i class="bi bi-funnel"></i> Filter Data
+          <i class="bi bi-funnel-fill"></i> Filter Data
       </button>
       <div class="dropdown-menu filter_dropdown" aria-labelledby="filterDropdown">
           <form method="GET" id="filterForm" class="form">
@@ -304,7 +301,7 @@
   
       </div>
     </div>
-        <!-- Sentiment Score Pie Chart -->
+
   <div class="col-lg-4 mb-2">
     <div class="chart-container">
       <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -446,6 +443,7 @@
             }]
         },
         options: {
+            indexAxis: 'y',
             responsive: true,
             plugins: {
                 legend: {

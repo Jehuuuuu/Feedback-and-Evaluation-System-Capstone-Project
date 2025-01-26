@@ -240,6 +240,7 @@
           </div>
         </div>
       </div>
+
       <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
       <script>
         // Get chart data from Django view
@@ -249,10 +250,10 @@
         new Chart(ctx, {
           type: 'bar',
           data: {
-            labels: chartData.labels,
+            labels: ['Positive', 'Negative', 'Neutral'],
             datasets: [{
               label: '',
-              data: chartData.data,
+              data: [{{positive_count}}, {{negative_count}}, {{neutral_count}}],
               backgroundColor: [
                 'rgba(80, 180, 120, 1)', // Positive
                 'rgba(255, 0, 0, 1)' // Negative
@@ -344,14 +345,38 @@
             {% endfor %}
           </select>
           <canvas id="facultyChart" height="100px"></canvas>
+          <!-- Pagination Controls -->
+          <div id="pagination" style="margin-top: 20px; text-align: center;">
+            <button 
+              onclick="loadFacultyChart(currentDepartmentId, currentPage - 1)" 
+              id="prev-page" 
+              class="pagination-btn"
+              disabled
+            >
+              Previous
+            </button>
+            <span id="current-page" class="page-indicator">1</span>
+            /
+            <span id="total-pages" class="page-indicator">1</span>
+            <button 
+              onclick="loadFacultyChart(currentDepartmentId, currentPage + 1)" 
+              id="next-page" 
+              class="pagination-btn"
+              disabled
+            >
+              Next
+            </button>
+          </div>
         </div>
       </div>
     
     </main>
   </div>
+
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
-    let facultyChart = null; // To store the faculty chart instance
+
+    
   
     // Function to fetch department chart data
     function loadDepartmentChart() {
@@ -371,9 +396,14 @@
                 label: 'Negative Evaluations',
                 backgroundColor: 'rgba(255, 0, 0, 1)',
                 data: data.data.map(row => row[1]),
+              }, {
+                label: 'Neutral Evaluations',
+                backgroundColor: 'rgba(128, 128, 128, 1)',
+                data: data.data.map(row => row[2]),
               }]
             },
             options: {
+              indexAxis:'y',
               scales: {
                 y: {
                   beginAtZero: true
@@ -383,10 +413,26 @@
           });
         });
     }
-  
+    let facultyChart = null; // To store the faculty chart instance
+    let currentPage = null; // Track current page
+    let currentDepartmentId = null;
+    document.getElementById('prev-page').addEventListener('click', () => {
+    if (currentDepartmentId) {
+      loadFacultyChart(currentDepartmentId, currentPage - 1);
+    }
+  });
+
+  document.getElementById('next-page').addEventListener('click', () => {
+    if (currentDepartmentId) {
+      loadFacultyChart(currentDepartmentId, currentPage + 1);
+    }
+  });
+
     // Function to fetch faculty chart data based on selected department
-    function loadFacultyChart(departmentId) {
-      fetch(`/faculty-response-chart-data/${departmentId}/`)
+    function loadFacultyChart(departmentId, page=1) {
+      currentDepartmentId = departmentId;
+      currentPage = page;
+      fetch(`/faculty-response-chart-data/${departmentId}/?page=${page}`)
         .then(response => response.json())
         .then(data => {
           const ctx = document.getElementById('facultyChart').getContext('2d');
@@ -409,7 +455,11 @@
                 label: 'Negative Evaluations',
                 backgroundColor: 'rgba(255, 0, 0, 1)',
                 data: data.data.map(row => row[1]),
-              }]
+              },{
+                label: 'Neutral Evaluations',
+                backgroundColor: 'rgba(128, 128, 128, 1)',
+                data: data.data.map(row => row[2]),
+              },]
             },
             options: {
               scales: {
@@ -419,6 +469,11 @@
               }
             }
           });
+                // Update pagination controls
+      document.getElementById('current-page').textContent = data.pagination.current_page;
+      document.getElementById('total-pages').textContent = data.pagination.total_pages;
+      document.getElementById('prev-page').disabled = !data.pagination.has_previous;
+      document.getElementById('next-page').disabled = !data.pagination.has_next;
         });
     }
   
