@@ -148,10 +148,87 @@ class Faculty(models.Model):
                 return round(average_rating, 2)
         
         return 0.0
+    
+    def peer_to_peer_average_rating(self):
+        evaluation_status = EvaluationStatus.objects.first()
+        current_academic_year = evaluation_status.academic_year 
+        current_semester = evaluation_status.semester
+
+        evaluations = PeertoPeerEvaluation.objects.filter(peer=self, academic_year=current_academic_year, semester=current_semester)
+        
+        if evaluations.exists():
+            fields_to_average = [
+                'command_and_knowledge_of_the_subject',
+                'depth_of_mastery',
+                'practice_in_respective_discipline',
+                'up_to_date_knowledge',
+                'integrates_subject_to_practical_circumstances',
+                'organizes_the_subject_matter',
+                'provides_orientation_on_course_content',
+                'efforts_of_class_preparation',
+                'summarizes_main_points',
+                'monitors_online_class',
+                'holds_interest_of_students',
+                'provides_relevant_feedback',
+                'encourages_participation',
+                'shows_enthusiasm',
+                'shows_sense_of_humor',
+                'teaching_methods',
+                'flexible_learning_strategies',
+                'student_engagement',
+                'clear_examples',
+                'focused_on_objectives',
+                'starts_with_motivating_activities',
+                'speaks_in_clear_and_audible_manner',
+                'uses_appropriate_medium_of_instruction',
+                'establishes_online_classroom_environment',
+                'observes_proper_classroom_etiquette',
+                'uses_time_wisely',
+                'gives_ample_time_for_students_to_prepare',
+                'updates_the_students_of_their_progress',
+                'demonstrates_leadership_and_professionalism',
+                'understands_possible_distractions',
+                'sensitivity_to_student_culture',
+                'responds_appropriately',
+                'assists_students_on_concerns',
+                'guides_the_students_in_accomplishing_tasks',
+                'extends_consideration_to_students',
+            ]
+            
+            # Fetch and sum up the values of these fields for each evaluation
+            ratings = []
+            for field in fields_to_average:
+                ratings.extend(evaluations.values_list(field, flat=True))
+
+            # Filter out None values and calculate average
+            ratings = [rating for rating in ratings if rating is not None]
+
+            if ratings:
+                average_rating = sum(ratings) / len(ratings)
+                return round(average_rating, 2)
+        
+        return 0.0
 
     @property
     def get_rating_category(self):
         avg_rating = self.average_rating  # Treat as an attribute, not a callable
+        if avg_rating is None or avg_rating == 0.0:
+            return "No evaluators yet"
+        if 1.0 <= avg_rating <= 1.99:
+            return "Poor"
+        elif 2.0 <= avg_rating <= 2.99:
+            return "Unsatisfactory"
+        elif 3.0 <= avg_rating <= 3.99:
+            return "Satisfactory"
+        elif 4.0 <= avg_rating <= 4.99:
+            return "Very Satisfactory"
+        elif 5.0 <= avg_rating <= 5.0:
+            return "Outstanding"
+        return "No Rating"
+    
+    @property
+    def peer_to_peer_get_rating_category(self):
+        avg_rating = self.peer_to_peer_average_rating  # Treat as an attribute, not a callable
         if avg_rating is None or avg_rating == 0.0:
             return "No evaluators yet"
         if 1.0 <= avg_rating <= 1.99:
@@ -1267,15 +1344,15 @@ class PeertoPeerEvaluation(models.Model):
 
     def get_rating_category(self):
         if self.average_rating is not None:
-            if 1.0 <= self.average_rating <= 1.49:
+            if 1.0 <= self.average_rating <= 1.99:
                 return "Poor"
-            elif 1.5 <= self.average_rating <= 2.49:
-                return "Fair"
-            elif 2.5 <= self.average_rating <= 3.49:
-                return "Good"
-            elif 3.5 <= self.average_rating <= 4.49:
-                return "Very Good"
-            elif 4.5 <= self.average_rating <= 5.0:
+            elif 2.0 <= self.average_rating <= 2.99:
+                return "Unsatisfactory"
+            elif 3.0 <= self.average_rating <= 3.99:
+                return "Satisfactory"
+            elif 4.0 <= self.average_rating <= 4.99:
+                return "Very Satisfactory"
+            elif 5.0 <= self.average_rating <= 5.0:
                 return "Outstanding"
         return "No Rating"
 

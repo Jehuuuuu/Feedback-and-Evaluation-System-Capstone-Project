@@ -32,9 +32,9 @@ SECRET_KEY = 'django-insecure-pgt85)y^t95n#bdtt(pr24&l+2d(1t$pd-3g*aj%vo$swhq=hm
 DEBUG = True
 
 ALLOWED_HOSTS = [
+    '127.0.0.1',
     'feedback-and-evaluation-system-capstone.onrender.com',
     'localhost',
-    '127.0.0.1',
 ]
 
 

@@ -7,6 +7,7 @@ from django.db.models import Q, Value, CharField
 from django.contrib.auth.models import Group
 from django.db.models.functions import Concat
 from django.db.models import Case, When, Value, CharField
+
 class EvaluationFilter(django_filters.FilterSet):
      # Foreign key field filter
     section_subject_faculty = django_filters.ModelChoiceFilter(
@@ -18,18 +19,19 @@ class EvaluationFilter(django_filters.FilterSet):
     )
       # Adding the subject category filter
     subject = django_filters.ModelChoiceFilter(
-        field_name='section_subject_faculty__subjects',  # This is the related field path
-        queryset=Subject.objects.all(),
+        field_name='sectionsubjectfaculty__subjects',  # This is the related field path
+        queryset=Subject.objects.none(),
         label='Subject',
         widget=forms.Select(attrs={'class': 'form-control'})
     )
-
+    
     PREDICTED_SENTIMENT_CHOICES = [
         ('Positive', 'Positive'),
         ('Negative', 'Negative'),
     ]
 
     predicted_sentiment = django_filters.ChoiceFilter(
+         field_name='predicted_sentiment',  
          choices=PREDICTED_SENTIMENT_CHOICES, 
          label='Polarity', 
          widget=forms.Select(attrs={'class': 'form-control'})
@@ -42,8 +44,8 @@ class EvaluationFilter(django_filters.FilterSet):
 )
 
     SEMESTER_CHOICES = [
-        ('1st', '1st'),
-        ('2nd', '2nd'),
+        ('1st Semester', '1st Semester'),
+        ('2nd Semester', '2nd Semester'),
     ]
     semester = django_filters.ChoiceFilter(
          choices=SEMESTER_CHOICES, 
@@ -52,11 +54,24 @@ class EvaluationFilter(django_filters.FilterSet):
     
   
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+
         # Populate choices for academic_year dynamically from the database
         academic_years = LikertEvaluation.objects.order_by('academic_year').values_list('academic_year', flat=True).distinct()
         academic_year_choices = [(year, year) for year in academic_years]
+        
+        semesters = LikertEvaluation.objects.order_by('semester').values_list('semester', flat=True).distinct()
+        # Extract faculty from kwargs
+        self.faculty = kwargs.pop('faculty', None)
+        super().__init__(*args, **kwargs)
         self.filters['academic_year'].extra['choices'] = academic_year_choices
+        # Update the queryset with faculty filter
+        self.filters['subject'].queryset = Subject.objects.filter(
+            sectionsubjectfaculty__faculty=self.faculty
+        ).distinct()
+
+        self.filters['semester'].extra['choices'] = [
+            (sem, sem) for sem in semesters
+        ]
 
         # Adding the rating category filter
     RATING_CATEGORY_CHOICES = [
@@ -532,8 +547,8 @@ class StakeholderFilter(django_filters.FilterSet):
 
 class LikertEvaluationFilter(django_filters.FilterSet):
     SEMESTER_CHOICES = [
-        ('1st', '1st'),
-        ('2nd', '2nd'),
+        ('1st Semester', '1st Semester'),
+        ('2nd Semester', '2nd Semester'),
     ]
 
     academic_year = django_filters.ChoiceFilter(choices=[], label='Academic Year',   # Set 'All' as the default

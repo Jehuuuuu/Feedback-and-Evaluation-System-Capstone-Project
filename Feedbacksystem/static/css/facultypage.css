@@ -8,6 +8,8 @@ body{
   scroll-behavior: smooth;
   background-color:  #faf5fF;
   color: #333;
+  line-height: 1.6;
+  font-family: system-ui, sans-serif;
 }
 th{
   color: #ffffff !important; 
@@ -475,7 +477,11 @@ hr{
   }
 
 @media (max-width: 768px) {
- 
+  main {
+    height: calc(80vh); /* Adjust to leave space for padding */
+    overflow-y: auto; /* Add a vertical scrollbar when content overflows */
+    margin-top: 4rem;
+  }
   .header-title{
       font-size: 0.85rem;
      }
@@ -502,6 +508,11 @@ hr{
   }
 
   @media (max-width: 600px) {
+    main {
+      height: calc(80vh); /* Adjust to leave space for padding */
+      overflow-y: auto; /* Add a vertical scrollbar when content overflows */
+      margin-top: 4rem;
+    }
     #eval{
       width: 330px;
       height: 9em;

@@ -21,9 +21,9 @@
 
     <!-- Switch to Peer-to-Peer Data -->
     <div class="col-12 col-md-auto">
-        <a href="{% url 'department_head_view_department_peer_to_peer' %}" class="btn custom-btn d-flex align-items-center justify-content-center">
+        <a href="{% url 'department_head_view_department' %}" class="btn custom-btn d-flex align-items-center justify-content-center">
             <i class="bi bi-arrow-repeat" style="font-size: 16px; margin-right: 8px;"></i>
-            <span>Switch to Peer-to-Peer Data</span>
+            <span>Switch to SET Data</span>
         </a>
     </div>
     <!-- Sort Dropdown -->
@@ -39,13 +39,10 @@
         </select>
     </div>
 
-    <!-- Conditional Buttons -->
-    {% if department.email_sent %}
-        <!-- Download Summary Report Button -->
         
         <div class="col-12 col-md-auto">
             <a class="btn custom-btn w-100" style="color: white;" href="{% url 'download_report' department.id %}">
-                <i class="bi bi-clipboard2-fill"></i> View SET Department Summary Report
+                <i class="bi bi-clipboard2-fill"></i> View Peer-to-Peer Department Summary Report
             </a>
         </div>
 
@@ -56,7 +53,6 @@
                 <i class="bi bi-send-fill"></i> Send Summary Reports
             </button>
         </div>
-    {% endif %}
 </div>
 
 <!-- Modal for Faculty Selection -->
@@ -206,17 +202,17 @@
                         {% if i.previous_average_rating == 0.0 or i.previous_average_rating is None %}
                         <span style="color: #999999;"><i>No prior data</i></span>
                         {% else %}
-                            <b>#{{ i.previous_rank }} - </b>
-                            <span style="color: {% if i.previous_average_rating >= 5.0 %}#339933;
-                                        {% elif i.previous_average_rating >= 4.0 %}#66CC66;
-                                        {% elif i.previous_average_rating >= 3.0 %}#F0C808;
-                                        {% elif i.previous_average_rating >= 2.0 %}#FF9900;
-                                        {% else %}#cc0000;{% endif %}">
-                                <b>{{ i.previous_average_rating }}</b> <b>({{ i.get_rating_category }})</b>
-                            </span>
+                        <b> #{{i.previous_rank}} - </b>
+                        <span style="color: {% if i.previous_average_rating >= 5.0 %}#339933;
+                            {% elif i.previous_average_rating >= 4.0 %}#66CC66;
+                            {% elif i.previous_average_rating >= 3.0 %}#F0C808;
+                            {% elif i.previous_average_rating >= 2.0 %}#FF9900;
+                            {% else %}#cc0000;{% endif %}">
+                        <b>{{ i.previous_average_rating }}</b> <b>({{ i.get_rating_category }})</b>
+                        </span>
                         {% endif %}
                       </td>
-                    <td style="display: flex; flex-direction: row; gap:1em; align-items: center; ">
+                      <td style="display: flex; flex-direction: row; gap:1em; align-items: center; ">
                         <a href="{% url 'department_head_faculty_evaluations' i.pk %}"><button class="btn btn-primary "><i class="bi bi-eye-fill" ></i> </button></a>
                     <a href="{% url 'department_head_send_message'  i.pk  %}"><button class="btn btn-success  " title="Message Faculty"><i class="bi bi-chat-dots" ></i></button></a>
                     {% if not i.is_supervisor %}

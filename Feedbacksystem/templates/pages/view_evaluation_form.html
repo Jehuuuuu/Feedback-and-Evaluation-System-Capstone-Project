@@ -1,10 +1,15 @@
 {% extends "pages/facultydashboard.html" %}
-
+{% load static %}
 {% block title %}Form Details{% endblock %}
 
 {% block header %}
+    <div class="d-flex gap-2">
+        <a href="{{ request.META.HTTP_REFERER }}" class="pt-1" >
+            <img src="{% static 'images/Back.svg' %}" alt="back button" height="35px" width="35px">
+        </a>
+        <h1>Evaluation Form Details</h1>
+    </div>
 
-    <h1>Evaluation Form Details</h1>
     <hr>
    
 {% endblock header %}
@@ -12,7 +17,7 @@
 {% block feature %}
 
 <div class="row table-responsive">
-    <div class="col-xl-6 mb-2" style="max-height: 400px; overflow-y: auto;">
+    <div class="col-xl-6 mb-2" style="max-height: 500px; overflow-y: auto;">
         <table class="table table-bordered ">
                 <tr>
                  <th  scope="col">I. Subject Matter Content </th>
@@ -316,11 +321,35 @@
         <table class="table table-bordered form-info">
             <tr>
                 <td>Average</td>
-                <td>{{ faculty_evaluation_form.average_rating }}</td>
+                
+                <td>
+                    <span {% if faculty_evaluation_form.average_rating >= 5.0 %} style="color: #339933;" 
+                        {% elif faculty_evaluation_form.average_rating >= 4.0 %} style="color: #66CC66;" 
+                        {% elif faculty_evaluation_form.average_rating >= 3.0 %} style="color: #F0C808;" 
+                        {% elif faculty_evaluation_form.average_rating >= 2.0 %} style="color: #FF9900;" 
+                        {% elif faculty_evaluation_form.average_rating >= 1.0 %} style="color: #cc0000;" 
+                        {% endif %} >
+                        <b>{{ faculty_evaluation_form.average_rating }}</b></span>
+                </td>
             </tr>
             <tr>
                 <td>Rating</td>
-                <td>{{ faculty_evaluation_form.get_rating_category }}</td>
+                
+                <td> <span {% if faculty_evaluation_form.average_rating >= 5.0 %} style="color: #339933;" 
+                    {% elif faculty_evaluation_form.average_rating >= 4.0 %} style="color: #66CC66;" 
+                    {% elif faculty_evaluation_form.average_rating >= 3.0 %} style="color: #F0C808;" 
+                    {% elif faculty_evaluation_form.average_rating >= 2.0 %} style="color: #FF9900;" 
+                    {% elif faculty_evaluation_form.average_rating >= 1.0 %} style="color: #cc0000;" 
+                    {% endif %} >
+                    <b>{{ faculty_evaluation_form.get_rating_category }}</b></span></td>
+            </tr>
+            <tr>
+                <td>Polarity</td>
+                <td>
+                    <span {% if faculty_evaluation_form.predicted_sentiment == 'Positive'%} style="color: #339933;" 
+                    {% elif faculty_evaluation_form.predicted_sentiment == 'Negative' %} style="color:  #cc0000;" 
+                    {% endif %}>
+                    <b>{{ faculty_evaluation_form.predicted_sentiment }}</b></span></td>
             </tr>
             <tr>
                 <td>Academic Year</td>
@@ -342,7 +371,7 @@
                 data: {
                     labels: ['Outstanding', 'Very Satisfactory', 'Satisfactory', 'Unsatisfactory', 'Poor'],  // Add more labels if needed
                     datasets: [{
-                        label: '# of Responses',
+                        label: 'Rating Distribution',
                         data: [
                             {{ outstanding_count }},
                             {{ very_satisfactory_count }},
@@ -355,25 +384,42 @@
                             'rgba(75, 192, 192, 0.2)',
                             'rgba(54, 162, 235, 0.2)',
                             'rgba(255, 206, 86, 0.2)',
+                            'rgba(255, 159, 64, 0.2)',
+                            'rgba(255, 99, 132, 0.2)',
                             // Add colors for other ratings if needed
                         ],
                         borderColor: [
                             'rgba(75, 192, 192, 1)',
                             'rgba(54, 162, 235, 1)',
                             'rgba(255, 206, 86, 1)',
+                            'rgba(255, 159, 64, 1)',
+                            'rgba(255, 99, 132, 1)',
                             // Add border colors for other ratings if needed
                         ],
                         borderWidth: 1
                     }]
                 },
                 options: {
+                    indexAxis: 'y',
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                                display: true,
+                           
+                                labels: {
+                                    boxWidth: 0,  
+                                    font: {
+                                        size: 14
+                                    }
+                            }
+                            },  
+                            
+                            
+                        },
+                        
                     scales: {
                         x: {
-                    ticks: {
-                        autoSkip: false,  // Prevents automatic skipping of labels
-                        maxRotation: 0,   // Set maximum rotation of labels to 0 degrees (horizontal)
-                        minRotation: 0    // Set minimum rotation of labels to 0 degrees (horizontal)
-                    }
                         },
                         y: {
                             beginAtZero: true
