@@ -33,8 +33,8 @@ DEBUG = True
 
 ALLOWED_HOSTS = [
     '127.0.0.1',
-    'feedback-and-evaluation-system-capstone.onrender.com',
     'localhost',
+    'feedback-and-evaluation-system-capstone.onrender.com',
 ]
 
 
@@ -130,7 +130,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'  # URL to access static files in development or production
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static'),  # Path for additional static files in development
+    os.path.join(BASE_DIR, 'Feedbacksystem', 'static'),  # Path for additional static files in development
 ]
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # Path where static files will be collected for production
 
