@@ -49,7 +49,7 @@
   
     {% if faculty.email_sent == True and not is_filtered %}
     <div class="col-lg-4 col-md-2">
-        <a href="{% url 'faculty_evaluations_excel' %}?{{ request.GET.urlencode }}" class="btn btn-success"><i class="bi bi-file-earmark-excel-fill"></i> Export as Excel File</a>
+        <a href="{% url 'faculty_evaluations_excel' %}?{{ request.GET.urlencode }}" class="btn custom-btn"><i class="bi bi-file-earmark-excel-fill"></i> Export Data</a>
     </div>
     {% endif %}
     

@@ -38,21 +38,13 @@
             <option id="-previous_average_rating" value="-previous_average_rating">Previous Average Rating: Descending</option>
         </select>
     </div>
-
         
-        <div class="col-12 col-md-auto">
-            <a class="btn custom-btn w-100" style="color: white;" href="{% url 'download_report' department.id %}">
-                <i class="bi bi-clipboard2-fill"></i> View Peer-to-Peer Department Summary Report
-            </a>
-        </div>
+    <div class="col-12 col-md-auto">
+        <a class="btn custom-btn w-100" style="color: white;" href="{% url 'download_report' department.id %}">
+            <i class="bi bi-clipboard2-fill"></i> View Peer-to-Peer Department Summary Report
+        </a>
+    </div>
 
-
-        <!-- Send Summary Reports Button -->
-        <div class="col-12 col-md-auto">
-            <button class="btn custom-btn w-100" data-bs-toggle="modal" data-bs-target="#facultySummaryModal">
-                <i class="bi bi-send-fill"></i> Send Summary Reports
-            </button>
-        </div>
 </div>
 
 <!-- Modal for Faculty Selection -->

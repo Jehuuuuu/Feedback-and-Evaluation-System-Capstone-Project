@@ -344,6 +344,10 @@
                     <b>{{ faculty_evaluation_form.get_rating_category }}</b></span></td>
             </tr>
             <tr>
+                <td>Overall Impression</td>
+                <td>{{ faculty_evaluation_form.comments }}</td>
+            </tr>
+            <tr>
                 <td>Polarity</td>
                 <td>
                     <span {% if faculty_evaluation_form.predicted_sentiment == 'Positive'%} style="color: #339933;" 

@@ -7716,368 +7716,64 @@ def department_head_view_evaluation_form(request, pk):
 
     notifications_unread_count = unread_notifications.count()
     messages_unread_count = unread_messages.count()
-    outstanding_count = LikertEvaluation.objects.filter(pk=pk).filter(
-        command_and_knowledge_of_the_subject=5
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        depth_of_mastery=5
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(pk=pk).filter(
-        practice_in_respective_discipline=5
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        up_to_date_knowledge=5
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        integrates_subject_to_practical_circumstances=5
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        organizes_the_subject_matter=5
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        provides_orientation_on_course_content=5
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        efforts_of_class_preparation=5
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        summarizes_main_points=5
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        monitors_online_class=5
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        holds_interest_of_students=5
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        provides_relevant_feedback=5
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        encourages_participation=5
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        shows_enthusiasm=5
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        shows_sense_of_humor=5
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        teaching_methods=5
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        flexible_learning_strategies=5
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        student_engagement=5
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        clear_examples=5
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        focused_on_objectives=5
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        starts_with_motivating_activities=5
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        speaks_in_clear_and_audible_manner=5
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        uses_appropriate_medium_of_instruction=5
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        establishes_online_classroom_environment=5
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        observes_proper_classroom_etiquette=5
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        uses_time_wisely=5
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        gives_ample_time_for_students_to_prepare=5
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        updates_the_students_of_their_progress=5
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        demonstrates_leadership_and_professionalism=5
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        understands_possible_distractions=5
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        sensitivity_to_student_culture=5
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        responds_appropriately=5
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        assists_students_on_concerns=5
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        guides_the_students_in_accomplishing_tasks=5
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        extends_consideration_to_students=5
-    ).count()    
-    
-    # Continue for other fields
-    
-    very_satisfactory_count = LikertEvaluation.objects.filter(pk=pk).filter(
-        command_and_knowledge_of_the_subject=4
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        depth_of_mastery=4
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        practice_in_respective_discipline=4
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        up_to_date_knowledge=4
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        integrates_subject_to_practical_circumstances=4
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        organizes_the_subject_matter=4
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        provides_orientation_on_course_content=4
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        efforts_of_class_preparation=4
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        summarizes_main_points=4
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        monitors_online_class=4
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        holds_interest_of_students=4
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        provides_relevant_feedback=4
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        encourages_participation=4
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        shows_enthusiasm=4
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        shows_sense_of_humor=4
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        teaching_methods=4
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        flexible_learning_strategies=4
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        student_engagement=4
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        clear_examples=4
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        focused_on_objectives=4
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        starts_with_motivating_activities=4
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        speaks_in_clear_and_audible_manner=4
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        uses_appropriate_medium_of_instruction=4
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        establishes_online_classroom_environment=4
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        observes_proper_classroom_etiquette=4
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        uses_time_wisely=4
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        gives_ample_time_for_students_to_prepare=4
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        updates_the_students_of_their_progress=4
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        demonstrates_leadership_and_professionalism=4
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        understands_possible_distractions=4
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        sensitivity_to_student_culture=4
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        responds_appropriately=4
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        assists_students_on_concerns=4
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        guides_the_students_in_accomplishing_tasks=4
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        extends_consideration_to_students=4
-    ).count()    
-    
-    satisfactory_count = LikertEvaluation.objects.filter(pk=pk).filter(
-        command_and_knowledge_of_the_subject=3
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        depth_of_mastery=3
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        practice_in_respective_discipline=3
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        up_to_date_knowledge=3
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        integrates_subject_to_practical_circumstances=3
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        organizes_the_subject_matter=3
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        provides_orientation_on_course_content=3
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        efforts_of_class_preparation=3
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        summarizes_main_points=3
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        monitors_online_class=3
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        holds_interest_of_students=3
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        provides_relevant_feedback=3
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        encourages_participation=3
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        shows_enthusiasm=3
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        shows_sense_of_humor=3
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        teaching_methods=3
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        flexible_learning_strategies=3
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        student_engagement=3
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        clear_examples=3
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        focused_on_objectives=3
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        starts_with_motivating_activities=3
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        speaks_in_clear_and_audible_manner=3
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        uses_appropriate_medium_of_instruction=3
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        establishes_online_classroom_environment=3
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        observes_proper_classroom_etiquette=3
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        uses_time_wisely=3
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        gives_ample_time_for_students_to_prepare=3
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        updates_the_students_of_their_progress=3
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        demonstrates_leadership_and_professionalism=3
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        understands_possible_distractions=3
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        sensitivity_to_student_culture=3
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        responds_appropriately=3
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        assists_students_on_concerns=3
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        guides_the_students_in_accomplishing_tasks=3
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        extends_consideration_to_students=3
-    ).count()    
-    
-    unsatisfactory_count = LikertEvaluation.objects.filter(pk=pk).filter(
-        command_and_knowledge_of_the_subject=2
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        depth_of_mastery=2
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        practice_in_respective_discipline=2
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        up_to_date_knowledge=2
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        integrates_subject_to_practical_circumstances=2
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        organizes_the_subject_matter=2
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        provides_orientation_on_course_content=2
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        efforts_of_class_preparation=2
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        summarizes_main_points=2
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        monitors_online_class=2
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        holds_interest_of_students=2
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        provides_relevant_feedback=2
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        encourages_participation=2
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        shows_enthusiasm=2
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        shows_sense_of_humor=2
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        teaching_methods=2
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        flexible_learning_strategies=2
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        student_engagement=2
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        clear_examples=2
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        focused_on_objectives=2
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        starts_with_motivating_activities=2
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        speaks_in_clear_and_audible_manner=2
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        uses_appropriate_medium_of_instruction=2
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        establishes_online_classroom_environment=2
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        observes_proper_classroom_etiquette=2
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        uses_time_wisely=2
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        gives_ample_time_for_students_to_prepare=2
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        updates_the_students_of_their_progress=2
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        demonstrates_leadership_and_professionalism=2
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        understands_possible_distractions=2
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        sensitivity_to_student_culture=2
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        responds_appropriately=2
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        assists_students_on_concerns=2
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        guides_the_students_in_accomplishing_tasks=2
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        extends_consideration_to_students=2
-    ).count()    
+         # List of all rating fields to check
+    rating_fields = [
+        'command_and_knowledge_of_the_subject',
+        'depth_of_mastery',
+        'practice_in_respective_discipline',
+        'up_to_date_knowledge',
+        'integrates_subject_to_practical_circumstances',
+        'organizes_the_subject_matter',
+        'provides_orientation_on_course_content',
+        'efforts_of_class_preparation',
+        'summarizes_main_points',
+        'monitors_online_class',
+        'holds_interest_of_students',
+        'provides_relevant_feedback',
+        'encourages_participation',
+        'shows_enthusiasm',
+        'shows_sense_of_humor',
+        'teaching_methods',
+        'flexible_learning_strategies',
+        'student_engagement',
+        'clear_examples',
+        'focused_on_objectives',
+        'starts_with_motivating_activities',
+        'speaks_in_clear_and_audible_manner',
+        'uses_appropriate_medium_of_instruction',
+        'establishes_online_classroom_environment',
+        'observes_proper_classroom_etiquette',
+        'uses_time_wisely',
+        'gives_ample_time_for_students_to_prepare',
+        'updates_the_students_of_their_progress',
+        'demonstrates_leadership_and_professionalism',
+        'understands_possible_distractions',
+        'sensitivity_to_student_culture',
+        'responds_appropriately',
+        'assists_students_on_concerns',
+        'guides_the_students_in_accomplishing_tasks',
+        'extends_consideration_to_students'
+    ]
+    # Initialize counters
+    outstanding_count = 0
+    very_satisfactory_count = 0
+    satisfactory_count = 0
+    unsatisfactory_count = 0
+    poor_count = 0
 
-    poor_count = LikertEvaluation.objects.filter(pk=pk).filter(
-        command_and_knowledge_of_the_subject=1
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        depth_of_mastery=1
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        practice_in_respective_discipline=1
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        up_to_date_knowledge=1
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        integrates_subject_to_practical_circumstances=1
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        organizes_the_subject_matter=1
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        provides_orientation_on_course_content=1
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        efforts_of_class_preparation=1
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        summarizes_main_points=1
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        monitors_online_class=1
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        holds_interest_of_students=1
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        provides_relevant_feedback=1
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        encourages_participation=1
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        shows_enthusiasm=1
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        shows_sense_of_humor=1
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        teaching_methods=1
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        flexible_learning_strategies=1
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        student_engagement=1
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        clear_examples=1
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        focused_on_objectives=1
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        starts_with_motivating_activities=1
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        speaks_in_clear_and_audible_manner=1
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        uses_appropriate_medium_of_instruction=1
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        establishes_online_classroom_environment=1
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        observes_proper_classroom_etiquette=1
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        uses_time_wisely=1
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        gives_ample_time_for_students_to_prepare=1
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        updates_the_students_of_their_progress=1
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        demonstrates_leadership_and_professionalism=1
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        understands_possible_distractions=1
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        sensitivity_to_student_culture=1
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        responds_appropriately=1
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        assists_students_on_concerns=1
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        guides_the_students_in_accomplishing_tasks=1
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        extends_consideration_to_students=1
-    ).count()    
-    
+    # Calculate counts in memory
+    for field in rating_fields:
+        value = getattr(faculty_evaluation_form, field)
+        if value == 5:
+            outstanding_count += 1
+        elif value == 4:
+            very_satisfactory_count += 1
+        elif value == 3:
+            satisfactory_count += 1
+        elif value == 2:
+            unsatisfactory_count += 1
+        elif value == 1:
+            poor_count += 1
 
     return render(request, 'pages/department_head_view_evaluation_form.html', {'faculty_evaluation_form': faculty_evaluation_form, 'faculty': faculty, 'questions': questions, 'outstanding_count': outstanding_count, 'very_satisfactory_count': very_satisfactory_count, 'satisfactory_count': satisfactory_count, 'unsatisfactory_count': unsatisfactory_count, 'poor_count': poor_count, 'faculty': faculty, 'is_department_head': is_department_head, 'event_notifications': event_notifications,
         'messages_notifications': messages_notifications,

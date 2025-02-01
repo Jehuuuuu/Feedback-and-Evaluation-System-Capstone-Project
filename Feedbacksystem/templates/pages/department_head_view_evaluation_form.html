@@ -12,7 +12,7 @@
 {% block feature %}
 
 <div class="row table-responsive">
-    <div class="col-xl-6 mb-2" style="max-height: 450px; overflow-y: auto;">
+    <div class="col-xl-6 mb-2" style="max-height: 500px; overflow-y: auto;">
         <table class="table table-bordered ">
                 <tr>
                  <th  scope="col">I. Subject Matter Content </th>
@@ -316,19 +316,39 @@
         <table class="table table-bordered form-info">
             <tr>
                 <td>Average</td>
-                <td>{{ faculty_evaluation_form.average_rating }}</td>
+                
+                <td>
+                    <span {% if faculty_evaluation_form.average_rating >= 5.0 %} style="color: #339933;" 
+                        {% elif faculty_evaluation_form.average_rating >= 4.0 %} style="color: #66CC66;" 
+                        {% elif faculty_evaluation_form.average_rating >= 3.0 %} style="color: #F0C808;" 
+                        {% elif faculty_evaluation_form.average_rating >= 2.0 %} style="color: #FF9900;" 
+                        {% elif faculty_evaluation_form.average_rating >= 1.0 %} style="color: #cc0000;" 
+                        {% endif %} >
+                        <b>{{ faculty_evaluation_form.average_rating }}</b></span>
+                </td>
             </tr>
             <tr>
                 <td>Rating</td>
-                <td>{{ faculty_evaluation_form.get_rating_category }}</td>
+                
+                <td> <span {% if faculty_evaluation_form.average_rating >= 5.0 %} style="color: #339933;" 
+                    {% elif faculty_evaluation_form.average_rating >= 4.0 %} style="color: #66CC66;" 
+                    {% elif faculty_evaluation_form.average_rating >= 3.0 %} style="color: #F0C808;" 
+                    {% elif faculty_evaluation_form.average_rating >= 2.0 %} style="color: #FF9900;" 
+                    {% elif faculty_evaluation_form.average_rating >= 1.0 %} style="color: #cc0000;" 
+                    {% endif %} >
+                    <b>{{ faculty_evaluation_form.get_rating_category }}</b></span></td>
             </tr>
             <tr>
-                <td>Comment</td>
+                <td>Overall Impression</td>
                 <td>{{ faculty_evaluation_form.comments }}</td>
             </tr>
             <tr>
                 <td>Polarity</td>
-                <td>{{ faculty_evaluation_form.predicted_sentiment }}</td>
+                <td>
+                    <span {% if faculty_evaluation_form.predicted_sentiment == 'Positive'%} style="color: #339933;" 
+                    {% elif faculty_evaluation_form.predicted_sentiment == 'Negative' %} style="color:  #cc0000;" 
+                    {% endif %}>
+                    <b>{{ faculty_evaluation_form.predicted_sentiment }}</b></span></td>
             </tr>
             <tr>
                 <td>Academic Year</td>
@@ -375,6 +395,7 @@
                     }]
                 },
                 options: {
+                    indexAxis: 'y',
                     scales: {
                         x: {
                     ticks: {
