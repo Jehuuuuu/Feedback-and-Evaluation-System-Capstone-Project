@@ -306,7 +306,7 @@
     </div>
   </div>
 
-   <a href="{% url 'faculty_evaluations_individual_summary_report_pdf' %}" class="btn custom-btn mb-2"><i class="bi bi-clipboard2-fill"></i> View Peer-to-Peer Summary Report</a> 
+   <a href="{% url 'peer_to_peer_individual_summary_report_pdf' %}" class="btn custom-btn mb-2"><i class="bi bi-clipboard2-fill"></i> View Peer-to-Peer Summary Report</a> 
 
    <div class="col-12 col-md-auto">
     <a href="{% url 'facultydashboard' %}" class="btn custom-btn ">
@@ -358,7 +358,7 @@
                 data: {
                     labels: ['Positive', 'Negative', 'Neutral'],  // Labels for the X-axis
                     datasets: [{
-                        label: 'Sentiment Distribution of Student Evaluations',  // Dataset label
+                        label: 'Sentiment Distribution of Peer-to-Peer Evaluations',  // Dataset label
                         data: [{{ positive_evaluations }}, {{ negative_evaluations }}, {{neutral_evaluations}}],
                         backgroundColor: ['#4caf50', '#f44336', '#898E8C'],
                         borderColor: ['#4caf50', '#f44336', '#898E8C'],
@@ -374,7 +374,7 @@
                             labels: {
                                 boxWidth: 0,  // Set box width to 0 to hide the color box
                                 font: {
-                                    size: 14
+                                    size: 12
                                 }
                             }
                         },
@@ -421,7 +421,7 @@
           data: {
               labels: labels,
               datasets: [{
-                  label: 'Student Rating Distribution per Category',
+                  label: 'Peer-to-Peer Rating Distribution per Category',
                   data: dataPoints,
                   backgroundColor: [
                       'rgba(75, 192, 192, 0.2)',

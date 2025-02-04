@@ -12,7 +12,7 @@
 {% block feature %}
 
 <div class="row">
-    <div class="col-xl-6" style="max-height: 400px; overflow-y: auto;">
+    <div class="col-xl-6" style="max-height: 500px; overflow-y: auto;">
         <table class="table table-responsive table-bordered">
                 <tr>
                  <th  scope="col" style="color:#fafafa;  background: #2a9134">I.  Overall Evaluation </th>
@@ -172,11 +172,25 @@
         <table class="table table-bordered form-info">
             <tr>
                 <td>Average</td>
-                <td>{{ event_form_details.average_rating }}</td>
+                <td>
+                    <span {% if event_form_details.average_rating >= 5.0 %} style="color: #339933;" 
+                        {% elif event_form_details.average_rating >= 4.0 %} style="color: #66CC66;" 
+                        {% elif event_form_details.average_rating >= 3.0 %} style="color: #F0C808;" 
+                        {% elif event_form_details.average_rating >= 2.0 %} style="color: #FF9900;" 
+                        {% elif event_form_details.average_rating >= 1.0 %} style="color: #cc0000;" 
+                        {% endif %} >
+                        <b>{{ event_form_details.average_rating }}</b></span>
+                </td>
             </tr>
             <tr>
                 <td>Rating</td>
-                <td>{{ event_form_details.get_rating_category }}</td>
+                <td> <span {% if event_form_details.average_rating >= 5.0 %} style="color: #339933;" 
+                    {% elif event_form_details.average_rating >= 4.0 %} style="color: #66CC66;" 
+                    {% elif event_form_details.average_rating >= 3.0 %} style="color: #F0C808;" 
+                    {% elif event_form_details.average_rating >= 2.0 %} style="color: #FF9900;" 
+                    {% elif event_form_details.average_rating >= 1.0 %} style="color: #cc0000;" 
+                    {% endif %} >
+                    <b>{{ event_form_details.get_rating_category }}</b></span></td>
             </tr>
             <tr>
                 <td>Comment</td>
@@ -184,7 +198,11 @@
             </tr>
             <tr>
                 <td>Polarity</td>
-                <td>{{ event_form_details.predicted_sentiment }}</td>
+                <td>
+                    <span {% if event_form_details.predicted_sentiment == 'Positive'%} style="color: #339933;" 
+                    {% elif event_form_details.predicted_sentiment == 'Negative' %} style="color:  #cc0000;" 
+                    {% endif %}>
+                    <b>{{ event_form_details.predicted_sentiment }}</b></span></td>
             </tr>
             <tr>
                 <td>Academic Year</td>
@@ -230,6 +248,7 @@
                             }]
                         },
                         options: {
+                            indexAxis: 'y',
                             scales: {
                                 x: {
                             ticks: {

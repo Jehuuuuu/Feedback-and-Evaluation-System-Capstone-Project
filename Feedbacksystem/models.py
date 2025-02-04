@@ -242,7 +242,24 @@ class Faculty(models.Model):
         elif 5.0 <= avg_rating <= 5.0:
             return "Outstanding"
         return "No Rating"
-
+        
+    @property
+    def previous_rating_category(self):
+        """Return rating category for the previous_average_rating."""
+        if self.previous_average_rating is None or self.previous_average_rating == 0.0:
+            return "No Rating"
+        elif 1.0 <= self.previous_average_rating <= 1.99:
+            return "Poor"
+        elif 2.0 <= self.previous_average_rating <= 2.99:
+            return "Unsatisfactory"
+        elif 3.0 <= self.previous_average_rating <= 3.99:
+            return "Satisfactory"
+        elif 4.0 <= self.previous_average_rating <= 4.99:
+            return "Very Satisfactory"
+        elif self.previous_average_rating == 5.0:
+            return "Outstanding"
+        return "No Rating"
+    
     def full_name(self):
         return f"{self.first_name} {self.last_name}"
     
@@ -785,7 +802,7 @@ class Attendance(models.Model):
 
 class SchoolEventModel(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE) 
-    event = models.ForeignKey(Event, on_delete=models.CASCADE) 
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, ) 
     # Overall Evaluation
     meeting_expectation = models.IntegerField(choices=[(5, 'Excellent'), (4, 'Very Satisfactory'), (3, 'Satisfactory'),
                                         (2, 'Fair'), (1, 'Poor')])
@@ -857,19 +874,18 @@ class SchoolEventModel(models.Model):
 
      # Method to calculate the total average rating of the event
     @staticmethod
-    def get_event_average_rating(pk):
-        # Get all the event evaluations for a particular event
-        evaluations = SchoolEventModel.objects.filter(pk=pk)
+    def get_event_average_rating(event):
+       # Get all the evaluations for the specific event
+        evaluations = SchoolEventModel.objects.filter(event=event)
 
         # Calculate the total average rating
-        total_ratings = 0
+        total_ratings = sum(
+            evaluation.average_rating for evaluation in evaluations if evaluation.average_rating is not None
+        )
         total_count = evaluations.count()
 
-        for evaluation in evaluations:
-            total_ratings += evaluation.average_rating if evaluation.average_rating else 0
-
-        # Return the total average
-        return total_ratings / total_count if total_count else 'No evaluations yet'
+        # Return the average rating or a default message
+        return total_ratings / total_count if total_count > 0 else 'No evaluations yet'
 
     class Meta:
         ordering = ['-updated', '-created']
@@ -984,6 +1000,21 @@ class WebinarSeminarModel(models.Model):
             self.semester = evaluation_status.semester
             self.average_rating = self.calculate_average_rating()
         super().save(*args, **kwargs)
+        
+     # Method to calculate the total average rating of the event
+    @staticmethod
+    def get_event_average_rating(event):
+       # Get all the evaluations for the specific event
+        evaluations = WebinarSeminarModel.objects.filter(event=event)
+
+        # Calculate the total average rating
+        total_ratings = sum(
+            evaluation.average_rating for evaluation in evaluations if evaluation.average_rating is not None
+        )
+        total_count = evaluations.count()
+
+        # Return the average rating or a default message
+        return total_ratings / total_count if total_count > 0 else 'No evaluations yet'
 
     class Meta:
         ordering = ['-updated', '-created']
@@ -1316,9 +1347,68 @@ class PeertoPeerEvaluation(models.Model):
 
         average_rating = sum(ratings) / len(ratings) if ratings else None
         return round(average_rating, 2) 
+  
+    def calculate_category_averages(self):
+        categories = {
+            'Subject Matter Content': [
+                'command_and_knowledge_of_the_subject',
+                'depth_of_mastery',
+                'practice_in_respective_discipline',
+                'up_to_date_knowledge',
+                'integrates_subject_to_practical_circumstances',
+            ],
+            'Organization': [
+                'organizes_the_subject_matter',
+                'provides_orientation_on_course_content',
+                'efforts_of_class_preparation',
+                'summarizes_main_points',
+                'monitors_online_class',
+            ],
+            'Teacher-Student Rapport': [
+                'holds_interest_of_students',
+                'provides_relevant_feedback',
+                'encourages_participation',
+                'shows_enthusiasm',
+                'shows_sense_of_humor',
+            ],
+            'Teaching Methods': [
+                'teaching_methods',
+                'flexible_learning_strategies',
+                'student_engagement',
+                'clear_examples',
+                'focused_on_objectives',
+            ],
+            'Presentation': [
+                'starts_with_motivating_activities',
+                'speaks_in_clear_and_audible_manner',
+                'uses_appropriate_medium_of_instruction',
+                'establishes_online_classroom_environment',
+                'observes_proper_classroom_etiquette',
+            ],
+            'Classroom Management': [
+                'uses_time_wisely',
+                'gives_ample_time_for_students_to_prepare',
+                'updates_the_students_of_their_progress',
+                'demonstrates_leadership_and_professionalism',
+                'understands_possible_distractions',
+            ],
+            'Sensitivity and Support to Students': [
+                'sensitivity_to_student_culture',
+                'responds_appropriately',
+                'assists_students_on_concerns',
+                'guides_the_students_in_accomplishing_tasks',
+                'extends_consideration_to_students',
+            ]
+        }
 
+        category_averages = {}
+        for category, fields in categories.items():
+            ratings = [getattr(self, field) for field in fields if getattr(self, field) is not None]
+            ratings = [int(rating) for rating in ratings]  # Ensure ratings are integers
+            category_averages[category] = round(sum(ratings) / len(ratings), 2) if ratings else None
 
-
+        return category_averages
+    
     def sentiment_label(self):
         if self.predicted_sentiment == 1:
             return 'Positive'

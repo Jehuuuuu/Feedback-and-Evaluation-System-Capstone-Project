@@ -32,7 +32,7 @@
 {% endif %}
 
   <div class="row g-0 align-items-center">
-  <div class="col-lg-2 col-md-3 col-6 mb-2"><a class="btn btn-warning custom-btn" data-bs-toggle="modal" data-bs-target="#exampleModal"><i class="bi bi-person-plus-fill"></i><b>Add Student</b></a>
+  <div class="col-lg-2 col-md-3 col-6 mb-2"><a class="btn btn-warning custom-btn" data-bs-toggle="modal" data-bs-target="#exampleModal"><i class="bi bi-person-plus-fill"></i>Add Student</a>
   </div>
   <!-- Modal -->
   <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -59,7 +59,7 @@
   
   <div class="col-lg-2 col-md-3 col-6 mb-2">
     <button type="button" class="btn btn-warning custom-btn" data-bs-toggle="modal" data-bs-target="#filterModal">
-      <i class="bi bi-pencil-square"></i> <small><b>Filter Options</b></small>
+      <i class="bi bi-funnel-fill"></i> Filter Options
     </button>
   </div>
 
@@ -94,13 +94,13 @@
 
     <!-- Custom button to trigger file selection -->
     <button type="button" class="btn custom-btn" onclick="document.getElementById('fileInput').click();">
-        Bulk Import
+      <i class="bi bi-file-arrow-up me-2"></i> Bulk Import
     </button>
   </div>
   </form>
   <div class="col-lg-2 col-md-3 col-6 mb-2">
     <a href="{% url 'archived_students' %}" type="button" class="btn custom-btn">
-      <i class="bi bi-archive-fill"></i> <small><b>Archived Students</b></small>
+      <i class="bi bi-archive-fill"></i> <small>Archived Students</small>
     </a>
   </div>
   </div>
@@ -109,15 +109,14 @@
     <table class="table table-bordered table-sm  align-middle">
       <thead class="table-light">
         <tr>
-          <th scope="col" style="width: 5%;">#</th>
-          <th scope="col" style="width: 15%;">Surname</th>
-          <th scope="col" style="width: 15%;">First Name</th>
-          <th scope="col" style="width: 15%;">Middle Name</th>
-          <th scope="col" style="width: 5%;">Course</th>
-          <th scope="col" style="width: 15%;">Section</th>
-          <th scope="col" style="width: 10%;">Status</th>
-          <th scope="col" style="width: 15%;">Email</th>
-          <th scope="col" style="width: 10%;">Options</th>
+          <th scope="col">#</th>
+          <th scope="col">Surname</th>
+          <th scope="col">First Name</th>
+          <th scope="col">Middle Name</th>
+          <th scope="col">Section</th>
+          <th scope="col">Status</th>
+          <th scope="col">Email</th>
+          <th scope="col">Options</th>
         </tr>
       </thead>
       <tbody>
@@ -127,21 +126,20 @@
           <td>{{ i.last_name }}</td>
           <td>{{ i.first_name }}</td>
           <td>{{ i.middle_name }}</td>
-          <td>{{ i.Course }}</td>
           <td>{{ i.Section }}</td>
           <td>{{ i.status }}</td>
           <td>{{ i.email }}</td>
           <td class="d-flex justify-content-center gap-1">
             <!-- View Details Button -->
-            <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modal{{ i.pk }}">
+            <button class="btn btn-primary " data-bs-toggle="modal" data-bs-target="#modal{{ i.pk }}">
               <i class="bi bi-eye-fill"></i>
             </button>
             <!-- Edit Button -->
-            <a href="{% url 'editstudent' i.pk %}" class="btn btn-warning btn-sm">
+            <a href="{% url 'editstudent' i.pk %}" class="btn btn-warning ">
               <i class="bi bi-pencil-square"></i>
             </a>
             <!-- Delete Button -->
-            <a href="{% url 'archive_student' i.pk %}" class="btn btn-secondary btn-sm">
+            <a href="{% url 'archive_student' i.pk %}" class="btn btn-secondary ">
               <i class="bi bi-archive-fill"></i>
             </a>
           </td>

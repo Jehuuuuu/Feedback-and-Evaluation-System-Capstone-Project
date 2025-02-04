@@ -42,7 +42,6 @@
             <form method="POST" action="">
                 {% csrf_token %}
                 {{ form.as_p }}
-
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -54,11 +53,11 @@
   </div>
 
   <div class="row g-1">
-    <div class="col-lg-2 col-md-3 col-6 mt-1"><button type="button" class="btn btn-warning custom-btn" style = "color: black; text-decoration: none; " data-bs-toggle="modal" data-bs-target="#exampleModal"></a><i class="bi bi-person-plus-fill"></i> <b>Add Faculty</b></button></div>
+    <div class="col-lg-2 col-md-3 col-6 mt-1"><button type="button" class="btn btn-warning custom-btn" style = "color: black; text-decoration: none; " data-bs-toggle="modal" data-bs-target="#exampleModal"></a><i class="bi bi-person-plus-fill"></i> Add Faculty</button></div>
 
     <div class="col-lg-2 col-md-3 col-6 mt-1" >
       <button type="button" class="btn btn-warning custom-btn" style="color: black; text-decoration: none;" data-bs-toggle="modal" data-bs-target="#filterModal">
-        <i class="bi bi-pencil-square"></i> <b>Filter Options</b>
+        <i class="bi bi-funnel-fill"></i> Filter Options
       </button>
     </div>
     
@@ -68,6 +67,10 @@
       <option id="last_name" value="last_name">Alphabetical: Ascending</option>
       <option id="-last_name" value="-last_name">Alphabetical: Descending</option>
       <option id="-created" value="-created">Recently Added</option>
+      <option id="num_of_evaluators" value="num_of_evaluators">Evaluator Count: Ascending</option>
+      <option id="-num_of_evaluators" value="-num_of_evaluators">Evaluator Count: Descending</option>
+      <option id="average_rating" value="average_rating">Average Rating: Ascending</option>
+      <option id="-average_rating" value="-average_rating">Average Rating: Descending</option>
       </select>
     </div>
     <div class="col-lg-2 col-md-5 col-12 mt-1">
@@ -78,7 +81,7 @@
   
       <!-- Custom button to trigger file selection -->
       <button type="button" class="btn custom-btn" onclick="document.getElementById('fileInput').click();">
-          Bulk Import
+        <i class="bi bi-file-arrow-up me-2"></i>Bulk Import
       </button>
     </div>
     </form>
@@ -87,33 +90,66 @@
     <div class="table-responsive mt-2">
       <table class="table table-bordered table-sm table-responsive  ">
           <tr>
+            <th scope="col">#</th>
             <th scope="col">Surname</th>
             <th scope="col">First Name </th>
-            <th scope="col">Sex</th>
-            <th scope="col">Email</th>
-            <th scope="col">Contact Number</th>
             <th scope="col">Department</th>
+            <th scope="col">Evaluators</th>
+            <th scope="col">Average</th>
+            <th scope="col">Rating</th>
             <th scope="col">Options</th>
             
           </tr>
           {% for i in page_obj %}
           <tr>
+              <td>{{ forloop.counter|add:page_obj.start_index|add:"-1" }}</td>
               <td>{{ i.last_name }}</td>
               <td>{{ i.first_name }}</td>
-              <td>{{ i.gender }}</td>
-              <td>{{ i.email }}</td>
-              <td>{{ i.contact_number }}</td>
               <td>{{ i.department }}</td>
-
-              <td class="d-flex justify-content-center gap-1"> 
+              <td>
+                {% if i.num_of_evaluators == 0 %}
+                    <span style="color: #999999;"><i>Not yet evaluated</i></span>
+                {% else %}
+                    {{ i.num_of_evaluators }}
+                {% endif %}
+                </td>
+                <td>
+                    {% if i.average_rating == 0.0 or i.average_rating is None %}
+                    <span style="color: #999999;"><i>Not yet evaluated</i></span>
+                    {% else %}
+                    <span {% if i.average_rating >= 5.0 %} style="color: #339933;"
+                        {% elif i.average_rating >= 4.0 %} style="color: #66CC66;"
+                        {% elif i.average_rating >= 3.0 %} style="color: #F0C808;"
+                        {% elif i.average_rating >= 2.0 %} style="color: #FF9900;"
+                        {% elif i.average_rating >= 1.0 %} style="color: #cc0000;"
+                        {% endif %} > <b>{{ i.average_rating }} </b>
+                    </span>
+                    {% endif %}
+                </td>
+        
+                <td>
+                    {% if i.average_rating == 0.0 or i.average_rating is None %}
+                    <span style="color: #999999;"><i>No yet evaluated</i></span>
+                    {% else %}
+                    <span {% if i.average_rating >= 5.0 %} style="color: #339933;"
+                    {% elif i.average_rating >= 4.0 %} style="color: #66CC66;"
+                    {% elif i.average_rating >= 3.0 %} style="color: #F0C808;"
+                    {% elif i.average_rating >= 2.0 %} style="color: #FF9900;"
+                    {% elif i.average_rating >= 1.0 %} style="color: #cc0000;"
+                    {% endif %}>
+                    <b>{{ i.get_rating_category }}</b>
+                    </span>
+                    {% endif %}
+                </td>
+              <td class="d-flex justify-content-center align-items-center gap-1" style="height: 75px;"> 
               
-              <a href="{% url 'facultyevaluations' i.pk %}"><button class="btn btn-primary btn-sm " title="View Faculty Evaluations"><i class="bi bi-eye-fill"></i></button></a>
+              <a href="{% url 'facultyevaluations' i.pk %}"><button class="btn btn-primary  " title="View Faculty Evaluations"><i class="bi bi-eye-fill"></i></button></a>
 
-              <a href="{% url 'editteacher'  i.pk  %}"><button class="btn btn-warning btn-sm " title="Edit Faculty"><i class="bi bi-pencil-square"></i></button></a>
+              <a href="{% url 'editteacher'  i.pk  %}"><button class="btn btn-warning  " title="Edit Faculty"><i class="bi bi-pencil-square"></i></button></a>
               
-              <a href="{% url 'send_message'  i.pk  %}"><button class="btn btn-success btn-sm " title="Message Faculty"><i class="bi bi-chat-dots"></i></button></a>
+              <a href="{% url 'send_message'  i.pk  %}"><button class="btn btn-success  " title="Message Faculty"><i class="bi bi-chat-dots"></i></button></a>
 
-              <a href="{% url 'deleteTeacher'  i.pk  %}"><button class="btn btn-danger btn-sm " title="Delete Faculty" ><i class='bx bxs-trash' ></i></button></a>
+              <a href="{% url 'deleteTeacher'  i.pk  %}"><button class="btn btn-danger  " title="Delete Faculty" ><i class='bx bxs-trash' ></i></button></a>
 
               </td>
           </tr>

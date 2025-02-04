@@ -28,6 +28,7 @@ class EvaluationFilter(django_filters.FilterSet):
     PREDICTED_SENTIMENT_CHOICES = [
         ('Positive', 'Positive'),
         ('Negative', 'Negative'),
+        ('Neutral', 'Neutral'),
     ]
 
     predicted_sentiment = django_filters.ChoiceFilter(
@@ -41,16 +42,17 @@ class EvaluationFilter(django_filters.FilterSet):
     # Define choices for academic_year field dynamically
     academic_year = django_filters.ChoiceFilter(choices=[], label='Academic Year',
                                                 widget=forms.Select(attrs={'class': 'form-control'})
-)
+    )
 
     SEMESTER_CHOICES = [
         ('1st Semester', '1st Semester'),
         ('2nd Semester', '2nd Semester'),
     ]
+
     semester = django_filters.ChoiceFilter(
          choices=SEMESTER_CHOICES, 
          widget=forms.Select(attrs={'class': 'form-control'})
-)
+    )
     
   
     def __init__(self, *args, **kwargs):
@@ -177,7 +179,6 @@ class FacultyFilter(django_filters.FilterSet):
             ("Satisfactory", "Satisfactory"),
             ("Very Satisfactory", "Very Satisfactory"),
             ("Outstanding", "Outstanding"),
-            ("No Rating", "No Rating"),
         ],
         widget=forms.Select(attrs={'class': 'form-control'})
     )
@@ -349,6 +350,7 @@ class EventFilter(django_filters.FilterSet):
     EVENT_TYPE_CHOICES = [
         ('1', 'School Event'),
         ('2', 'Webinar/Seminar'),
+        ('3', 'Training Workshop'),
     ]
     event_type = django_filters.ChoiceFilter(
          choices=EVENT_TYPE_CHOICES, 
@@ -404,6 +406,196 @@ class EventFilter(django_filters.FilterSet):
     class Meta: 
         model = Event
         fields =  ('course_attendees', 'department_attendees', 'evaluation_status', 'event_type', 'academic_year', 'semester', 'search')
+
+class SchoolEventFilter(django_filters.FilterSet):
+    # Define filters for predicted_sentiment, academic_year, and semester
+    predicted_sentiment = django_filters.ChoiceFilter(
+        field_name='predicted_sentiment',
+        choices=[
+            ('Positive', 'Positive'),
+            ('Negative', 'Negative'),
+            ('Neutral', 'Neutral'),
+        ],
+        label="Predicted Sentiment",
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+
+    academic_year = django_filters.ChoiceFilter(choices=[], label='Academic Year',
+                                                widget=forms.Select(attrs={'class': 'form-control'})
+    )
+    semester = django_filters.ChoiceFilter(
+        field_name='semester',
+        choices=[
+            ('1st Semester', '1st Semester'),
+            ('2nd Semester', '2nd Semester'),
+        ],
+        label="Semester",
+         widget=forms.Select(attrs={'class': 'form-control'})
+    )
+
+    search = django_filters.CharFilter(
+        method='filter_search',
+        label='',
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Search...'
+        })
+    )
+
+    rating_category = django_filters.ChoiceFilter(
+        method='filter_rating_category',
+        label='Rating Category',
+        choices=[
+            ("Poor", "Poor"),
+            ("Unsatisfactory", "Unsatisfactory"),
+            ("Satisfactory", "Satisfactory"),
+            ("Very Satisfactory", "Very Satisfactory"),
+            ("Outstanding", "Outstanding"),
+        ],
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+    def filter_search(self, queryset, name, value):
+        return queryset.filter(
+            Q(comments__icontains=value) |
+            Q(predicted_sentiment__icontains=value) |
+            Q(academic_year__icontains=value) |
+            Q(semester__icontains=value)     
+        )
+    
+    def filter_rating_category(self, queryset, name, value):
+        """
+        Filters the queryset based on the rating category.
+        The rating category is determined from the 'average_rating' field of SchoolEventModel.
+        """
+        # Annotate each instance with a 'rating_category' based on its average_rating field.
+        queryset = queryset.annotate(
+            rating_category=Case(
+                When(average_rating__isnull=True, then=Value("No Rating")),
+                When(average_rating__lte=1.99, then=Value("Poor")),
+                When(average_rating__gte=2.0, average_rating__lte=2.99, then=Value("Unsatisfactory")),
+                When(average_rating__gte=3.0, average_rating__lte=3.99, then=Value("Satisfactory")),
+                When(average_rating__gte=4.0, average_rating__lte=4.99, then=Value("Very Satisfactory")),
+                When(average_rating__gte=5.0, then=Value("Outstanding")),
+                output_field=CharField(),
+            )
+        )
+        
+        # Apply the filter if a value is provided
+        if value:
+            queryset = queryset.filter(rating_category=value)
+        
+        return queryset
+
+
+    def __init__(self, *args, **kwargs):
+
+        # Populate choices for academic_year dynamically from the database
+        academic_years = SchoolEventModel.objects.order_by('academic_year').values_list('academic_year', flat=True).distinct()
+        academic_year_choices = [(year, year) for year in academic_years]
+        super().__init__(*args, **kwargs)
+        self.filters['academic_year'].extra['choices'] = academic_year_choices
+        # Update the queryset with faculty filter
+
+
+ 
+    
+    class Meta:
+        model = SchoolEventModel
+        fields = ['predicted_sentiment', 'academic_year', 'semester', 'search']
+
+class WebinarSeminarEventFilter(django_filters.FilterSet):
+    # Define filters for predicted_sentiment, academic_year, and semester
+    predicted_sentiment = django_filters.ChoiceFilter(
+        field_name='predicted_sentiment',
+        choices=[
+            ('Positive', 'Positive'),
+            ('Negative', 'Negative'),
+            ('Neutral', 'Neutral'),
+        ],
+        label="Predicted Sentiment",
+         widget=forms.Select(attrs={'class': 'form-control'})
+    )
+    academic_year = django_filters.ChoiceFilter(choices=[], label='Academic Year',
+                                                widget=forms.Select(attrs={'class': 'form-control'})
+    )
+    semester = django_filters.ChoiceFilter(
+        field_name='semester',
+        choices=[
+            ('1st Semester', '1st Semester'),
+            ('2nd Semester', '2nd Semester'),
+        ],
+        label="Semester",
+         widget=forms.Select(attrs={'class': 'form-control'})
+    )
+
+    rating_category = django_filters.ChoiceFilter(
+    method='filter_rating_category',
+    label='Rating Category',
+    choices=[
+        ("Poor", "Poor"),
+        ("Unsatisfactory", "Unsatisfactory"),
+        ("Satisfactory", "Satisfactory"),
+        ("Very Satisfactory", "Very Satisfactory"),
+        ("Outstanding", "Outstanding"),
+    ],
+    widget=forms.Select(attrs={'class': 'form-control'})
+    )
+
+    search = django_filters.CharFilter(
+        method='filter_search',
+        label='',
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Search...'
+        })
+    )
+
+    def filter_search(self, queryset, name, value):
+        return queryset.filter(
+            Q(comments__icontains=value) |
+            Q(predicted_sentiment__icontains=value) |
+            Q(academic_year__icontains=value) |
+            Q(semester__icontains=value)     
+        )
+    
+    def filter_rating_category(self, queryset, name, value):
+        """
+        Filters the queryset based on the rating category.
+        The rating category is determined from the 'average_rating' field of SchoolEventModel.
+        """
+        # Annotate each instance with a 'rating_category' based on its average_rating field.
+        queryset = queryset.annotate(
+            rating_category=Case(
+                When(average_rating__isnull=True, then=Value("No Rating")),
+                When(average_rating__lte=1.99, then=Value("Poor")),
+                When(average_rating__gte=2.0, average_rating__lte=2.99, then=Value("Unsatisfactory")),
+                When(average_rating__gte=3.0, average_rating__lte=3.99, then=Value("Satisfactory")),
+                When(average_rating__gte=4.0, average_rating__lte=4.99, then=Value("Very Satisfactory")),
+                When(average_rating__gte=5.0, then=Value("Outstanding")),
+                output_field=CharField(),
+            )
+        )
+        
+        # Apply the filter if a value is provided
+        if value:
+            queryset = queryset.filter(rating_category=value)
+        
+        return queryset
+
+    def __init__(self, *args, **kwargs):
+
+        # Populate choices for academic_year dynamically from the database
+        academic_years = WebinarSeminarModel.objects.order_by('academic_year').values_list('academic_year', flat=True).distinct()
+        academic_year_choices = [(year, year) for year in academic_years]
+        super().__init__(*args, **kwargs)
+        self.filters['academic_year'].extra['choices'] = academic_year_choices
+        # Update the queryset with faculty filter
+
+
+    class Meta:
+        model = WebinarSeminarModel
+        fields = ['predicted_sentiment', 'academic_year', 'semester', 'search']
+    
 
 class SectionFilter(django_filters.FilterSet):
     search = django_filters.CharFilter(
@@ -571,6 +763,7 @@ class PeertoPeerEvaluationFilter(django_filters.FilterSet):
     PREDICTED_SENTIMENT_CHOICES = [
         ('Positive', 'Positive'),
         ('Negative', 'Negative'),
+        ('Neutral', 'Neutral'),
     ]
 
     predicted_sentiment = django_filters.ChoiceFilter(
@@ -579,22 +772,33 @@ class PeertoPeerEvaluationFilter(django_filters.FilterSet):
          widget=forms.Select(attrs={'class': 'form-control'})
     )
 
-
+    rating_category = django_filters.ChoiceFilter(
+    method='filter_rating_category',
+    label='Rating Category',
+    choices=[
+        ("Poor", "Poor"),
+        ("Unsatisfactory", "Unsatisfactory"),
+        ("Satisfactory", "Satisfactory"),
+        ("Very Satisfactory", "Very Satisfactory"),
+        ("Outstanding", "Outstanding"),
+    ],
+    widget=forms.Select(attrs={'class': 'form-control'})
+    )
     # Define choices for academic_year field dynamically
     academic_year = django_filters.ChoiceFilter(choices=[], label='Academic Year',
                                                 widget=forms.Select(attrs={'class': 'form-control'})
-)
+                                                )
 
     SEMESTER_CHOICES = [
-        ('1st', '1st'),
-        ('2nd', '2nd'),
+        ('1st Semester', '1st Semester'),
+        ('2nd Semester', '2nd Semester'),
     ]
     semester = django_filters.ChoiceFilter(
          choices=SEMESTER_CHOICES, 
          widget=forms.Select(attrs={'class': 'form-control'})
 )
     
-  
+    
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Populate choices for academic_year dynamically from the database
@@ -621,7 +825,29 @@ class PeertoPeerEvaluationFilter(django_filters.FilterSet):
             Q(academic_year__icontains=value) |
             Q(semester__icontains=value)     
         )
-
+    def filter_rating_category(self, queryset, name, value):
+        """
+        Filters the queryset based on the rating category.
+        The rating category is determined from the 'average_rating' field of SchoolEventModel.
+        """
+        # Annotate each instance with a 'rating_category' based on its average_rating field.
+        queryset = queryset.annotate(
+            rating_category=Case(
+                When(average_rating__isnull=True, then=Value("No Rating")),
+                When(average_rating__lte=1.99, then=Value("Poor")),
+                When(average_rating__gte=2.0, average_rating__lte=2.99, then=Value("Unsatisfactory")),
+                When(average_rating__gte=3.0, average_rating__lte=3.99, then=Value("Satisfactory")),
+                When(average_rating__gte=4.0, average_rating__lte=4.99, then=Value("Very Satisfactory")),
+                When(average_rating__gte=5.0, then=Value("Outstanding")),
+                output_field=CharField(),
+            )
+        )
+        
+        # Apply the filter if a value is provided
+        if value:
+            queryset = queryset.filter(rating_category=value)
+        
+        return queryset
 class Meta: 
         model = PeertoPeerEvaluation
         fields =  ( 'predicted_sentiment' , 'academic_year', 'semester', 'search')

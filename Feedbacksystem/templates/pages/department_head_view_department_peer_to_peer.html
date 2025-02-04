@@ -40,7 +40,7 @@
     </div>
         
     <div class="col-12 col-md-auto">
-        <a class="btn custom-btn w-100" style="color: white;" href="{% url 'download_report' department.id %}">
+        <a class="btn custom-btn w-100" style="color: white;" href="{% url 'peer_to_peer_summary_report_pdf' %}">
             <i class="bi bi-clipboard2-fill"></i> View Peer-to-Peer Department Summary Report
         </a>
     </div>
@@ -151,6 +151,7 @@
                     <tr>
                         <th scope="col">#</th>
                         <th scope="col">Faculty</th>
+                        <th scope="col">Evaluators</th>
                         <th scope="col">Average</th>
                         <th scope="col">Rating</th>
                         <th scope="col">Previous Semester</th>
@@ -162,6 +163,13 @@
                 {% for i in page_obj %}
                 <td>{{ forloop.counter|add:page_obj.start_index|add:"-1" }}</td>
                     <td>{{ i.first_name }} {{ i.last_name }}</td>
+                    <td>
+                        {% if i.num_of_evaluators == 0 %}
+                            <span style="color: #999999;"><i>Not yet evaluated</i></span>
+                        {% else %}
+                            {{ i.num_of_evaluators }}
+                        {% endif %}
+                        </td>
                     <td>
                         {% if i.average_rating == 0.0 or i.average_rating is None %}
                         <span style="color: #999999;"><i>Not yet evaluated</i></span>
@@ -200,12 +208,12 @@
                             {% elif i.previous_average_rating >= 3.0 %}#F0C808;
                             {% elif i.previous_average_rating >= 2.0 %}#FF9900;
                             {% else %}#cc0000;{% endif %}">
-                        <b>{{ i.previous_average_rating }}</b> <b>({{ i.get_rating_category }})</b>
+                        <b>{{ i.previous_average_rating }}</b> <b>({{ i.previous_rating_category }})</b>
                         </span>
                         {% endif %}
                       </td>
                       <td style="display: flex; flex-direction: row; gap:1em; align-items: center; ">
-                        <a href="{% url 'department_head_faculty_evaluations' i.pk %}"><button class="btn btn-primary "><i class="bi bi-eye-fill" ></i> </button></a>
+                        <a href="{% url 'department_head_peer_to_peer_evaluations' i.pk %}?academic_year={{ academic_year }}&semester={{ semester }}"><button class="btn btn-primary "><i class="bi bi-eye-fill" ></i> </button></a>
                     <a href="{% url 'department_head_send_message'  i.pk  %}"><button class="btn btn-success  " title="Message Faculty"><i class="bi bi-chat-dots" ></i></button></a>
                     {% if not i.is_supervisor %}
                     <!-- New Button to Trigger Modal -->

@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Summary List of SET Ratings</title>
+    <title>Summary List of Peer-to-Peer Ratings for {{user_department}} </title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -18,33 +18,52 @@
             text-align: left;
             padding:10px 8px 10px 3px;
             word-wrap: break-word; /* Ensure long text breaks within the cell */
-            font-size: 0.8rem;
+            font-size:1rem;
+            white-space: nowrap; /* Prevent text from wrapping */
         }
         th {
             background-color: #f2f2f2;
         }
-        th, td {
-            white-space: nowrap; /* Prevent text from wrapping */
+        h1 {
+            text-align: center;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 0.5em;
+            width: 900px;
+        }
+        .header img {
+            width: 500px; 
+            height: 120px; 
+        }
+        @page {
+            size: letter landscape;
+            margin: 2cm;
         }
     </style>
 </head>
 <body>
-    <h1>Summary List of SET Ratings for the current {{current_semester}} Sem. AY {{current_academic_year}}</h1>
-    <h3>CvSU Bacoor Campus</h3>
+    <div class="header">
+        <img src="{% static 'images/cvsuheader.png' %}" alt="CvSU Logo">
+    </div>
+    <h1>Summary List of Peer-to-Peer Ratings for AY {{academic_year}} - {{semester}} </h1>
+    <h1>{{user_department}}</h1>
+    <h2>Part I: General Evaluation of the Faculty</h2> 
     <table>
         <thead>
             <tr>
                 <th>Faculty</th>
                 <th>Sample Size</th>
-                <th>Subject Matter Content</th>
-                <th>Organization</th>
-                <th style="font-size: 0.7em;">Teacher-Student Rapport</th>
-                <th>Teaching Methods</th>
-                <th>Presentation</th>
-                <th>Classroom Management</th>
-                <th>Sensitivity and Support to Students</th>
-                <th>Numerical</th>
-                <th>Adjectival</th>
+                <th>I. Subject Matter Content</th>
+                <th>II. Organization</th>
+                <th>III. Teacher- Student Rapport</th>
+                <th>IV. Teaching Methods</th>
+                <th>V. Presentation</th>
+                <th>VI. Classroom Management</th>
+                <th>VII. Sensitivity and Support to Students</th>
+                <th>Numerical Rating</th>
+                <th>Percentage Rating</th>
+                <th>Adjectival Rating</th>
             </tr>
         </thead>
         <tbody>
@@ -59,8 +78,9 @@
                 <td>{{ item.presentation_avg }}</td>
                 <td>{{ item.classroom_management_avg }}</td>
                 <td>{{ item.sensitivity_support_students_avg }}</td>
-                <td>{{ item.overall_avg }}</td>
-                <td>{{ item.rating_category }}</td>
+                <td><b>{{ item.overall_avg }}</b></td>
+                <td><b>{{ item.overall_percentage }}%</b></td>
+                <td><b>{{ item.rating_category }}</b></td>
             </tr>
             {% endfor %}
         </tbody>

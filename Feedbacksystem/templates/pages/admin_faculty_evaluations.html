@@ -21,15 +21,15 @@
 </div>
 {% endif %}
 <a href="{% url 'view_latest_faculty_evaluations' %}" class="btn custom-btn">
-  <i class="bi bi-file-earmark-text"></i> <b>View Latest Evaluations</b>
+  <i class="bi bi-file-earmark-text"></i> View Latest Evaluations
 </a>
 
 {% if current_evaluation_status == 'Closed' %}
   <a href="{% url 'faculty_evaluations_summary_report_pdf' %}" class="btn custom-btn">
-      <i class="bi bi-file-earmark-pdf"></i> <b>View Summary Report</b>
+      <i class="bi bi-file-earmark-pdf"></i> View Summary Report
   </a>
   <button type="button" class="btn custom-btn" data-bs-toggle="modal" data-bs-target="#sendReportModal">
-      <i class="bi bi-send"></i> <b>Send Summary Report</b>
+      <i class="bi bi-send"></i> Send Summary Report
   </button>
 {% endif %}
 

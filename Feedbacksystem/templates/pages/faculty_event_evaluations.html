@@ -33,241 +33,266 @@
         {% endif %}
         
         <div class="row g-2">
-            <div class="col-12 col-md-auto mb-1"><button class = "btn btn-warning custom-btn" data-bs-toggle="modal" data-bs-target="#createEventModal"> <i class="bi bi-plus-square-fill"> </i> <b>Create Event</b> </button></div>
+            <div class="col-12 col-md-auto mb-1"><button class = "btn btn-warning custom-btn" data-bs-toggle="modal" data-bs-target="#createEventModal"> <i class="bi bi-plus-square-fill"> </i> Create Event </button></div>
         {% if is_head_of_osas %}
             <div class="col-12 col-md-auto mb-1">
-                <a href="{% url 'pending_events' %}" class="btn custom-btn" ><i class="bi bi-hourglass-split"></i> <b>Pending Events</b></a>
+                <a href="{% url 'pending_events' %}" class="btn custom-btn" ><i class="bi bi-hourglass-split"></i> Pending Events</a>
             </div>
         {% endif %}
-            <div class="col-12 col-md-auto mb-1">
-                <button type="button" class="btn custom-btn" style=" text-decoration: none;" data-bs-toggle="modal" data-bs-target="#exampleModal">
-                    <i class="bi bi-filter-square-fill"></i> <b>Filter Options</b>
-                </button>
-            </div>
-             <!-- Sort Dropdown -->
-            <div class="col-md-5 col-sm-7 col-12 mb-1" style="margin-right: 1em;">
-                <select class="form-select" name="sort" id="sort-list" onchange="location = finalurl();">
-                <option value="" id="placeholder" disabled selected hidden>Sort</option>
-                <option id="date" value="date">Date: Ascending</option>
-                <option id="-date" value="-date">Date: Descending</option>
-                <option id="title" value="title">Alphabetical: Ascending</option>
-                <option id="-title" value="-title">Alphabetical: Descending</option>
-                </select>
-            </div>
+
+         <!-- Create Event Modal -->
+            <div class="modal fade" id="createEventModal" tabindex="-1" aria-labelledby="createEventModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="exampleModalLabel">Create Event</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form method="post" action="" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <div class="form-group">
+                            {{ form.title.label_tag }}
+                            {{ form.title }}
+                            </div>
+                            <div class="form-group">
+                            {{ form.date.label_tag }}
+                            {{ form.date }}
+                            </div>
+                            <div class="form-group">
+                            {{ form.time.label_tag }}
+                            {{ form.time }}
+                            </div>
+                            <div class="form-group">
+                            {{ form.location.label_tag }}
+                            {{ form.location }}
+                            </div>
+                            <div class="form-group">
+                            {{ form.event_type.label_tag }}
+                            {{ form.event_type }}
+                            </div>
+                            <div class="form-group">
+                            {{ form.event_venue_type.label_tag }}
+                            {{ form.event_venue_type }}
+                            </div>
+                            <div class="form-group">
+                            {{ form.event_picture.label_tag }}
+                            {{ form.event_picture }}
+                            </div>
+                            <div class="form-group">
+                            {{ form.description.label_tag }}
+                            {{ form.description }}
+                            </div>
+                        
+                            
+                            <div class="form-group">
+                                {{ form.course_attendees.label_tag }}
+                            <button type="button" class="btn btn-sm btn-primary" onclick="selectAll('course')">Select All</button>
+                                
+                                <div class="checkbox-list">
+                                    {% for course in form.course_attendees %}
+                                        <div class="form-check">
+                                            {{ course }}
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                {{ form.department_attendees.label_tag }}
+                                <button type="button" class="btn btn-sm btn-primary" onclick="selectAll('department')">Select All</button>
+                                <div class="checkbox-list">
+                                    {% for department in form.department_attendees %}
+                                        <div class="form-check">
+                                            {{ department }}
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-warning btn-sm mb-2 mt-2" onclick="clearAll()">Clear Selections</button>         
+                            <div class="form-group">
+                                {{ form.evaluation_status.label_tag }}
+                                {{ form.evaluation_status }}
+                                </div>
+                            <div id="start-date-div" class="form-group">
+                                {{ form.evaluation_start_datetime.label_tag }}
+                                {{ form.evaluation_start_datetime }}
+                            </div>
+                            
+                            <div class="form-group">
+                                {{ form.evaluation_end_datetime.label_tag }}
+                                {{ form.evaluation_end_datetime }}
+                            </div>
+                                <p class="mt-2">{{ form.requires_attendance.label_tag }} {{ form.requires_attendance }}</p>
 
 
-        </div>
-       
-  <!-- Modal -->
-  <div class="modal fade" id="createEventModal" tabindex="-1" aria-labelledby="createEventModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h1 class="modal-title fs-5" id="exampleModalLabel">Create Event</h1>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-            <form method="post" action="" enctype="multipart/form-data">
-                {% csrf_token %}
-                <div class="form-group">
-                {{ form.title.label_tag }}
-                {{ form.title }}
+                    </div>
+                    <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+
+                    <button type="submit" class="btn custom-btn">Create Event</button>
+                    </form>
+                    </div>
                 </div>
-                <div class="form-group">
-                {{ form.date.label_tag }}
-                {{ form.date }}
                 </div>
-                <div class="form-group">
-                {{ form.time.label_tag }}
-                {{ form.time }}
-                </div>
-                <div class="form-group">
-                {{ form.location.label_tag }}
-                {{ form.location }}
-                </div>
-                <div class="form-group">
-                {{ form.event_type.label_tag }}
-                {{ form.event_type }}
-                </div>
-                <div class="form-group">
-                {{ form.event_venue_type.label_tag }}
-                {{ form.event_venue_type }}
-                </div>
-                <div class="form-group">
-                {{ form.event_picture.label_tag }}
-                {{ form.event_picture }}
-                </div>
-                <div class="form-group">
-                {{ form.description.label_tag }}
-                {{ form.description }}
-                </div>
+            </div>   
+        {% if event %}    
+                    <div class="col-12 col-md-auto mb-1">
+                        <button type="button" class="btn custom-btn" style=" text-decoration: none;" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                            <i class="bi bi-funnel-fill"></i> Filter Options
+                        </button>
+                    </div>
+                    <!-- Sort Dropdown -->
+                    <div class="col-md-5 col-sm-7 col-12 mb-1" style="margin-right: 1em;">
+                        <select class="form-select" name="sort" id="sort-list" onchange="location = finalurl();">
+                        <option value="" id="placeholder" disabled selected hidden>Sort</option>
+                        <option id="date" value="date">Date: Ascending</option>
+                        <option id="-date" value="-date">Date: Descending</option>
+                        <option id="title" value="title">Alphabetical: Ascending</option>
+                        <option id="-title" value="-title">Alphabetical: Descending</option>
+                        <option id="evaluator_count" value="evaluator_count">Evaluator Count: Ascending</option>
+                        <option id="-evaluator_count" value="-evaluator_count">Evaluator Count: Descending</option>
+                        <option id="avg_rating" value="avg_rating">Average Rating: Ascending</option>
+                        <option id="-avg_rating" value="-avg_rating">Average Rating: Descending</option>
+                        </select>
+                    </div>
+
+
+                    </div>
             
-                
-                <div class="form-group">
-                    {{ form.course_attendees.label_tag }}
-                 <button type="button" class="btn btn-sm btn-primary" onclick="selectAll('course')">Select All</button>
-                    
-                    <div class="checkbox-list">
-                        {% for course in form.course_attendees %}
-                            <div class="form-check">
-                                {{ course }}
+        
+                    <!-- filter modal -->
+                    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                        <div class="modal-dialog">
+                        <div class="modal-content">
+                        <div class="modal-header">
+                        <h1 class="modal-title fs-5" id="exampleModalLabel">Filter Options</h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                        <form method="get" action="">
+                            <!-- Course Attendees Filter -->
+                            <div class="form-group mb-3">
+                                {{ event_filter.form.course_attendees.label_tag }}
+                                <div>
+                                    {% for course in event_filter.form.course_attendees %}
+                                        <div class="form-check">
+                                            {{course}}
+                                        </div>
+                                    {% endfor %}
+                                </div>
                             </div>
-                        {% endfor %}
-                    </div>
-                </div>
-                <div class="form-group">
-                    {{ form.department_attendees.label_tag }}
-                    <button type="button" class="btn btn-sm btn-primary" onclick="selectAll('department')">Select All</button>
-                    <div class="checkbox-list">
-                        {% for department in form.department_attendees %}
-                            <div class="form-check">
-                                {{ department }}
+                            <!-- Department Attendees Filter -->
+                            <div class="form-group mb-3">
+                                {{ event_filter.form.department_attendees.label_tag }}
+                                <div>
+                                    {% for department in event_filter.form.department_attendees %}
+                                        <div class="form-check">
+                                            {{department}}
+                                        </div>
+                                    {% endfor %}
+                                </div>
                             </div>
-                        {% endfor %}
+                            {{event_filter.form.event_type.label_tag}}
+                            {{event_filter.form.event_type}}
+                            {{event_filter.form.academic_year.label_tag}}
+                            {{event_filter.form.academic_year}}
+                            {{event_filter.form.semester.label_tag}}
+                            {{event_filter.form.semester}}
+                            {{event_filter.form.evaluation_status.label_tag}}
+                            {{event_filter.form.evaluation_status}}
+                            <button type="button" class="btn btn-secondary" onclick="clearFilters()" style="margin-top: 1em;">Clear All</button>
+                        </div>
+                    <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+                    <input type = "submit" value="Save Changes" class="btn btn-success">
+                    </form>
                     </div>
-                </div>
-                <button type="button" class="btn btn-warning btn-sm mb-2 mt-2" onclick="clearAll()">Clear Selections</button>         
-                <div class="form-group">
-                    {{ form.evaluation_status.label_tag }}
-                    {{ form.evaluation_status }}
                     </div>
-                <div id="start-date-div" class="form-group">
-                    {{ form.evaluation_start_datetime.label_tag }}
-                    {{ form.evaluation_start_datetime }}
+                    </div>
+                    </div>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-sm">
+                        <thead>
+                            <tr>
+                                <th scope="col">#</th>
+                                <th scope="col">Event Title</th>
+                                {% if is_head_of_osas %}
+                                <th scope="col">Author</th>
+                                {% endif %}
+                                <th scope="col">Date</th>
+                                <th scope="col">Event Type</th>
+                                <th scope="col">Evaluation Status</th>
+                                <th scope="col">QR Code</th>
+                                <th  scope="col">Evaluators</th>
+                                <th  scope="col">Average Rating </th>
+                                <th scope="col">Options</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for i in page_obj %}
+                            <tr>
+                                <td>{{ forloop.counter|add:page_obj.start_index|add:"-1" }}</td>
+                                <td>{{ i.title }}</td>
+                                {% if is_head_of_osas %}
+                                <td>{{ i.get_author_name }}</td>
+                                {% endif %}
+                                <td>{{ i.date }}</td>
+                                <td>{{ i.event_type }}</td>
+                                <td>{{ i.evaluation_status }}</td>
+                                <td>
+                                    {% if i.qr_code %}
+                                    <img src="{{ i.qr_code.url }}" alt="QR Code" class="img-fluid" style="max-width: 70px; height: auto;">
+                                    <div class="d-flex gap-1">
+                                        <button class="btn btn-info btn-sm" onclick="shareQRCode('{{ i.qr_code.url }}')">
+                                            <i class="bi bi-share-fill"></i>
+                                        </button>
+                                        <a href="{{ i.qr_code.url }}" download="qr_code.png" class="btn btn-success btn-sm">
+                                            <i class="bi bi-download"></i>
+                                        </a>
+                                    </div>
+                                    {% else %}
+                                    <p>No QR code generated for this event.</p>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if i.avg_rating == 0.0 or i.avg_rating is None %}
+                                    <span style="color: #999999;"><i>Not yet evaluated</i></span>
+                                    {% else %}
+                                    {{ i.evaluator_count }} 
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if i.avg_rating == 0.0 or i.avg_rating is None %}
+                                    <span style="color: #999999;"><i>Not yet evaluated</i></span>
+                                    {% else %}
+                                    <span {% if i.avg_rating >= 5.0 %} style="color: #339933;"
+                                        {% elif i.avg_rating >= 4.0 %} style="color: #66CC66;"
+                                        {% elif i.avg_rating >= 3.0 %} style="color: #F0C808;"
+                                        {% elif i.avg_rating >= 2.0 %} style="color: #FF9900;"
+                                        {% elif i.avg_rating >= 1.0 %} style="color: #cc0000;"
+                                        {% endif %} > <b>{{ i.avg_rating }} </b>
+                                    </span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="d-flex flex-column flex-sm-row gap-2 align-items-center">
+                                        <a href="{% url 'view_faculty_event_evaluations' i.pk %}" class="btn-sm btn-primary btn d-flex align-items-center">
+                                            <i class="bi bi-eye-fill" style="font-size:16px; "></i> 
+                                        </a>
+                                        <a href="{% url 'edit_faculty_events' i.pk %}" class="btn-sm btn-warning btn d-flex align-items-center">
+                                            <i class="bi bi-pencil-square" style="font-size:16px; "></i> 
+                                        </a>
+                                        <a href="{% url 'delete_faculty_events' i.pk %}" class="btn-sm btn-danger btn d-flex align-items-center">
+                                            <i class="bi bi-trash-fill" style="font-size:16px; "></i> 
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
-                
-                <div class="form-group">
-                    {{ form.evaluation_end_datetime.label_tag }}
-                    {{ form.evaluation_end_datetime }}
-                </div>
-                    <p class="mt-2">{{ form.requires_attendance.label_tag }} {{ form.requires_attendance }}</p>
 
-
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-
-          <button type="submit" class="btn custom-btn">Create Event</button>
-        </form>
-        </div>
-      </div>
-    </div>
-  </div>
-      <!-- filter modal -->
-      <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-        <div class="modal-content">
-        <div class="modal-header">
-          <h1 class="modal-title fs-5" id="exampleModalLabel">Filter Options</h1>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <form method="get" action="">
-            <!-- Course Attendees Filter -->
-            <div class="form-group mb-3">
-                {{ event_filter.form.course_attendees.label_tag }}
-                <div>
-                    {% for course in event_filter.form.course_attendees %}
-                        <div class="form-check">
-                            {{course}}
-                        </div>
-                    {% endfor %}
-                </div>
-            </div>
-            <!-- Department Attendees Filter -->
-            <div class="form-group mb-3">
-                {{ event_filter.form.department_attendees.label_tag }}
-                <div>
-                    {% for department in event_filter.form.department_attendees %}
-                        <div class="form-check">
-                            {{department}}
-                        </div>
-                    {% endfor %}
-                </div>
-            </div>
-            {{event_filter.form.event_type.label_tag}}
-            {{event_filter.form.event_type}}
-            {{event_filter.form.academic_year.label_tag}}
-            {{event_filter.form.academic_year}}
-            {{event_filter.form.semester.label_tag}}
-            {{event_filter.form.semester}}
-            {{event_filter.form.evaluation_status.label_tag}}
-            {{event_filter.form.evaluation_status}}
-            <button type="button" class="btn btn-secondary" onclick="clearFilters()" style="margin-top: 1em;">Clear All</button>
-        </div>
-      <div class="modal-footer">
-      <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
-      <input type = "submit" value="Save Changes" class="btn btn-success">
-      </form>
-      </div>
-      </div>
-      </div>
-      </div>
-      <div class="table-responsive">
-        <table class="table table-bordered table-sm">
-            <thead>
-                <tr>
-                    <th scope="col">Title</th>
-                    {% if is_head_of_osas %}
-                    <th scope="col">Author</th>
-                    {% endif %}
-                    <th scope="col">Date</th>
-                    <th scope="col">Time</th>
-                    <th scope="col">Location</th>
-                    <th scope="col">Event Type</th>
-                    <th scope="col">Course/Department Attendees</th>
-                    <th scope="col">Evaluation Status</th>
-                    <th scope="col">QR Code</th>
-                    <th scope="col">Options</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for i in page_obj %}
-                <tr>
-                    <td>{{ i.title }}</td>
-                    {% if is_head_of_osas %}
-                    <td>{{ i.get_author_name }}</td>
-                    {% endif %}
-                    <td>{{ i.date }}</td>
-                    <td>{{ i.time }}</td>
-                    <td>{{ i.location }}</td>
-                    <td>{{ i.event_type }}</td>
-                    <td>{{ i.attendees_summary }}</td>
-                    <td>{{ i.evaluation_status }}</td>
-                    <td>
-                        {% if i.qr_code %}
-                        <img src="{{ i.qr_code.url }}" alt="QR Code" class="img-fluid" style="max-width: 70px; height: auto;">
-                        <div class="d-flex gap-1">
-                            <button class="btn btn-info btn-sm" onclick="shareQRCode('{{ i.qr_code.url }}')">
-                                <i class="bi bi-share-fill"></i>
-                            </button>
-                            <a href="{{ i.qr_code.url }}" download="qr_code.png" class="btn btn-success btn-sm">
-                                <i class="bi bi-download"></i>
-                            </a>
-                        </div>
-                        {% else %}
-                        <p>No QR code generated for this event.</p>
-                        {% endif %}
-                    </td>
-                    <td>
-                        <div class="d-flex flex-column flex-sm-row gap-2 align-items-center">
-                            <a href="{% url 'view_faculty_event_evaluations' i.pk %}" class="btn-sm btn-primary btn d-flex align-items-center">
-                                <i class="bi bi-eye-fill" style="font-size:16px; "></i> 
-                            </a>
-                            <a href="{% url 'edit_faculty_events' i.pk %}" class="btn-sm btn-warning btn d-flex align-items-center">
-                                <i class="bi bi-pencil-square" style="font-size:16px; "></i> 
-                            </a>
-                            <a href="{% url 'delete_faculty_events' i.pk %}" class="btn-sm btn-danger btn d-flex align-items-center">
-                                <i class="bi bi-trash-fill" style="font-size:16px; "></i> 
-                            </a>
-                        </div>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-       
     <nav aria-label="Page navigation">
         <ul class="pagination justify-content-center">
             {% if page_obj.has_previous %}
@@ -293,7 +318,21 @@
             {% endif %}
         </ul>
     </nav>
-
+    {% else %}
+        <div class="alert alert-info d-flex align-items-start gap-3" role="alert">
+            <i class="bi bi-calendar-plus fs-4"></i>
+            <div>
+                <h5 class="alert-heading mb-3">Your Event Dashboard is Empty</h5>
+                <p class="mb-2">
+                    You haven't created any events yet. This page only displays events 
+                    <strong>you've personally created</strong>.
+                </p>
+                <p class="mb-0">
+                    Get started by scheduling your first event:
+                </p>
+            </div>
+        </div>
+    {% endif %}
        <script> function selectAll(type) { const checkboxes = document.querySelectorAll(`.checkbox-list [name$='_attendees']`); checkboxes.forEach(checkbox => { if (checkbox.name.includes(type)) { checkbox.checked = true; } }); } 
        function clearAll() { const checkboxes = document.querySelectorAll(`.checkbox-list [type='checkbox']`); checkboxes.forEach(checkbox => { checkbox.checked = false; }); }
        </script>

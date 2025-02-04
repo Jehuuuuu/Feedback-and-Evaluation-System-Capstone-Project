@@ -176,7 +176,7 @@
 <!-- Button with Form Dropdown -->
 <div class="d-flex" style="gap: 1em;">
     <div class="dropdown mb-2">
-      <button class="btn btn-primary dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+      <button class="btn custom-btn dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
           <i class="bi bi-funnel-fill"></i> Filter Data
       </button>
       <div class="dropdown-menu filter_dropdown" aria-labelledby="filterDropdown">
@@ -197,7 +197,7 @@
     <a href="{% url 'stakeholderevaluations' %}" class="btn custom-btn mb-2">
         <i class="bi bi-list-check"></i> <b>View All Evaluations</b>
       </a>
-    <button type="button" class="btn custom-btn mb-2" data-bs-toggle="modal" data-bs-target="#summaryReportModal"> <i class="bi bi-file-earmark-text"></i> <b>Generate Summary Report</b> </button>
+    <button type="button" class="btn custom-btn mb-2" data-bs-toggle="modal" data-bs-target="#summaryReportModal"> <i class="bi bi-file-earmark-text"></i> <b>View Summary Report</b> </button>
 
     <div class="modal fade" id="summaryReportModal" tabindex="-1" aria-labelledby="summaryReportModalLabel" aria-hidden="true">
         <div class="modal-dialog">
@@ -309,9 +309,9 @@
       <table class="table table-bordered">
         <div class="d-flex mt-2 mb-2 gap-1">
             <h5>Recent feedback</h5>
-            <button type="button" class="btn custom-btn btn-sm" data-bs-toggle="modal" data-bs-target="#exampleModal">
+            <!-- <button type="button" class="btn custom-btn btn-sm" data-bs-toggle="modal" data-bs-target="#exampleModal">
                 View Wordclouds
-            </button>
+            </button> -->
         </div>
         {% for i in recent_comments %}
         <tr>
@@ -336,7 +336,7 @@
     <a href="{% url 'stakeholderevaluations' %}">View all</a>
 
     <!-- Modal -->
-    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <!-- <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
@@ -358,7 +358,7 @@
             </div>
         </div>
         </div>
-    </div>
+    </div> -->
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {

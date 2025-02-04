@@ -83,6 +83,7 @@
                         <th scope="col" style="color: #fff; background-color: #2a9134; text-align: left; padding: 10px;">Evaluated</th>
                         <th scope="col" style="color: #fff; background-color: #2a9134; text-align: center; padding: 10px;">Average Rating</th>
                         <th scope="col" style="color: #fff; background-color: #2a9134; text-align: center; padding: 10px;">Rating Category</th>
+                        <th scope="col" style="color: #fff; background-color: #2a9134; text-align: center; padding: 10px;">Polarity</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -114,6 +115,16 @@
                                 color: #d93636; /* Dark Red */
                             {% endif %}">
                             {{ evaluation.get_rating_category }}
+                        </td>
+                            <td style="
+                            text-align: center;
+                            padding: 10px;
+                            {% if evaluation.predicted_sentiment == 'Positive' %}
+                                color: #2a7a2a; /* Dark Green */
+                            {% elif evaluation.predicted_sentiment == 'Negative' %}
+                                color: #d93636;
+                            {% endif %}">
+                            {{ evaluation.predicted_sentiment }}
                         </td>
                  </tr>
                     {% empty %}

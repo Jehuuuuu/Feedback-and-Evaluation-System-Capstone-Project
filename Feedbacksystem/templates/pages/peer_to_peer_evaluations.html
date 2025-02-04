@@ -23,7 +23,7 @@
     <!-- Filter Options Button -->
     <div class="col-lg-2 col-md-3 col-sm-4 col-12 mb-1">
       <button type="button" class="btn btn-warning custom-btn" data-bs-toggle="modal" data-bs-target="#exampleModal">
-        <i class="bi bi-pencil-square"></i> Filter Options
+        <i class="bi bi-funnel-fill"></i> Filter Options
       </button>
     </div>
     
@@ -38,8 +38,8 @@
   
     <!-- Search Form and Export Button -->
     <div class="col-lg-4 col-md-2">
-      <a href="{% url 'peer_to_peer_evaluations_csv' %}?{{ request.GET.urlencode }}" class="btn custom-btn">Export CSV</a>
-    </div>
+      <a href="{% url 'peer_to_peer_evaluations_csv' %}?{{ request.GET.urlencode }}" class="btn custom-btn"><i class="bi bi-file-earmark-excel-fill"></i> Export Data</a>
+  </div>
   </div>
     <div class="table-responsive">
         <table class="table table-bordered ">
@@ -138,6 +138,8 @@
     </div>
     <div class="modal-body">
       <form method="get" action="">
+        {{faculty_evaluation_filter.form.rating_category.label_tag}}
+        {{faculty_evaluation_filter.form.rating_category}}
         {{faculty_evaluation_filter.form.predicted_sentiment.label_tag}}
         {{faculty_evaluation_filter.form.predicted_sentiment}}
         {{faculty_evaluation_filter.form.academic_year.label_tag}}

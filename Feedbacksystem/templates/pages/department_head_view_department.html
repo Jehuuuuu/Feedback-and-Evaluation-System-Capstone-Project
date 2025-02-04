@@ -15,7 +15,7 @@
     <!-- Filter Options Button -->
     <div class="col-12 col-md-auto">
         <button type="button" class="btn btn-warning custom-btn w-100" data-bs-toggle="modal" data-bs-target="#filterModal">
-            <i class="bi bi-pencil-square"></i> Filter Options 
+            <i class="bi bi-funnel-fill"></i> Filter Options 
         </button>
     </div>
 
@@ -36,6 +36,8 @@
             <option id="-average_rating" value="-average_rating">Average Rating: Descending</option>
             <option id="previous_average_rating" value="previous_average_rating">Previous Average Rating: Ascending</option>
             <option id="-previous_average_rating" value="-previous_average_rating">Previous Average Rating: Descending</option>
+            <option id="num_of_evaluators" value="num_of_evaluators">Evaluator Count: Ascending</option>
+            <option id="-num_of_evaluators" value="-num_of_evaluators">Evaluator Count: Descending</option>
         </select>
     </div>
 
@@ -163,6 +165,7 @@
                     <tr>
                         <th scope="col">#</th>
                         <th scope="col">Faculty</th>
+                        <th scope="col">Evaluators</th>
                         <th scope="col">Average</th>
                         <th scope="col">Rating</th>
                         <th scope="col">Previous Semester</th>
@@ -174,6 +177,13 @@
                 {% for i in page_obj %}
                 <td>{{ forloop.counter|add:page_obj.start_index|add:"-1" }}</td>
                     <td>{{ i.first_name }} {{ i.last_name }}</td>
+                    <td>
+                    {% if i.num_of_evaluators == 0 %}
+                        <span style="color: #999999;"><i>Not yet evaluated</i></span>
+                    {% else %}
+                        {{ i.num_of_evaluators }}
+                    {% endif %}
+                    </td>
                     <td>
                         {% if i.average_rating == 0.0 or i.average_rating is None %}
                         <span style="color: #999999;"><i>Not yet evaluated</i></span>
@@ -190,7 +200,7 @@
             
                     <td>
                         {% if i.average_rating == 0.0 or i.average_rating is None %}
-                        <span style="color: #999999;"><i>No prior data</i></span>
+                        <span style="color: #999999;"><i>No yet evaluated</i></span>
                         {% else %}
                         <span {% if i.average_rating >= 5.0 %} style="color: #339933;"
                         {% elif i.average_rating >= 4.0 %} style="color: #66CC66;"
@@ -206,18 +216,18 @@
                         {% if i.previous_average_rating == 0.0 or i.previous_average_rating is None %}
                         <span style="color: #999999;"><i>No prior data</i></span>
                         {% else %}
-                            <b>#{{ i.previous_rank }} - </b>
+                            <small><b>#{{ i.previous_rank }} - </b></small>
                             <span style="color: {% if i.previous_average_rating >= 5.0 %}#339933;
                                         {% elif i.previous_average_rating >= 4.0 %}#66CC66;
                                         {% elif i.previous_average_rating >= 3.0 %}#F0C808;
                                         {% elif i.previous_average_rating >= 2.0 %}#FF9900;
                                         {% else %}#cc0000;{% endif %}">
-                                <b>{{ i.previous_average_rating }}</b> <b>({{ i.get_rating_category }})</b>
+                                <small><b>{{ i.previous_average_rating }}</b> <b>({{ i.previous_rating_category }})</b></small>
                             </span>
                         {% endif %}
                       </td>
                     <td style="display: flex; flex-direction: row; gap:1em; align-items: center; ">
-                        <a href="{% url 'department_head_faculty_evaluations' i.pk %}"><button class="btn btn-primary "><i class="bi bi-eye-fill" ></i> </button></a>
+                        <a href="{% url 'department_head_faculty_evaluations' i.pk %}?academic_year={{ academic_year }}&semester={{ semester }}"><button class="btn btn-primary "><i class="bi bi-eye-fill" ></i> </button></a>
                     <a href="{% url 'department_head_send_message'  i.pk  %}"><button class="btn btn-success  " title="Message Faculty"><i class="bi bi-chat-dots" ></i></button></a>
                     {% if not i.is_supervisor %}
                     <!-- New Button to Trigger Modal -->

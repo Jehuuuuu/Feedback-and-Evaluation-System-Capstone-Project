@@ -68,7 +68,7 @@
     <div class="row g-0">
         <div class="col-lg-2 col-md-3 col-sm-4 col-12 mb-1">
             <button type="button" class="btn btn-warning custom-btn" style="color: black; text-decoration: none;" data-bs-toggle="modal" data-bs-target="#exampleModal">
-                <i class="bi bi-pencil-square"></i> <b>Filter Options</b>
+                <i class="bi bi-funnel-fill"></i> Filter Options
             </button>
         </div>
          <!-- Sort Dropdown -->
@@ -79,6 +79,10 @@
             <option id="-date" value="-date">Date: Descending</option>
             <option id="title" value="title">Alphabetical: Ascending</option>
             <option id="-title" value="-title">Alphabetical: Descending</option>
+            <option id="evaluator_count" value="evaluator_count">Evaluator Count: Ascending</option>
+            <option id="-evaluator_count" value="-evaluator_count">Evaluator Count: Descending</option>
+            <option id="avg_rating" value="avg_rating">Average Rating: Ascending</option>
+            <option id="-avg_rating" value="-avg_rating">Average Rating: Descending</option>
             </select>
         </div>
     </div>
@@ -88,6 +92,8 @@
             <tr>
                 <th  scope="col">Event</th>
                 <th  scope="col">Date </th>
+                <th  scope="col">Evaluators</th>
+                <th  scope="col">Average Rating </th>
                 <th  scope="col">Options </th>
             </tr>
 
@@ -95,6 +101,26 @@
             <tr>
                 <td>{{ i.title }} </td>
                 <td>{{ i.date }} </td>
+                <td>
+                    {% if i.avg_rating == 0.0 or i.avg_rating is None %}
+                    <span style="color: #999999;"><i>Not yet evaluated</i></span>
+                    {% else %}
+                    {{ i.evaluator_count }} 
+                    {% endif %}
+                </td>
+                <td>
+                    {% if i.avg_rating == 0.0 or i.avg_rating is None %}
+                    <span style="color: #999999;"><i>Not yet evaluated</i></span>
+                    {% else %}
+                    <span {% if i.avg_rating >= 5.0 %} style="color: #339933;"
+                        {% elif i.avg_rating >= 4.0 %} style="color: #66CC66;"
+                        {% elif i.avg_rating >= 3.0 %} style="color: #F0C808;"
+                        {% elif i.avg_rating >= 2.0 %} style="color: #FF9900;"
+                        {% elif i.avg_rating >= 1.0 %} style="color: #cc0000;"
+                        {% endif %} > <b>{{ i.avg_rating }} </b>
+                    </span>
+                    {% endif %}
+                </td>
                 <td style=" display: flex; flex-direction: row; gap: 0.5em;">  
                  <a href="{% url 'admin_event_evaluations' i.pk %}"><button class="btn btn-primary" style="padding:1px 2px 1px 7px"><i class="bi bi-eye-fill" style="font-size:20px; margin-right: 5px;"></i></button></a> 
                   </td>

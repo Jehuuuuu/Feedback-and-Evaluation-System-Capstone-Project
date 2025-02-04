@@ -4,29 +4,63 @@
 
 {% block header %}
 
-    <h2> Evaluations for {{event.title}} </h2>
+    <div class="row">
+        <div class="col-md-6">
+            <h3> Evaluations for {{event.title}} </h3>
+        </div>
+        <div class="col-lg-5 col-md-5 mt-1 evaluations_search" style="margin-left: auto;">
+            <form method="get" action="" class="d-flex" style="gap: 1em;">
+                {{event_filter.form.search.label_tag}}
+                {{event_filter.form.search}}
+            <button type="submit" class="btn custom-btn"><i class="bi bi-search"></i></button>
+              </form>
+        </div>
+    </div>
+    <p style="margin: 0; padding: 0;">Total Average Rating: <span {% if total_average_rating >= 5.0 %} style="color: #339933;" 
+        {% elif total_average_rating >= 4.0 %} style="color: #66CC66;" 
+        {% elif total_average_rating >= 3.0 %} style="color: #F0C808;" 
+        {% elif total_average_rating >= 2.0 %} style="color: #FF9900;" 
+        {% elif total_average_rating >= 1.0 %} style="color: #cc0000;" 
+        {% endif %} ><b>{{ total_average_rating }}</b></span></p>
     <hr>
    
 {% endblock header %}
 <hr>
 {% block feature %}
+<div class="row g-0 ">
+    <div class="col-lg-2 col-md-3 col-sm-4 col-12 mb-1">
+        <button type="button" class="btn btn-warning custom-btn" data-bs-toggle="modal" data-bs-target="#exampleModal">
+          <i class="bi bi-funnel-fill"></i> Filter Options
+        </button>
+      </div>
+      
+      <!-- Sort Dropdown -->
+      <div class="col-lg-4 col-md-5 col-sm-7 col-12 mb-1" style="margin-right: 0.5em;">
+        <select class="form-select" name="sort" id="sort-list" onchange="location = finalurl();">
+          <option value="" id="placeholder" disabled selected hidden>Sort</option>
+          <option id="average_rating" value="average_rating">Average Rating: Ascending</option>
+          <option id="-average_rating" value="-average_rating">Average Rating: Descending</option>
+        </select>
+      </div>
 
-<div class="d-flez">
-    <form action="{% url 'eventevaluations_excel' %}" method="get">
-        <input type="hidden" name="event_id" value="{{ event.id }}">
-        <input type="hidden" name="{{ request.GET.urlencode }}">
-        <button type="submit" class="btn btn-primary">Export CSV</button>
-    </form>
-    <p>Total Average Rating: {{ total_average_rating }}</p>
+      <div class="col-lg-4 col-md-2">
+        <form action="{% url 'eventevaluations_excel' %}?{{ request.GET.urlencode }}" method="get">
+            <input type="hidden" name="event_id" value="{{ event.id }}">
+            <input type="hidden" name="{{ request.GET.urlencode }}">
+            <button type="submit" class="btn custom-btn "><i class="bi bi-file-earmark-excel-fill"></i> Export Data</button>
+        </form>
+    
+    </div>
+    
 </div>
 
 <div class="table-responsive mt-2">
     <table class="table table-bordered " >
             <tr>
-                <th scope="col" >Event</th>
-                <th scope="col" >Suggestions and Comments</th>
+                <th scope="col">#</th>
                 <th scope="col" >Average</th>
                 <th scope="col" >Rating</th>
+                <th scope="col" >Suggestions and Comments</th>
                 <th scope="col" >Polarity</th>
                 <th scope="col" >Academic Year</th>
                 <th scope="col" >Semester</th>
@@ -37,17 +71,38 @@
         <tbody>
         {% for i in page_obj %}
         <tr>
-            <td> {{ i.event.title }}</td>
+            <td>{{ forloop.counter|add:page_obj.start_index|add:"-1" }}</td>
     
-            <td> {{ i.suggestions_and_comments|truncatechars:40 }}</td>
-    
-    
-            <td> {{ i.average_rating }}</td>
+            <td>
+                <span {% if i.average_rating >= 5.0 %} style="color: #339933;" 
+                {% elif i.average_rating >= 4.0 %} style="color: #66CC66;" 
+                {% elif i.average_rating >= 3.0 %} style="color: #F0C808;" 
+                {% elif i.average_rating >= 2.0 %} style="color: #FF9900;" 
+                {% elif i.average_rating >= 1.0 %} style="color: #cc0000;" 
+                {% endif %} > <b>{{ i.average_rating }} </b>
+            </span>
+            </td>
+            
 
-            <td> {{ i.get_rating_category }}</td>
+            <td>
+                <span {% if i.average_rating >= 5.0 %} style="color: #339933;" 
+                {% elif i.average_rating >= 4.0 %} style="color: #66CC66;" 
+                {% elif i.average_rating >= 3.0 %} style="color: #F0C808;" 
+                {% elif i.average_rating >= 2.0 %} style="color: #FF9900;" 
+                {% elif i.average_rating >= 1.0 %} style="color: #cc0000;" 
+                {% endif %}>
+                <b>{{ i.get_rating_category }}</b></span>
+              </td>
     
+            <td> {{ i.suggestions_and_comments|truncatechars:50 }}</td>
     
-            <td>{{ i.predicted_sentiment }}</td>
+            <td>
+                <span {% if i.predicted_sentiment == 'Positive'%} style="color: #339933;" 
+                    {% elif i.predicted_sentiment == 'Negative' %} style="color:  #cc0000;" 
+                    {% endif %}>
+                <b>{{ i.predicted_sentiment }}</b>
+                  </span>
+              </td>
     
     
             <td> {{ i.academic_year }}</td>
@@ -55,8 +110,8 @@
     
             <td> {{ i.semester }}</td>
 
-            <td style="display: flex; flex-direction: row; align-items: center; "> 
-                 <a href="{% url 'faculty_view_event_evaluations' i.pk %}"><button class="btn btn-primary d-flex align-items-center" style="  padding:1px 2px 1px 7px"><i class="bi bi-eye-fill" style="font-size:20px; margin-right: 5px;"></i></button></a> 
+            <td > 
+                 <a href="{% url 'faculty_view_event_evaluations' i.pk %}"><button class="btn btn-primary"><i class="bi bi-eye-fill"></i></button></a> 
                   </td>
      </tr>
     
@@ -65,6 +120,7 @@
     
     </table>
 </div>
+
 
 <nav aria-label="Page navigation">
     <ul class="pagination justify-content-center">
@@ -91,4 +147,64 @@
         {% endif %}
     </ul>
 </nav>
+
+
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+    <div class="modal-content">
+    <div class="modal-header">
+      <h1 class="modal-title fs-5" id="exampleModalLabel">Filter Options</h1>
+      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    </div>
+    <div class="modal-body">
+      <form method="get" action="">
+        {{event_filter.form.rating_category.label_tag}}
+        {{event_filter.form.rating_category}}
+        {{event_filter.form.predicted_sentiment.label_tag}}
+        {{event_filter.form.predicted_sentiment}}
+        <button type="button" class="btn btn-secondary" onclick="clearFilters()" style="margin-top: 1em;">Clear All</button>
+    </div>
+  <div class="modal-footer">
+  <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+  <input type = "submit" value="Save Changes" class="btn btn-success">
+  </form>
+  </div>
+  </div>
+  </div>
+  </div>
+
+<script>
+    // for getting the sorting status to be displayed in sorting dropdown placeholder
+    function get(name) {
+     if (name = (new RegExp('[?&]' + encodeURIComponent(name) + '=([^&]*)')).exec(location.search))  //location.search give query sling part
+       return decodeURIComponent(name[1]);
+   }
+   if(get('ordering'))
+   document.getElementById('placeholder').innerHTML = "Sort: " + document.getElementById(get('ordering')).innerHTML;
+  
+    // for getting url after applying ordering
+   function finalurl() {
+     var url = new URL(window.location.href);
+     var search_params = url.searchParams;
+     search_params.set('ordering', document.getElementById("sort-list").value);
+     url.search = search_params.toString();
+     var new_url = url.toString();
+     return new_url
+   }
+   function clearFilters() {
+      // Get all filter inputs within the form
+      var filterInputs = document.querySelectorAll('#exampleModal form select, #exampleModal form input[type="text"]');
+      
+      // Loop through each input and clear its value
+      filterInputs.forEach(function(input) {
+        if (input.tagName === 'SELECT') {
+          // For select elements, set the selected index to the default (first) option
+          input.selectedIndex = 0;
+        } else {
+          // For text inputs, clear the value
+          input.value = '';
+        }
+      });
+    }
+</script>
 {% endblock feature %}

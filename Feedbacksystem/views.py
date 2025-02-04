@@ -8,7 +8,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import UserCreationForm
 from django.db.models import Avg, Value, CharField
 from django.http import Http404
-from .filters import EvaluationFilter, FacultyFilter, StudentFilter, UserFilter, EventFilter, SectionFilter, SubjectFilter, StakeholderFilter, LikertEvaluationFilter, PeertoPeerEvaluationFilter
+from .filters import EvaluationFilter, FacultyFilter, StudentFilter, UserFilter, EventFilter, SectionFilter, SubjectFilter, StakeholderFilter, LikertEvaluationFilter, PeertoPeerEvaluationFilter, SchoolEventFilter, WebinarSeminarEventFilter
 from .resources import StudentResource
 from tablib import Dataset
 from django.contrib.auth.decorators import login_required
@@ -62,7 +62,7 @@ from apscheduler.jobstores.base import JobLookupError
 from .scheduler import scheduler
 from django.db.models.functions import Coalesce, Round
 from .utils import generate_wordcloud, get_sentiment
-ITEMS_PER_PAGE = 5
+ITEMS_PER_PAGE = 10
             # ------------------------------------------------------
             #                Login-Page Views
             # ------------------------------------------------------
@@ -1662,24 +1662,26 @@ def get_all_evaluation_data(request):
     return JsonResponse(data)
 
 def evaluation_response_chart_data(request):
-    # Retrieve data from the model
     evaluations = LikertEvaluation.objects.all()
 
-    # Process data to get total responses per academic year and semester
     data = {}
     for evaluation in evaluations:
-        key = f"{evaluation.academic_year} - {evaluation.semester}"
+        # Abbreviate semester names
+        semester_abbr = "1S" if evaluation.semester == "1st Semester" else "2S"
+        key = f"{evaluation.academic_year} {semester_abbr}"
         if key in data:
             data[key] += 1
         else:
             data[key] = 1
 
-    # Convert data to a format suitable for JSON serialization
-    chart_data = {
-        'labels': list(data.keys()),
-        'data': list(data.values()),
-    }
+    # Sort data chronologically
+    sorted_keys = sorted(data.keys(), key=lambda x: (x.split(" ")[0], x.split(" ")[1]))
+    sorted_data = {key: data[key] for key in sorted_keys}
 
+    chart_data = {
+        'labels': list(sorted_data.keys()),
+        'data': list(sorted_data.values()),
+    }
     return JsonResponse(chart_data)
 
 def department_response_chart_data(request):
@@ -2031,14 +2033,22 @@ def admin_faculty_evaluations_sections_view_forms(request, pk):
     evaluation_status = EvaluationStatus.objects.first()  # Assuming there's only one status entry
     current_academic_year = evaluation_status.academic_year 
     current_semester = evaluation_status.semester
-
+    academic_year = request.GET.get('academic_year', current_academic_year)
+    semester = request.GET.get('semester', current_semester)
 
     selected_section = get_object_or_404(Section, pk=pk)
        # Count evaluations per course
-    evaluations = LikertEvaluation.objects.filter(academic_year=current_academic_year, semester=current_semester, user__student__Section=selected_section)
+    evaluations = LikertEvaluation.objects.filter(academic_year=academic_year, semester=semester, user__student__Section=selected_section)
+    filter_params = request.GET.copy()
+
+    # Set defaults only when values are missing or empty
+    if not filter_params.get('academic_year'):
+        filter_params['academic_year'] = current_academic_year
+    if not filter_params.get('semester'):
+        filter_params['semester'] = current_semester
 
      #filter and search
-    faculty_evaluation_filter = EvaluationFilter(request.GET, queryset=evaluations)
+    faculty_evaluation_filter = EvaluationFilter(filter_params, queryset=evaluations)
     evaluations = faculty_evaluation_filter.qs
     
 
@@ -2058,18 +2068,31 @@ def admin_faculty_evaluations_sections_view_forms(request, pk):
     except EmptyPage:
         page = evaluation_paginator.page(evaluation_paginator.num_pages)
  
-    context = {'evaluation': page.object_list, 'page_obj':page, 'is_paginated': True, 'paginator':evaluation_paginator,'is_admin': is_admin,'selected_section': selected_section, 'faculty_evaluation_filter': faculty_evaluation_filter }
+    context = {'evaluation': page.object_list, 'page_obj':page, 'is_paginated': True, 'paginator':evaluation_paginator,'is_admin': is_admin,'selected_section': selected_section, 'faculty_evaluation_filter': faculty_evaluation_filter, 'current_academic_year': current_academic_year, 'current_semester': current_semester }
     return render(request, 'pages/admin_faculty_evaluations_sections_view_forms.html', context)
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['admin'])
 def view_latest_faculty_evaluations(request):
-    evaluation = LikertEvaluation.objects.all()
+    evaluation_status = EvaluationStatus.objects.first()
+    current_academic_year = evaluation_status.academic_year 
+    current_semester = evaluation_status.semester
+    academic_year = request.GET.get('academic_year', current_academic_year)
+    semester = request.GET.get('semester', current_semester)
+    
+    evaluation = LikertEvaluation.objects.filter(academic_year=academic_year, semester=semester)
+    filter_params = request.GET.copy()
+
+    # Set defaults only when values are missing or empty
+    if not filter_params.get('academic_year'):
+        filter_params['academic_year'] = current_academic_year
+    if not filter_params.get('semester'):
+        filter_params['semester'] = current_semester
 
     is_admin = request.user.groups.filter(name='admin').exists()
     total_evaluations = evaluation.count()
     #filter and search
-    faculty_evaluation_filter = EvaluationFilter(request.GET, queryset=evaluation)
+    faculty_evaluation_filter = EvaluationFilter(filter_params, queryset=evaluation)
     evaluation = faculty_evaluation_filter.qs
     
 
@@ -2091,7 +2114,7 @@ def view_latest_faculty_evaluations(request):
     except EmptyPage:
         page = evaluation_paginator.page(evaluation_paginator.num_pages)
  
-    context = {'evaluation': page.object_list,'total_evaluations': total_evaluations, 'faculty_evaluation_filter': faculty_evaluation_filter, 'page_obj':page, 'is_paginated': True, 'paginator':evaluation_paginator,'ordering': ordering, 'is_admin': is_admin}
+    context = {'evaluation': page.object_list,'total_evaluations': total_evaluations, 'faculty_evaluation_filter': faculty_evaluation_filter, 'page_obj':page, 'is_paginated': True, 'paginator':evaluation_paginator,'ordering': ordering, 'is_admin': is_admin, 'current_academic_year': current_academic_year, 'current_semester': current_semester }
     return render(request, 'pages/view_latest_faculty_evaluations.html', context)
 
 @login_required(login_url='signin')
@@ -2133,11 +2156,14 @@ def faculty_evaluations_summary_report_pdf(request):
     """
     image_path = os.path.join(settings.BASE_DIR, static('images/cvsulogo.png'))
     evaluation_status = EvaluationStatus.objects.first()  # Assuming there's only one status entry
+
     current_academic_year = evaluation_status.academic_year 
     current_semester = evaluation_status.semester
+    academic_year =  request.GET.get('academic_year', current_academic_year)
+    semester =  request.GET.get('semester', current_semester)
 
     # Apply filters from the EvaluationFilter based on the request data
-    evaluation_filter = EvaluationFilter(request.GET, queryset=LikertEvaluation.objects.filter(academic_year=current_academic_year, semester=current_semester))
+    evaluation_filter = EvaluationFilter(request.GET, queryset=LikertEvaluation.objects.filter(academic_year=academic_year, semester=semester))
     filtered_evaluations = evaluation_filter.qs
 
     # Get all faculty
@@ -2224,7 +2250,7 @@ def faculty_evaluations_summary_report_pdf(request):
                                     'comments': evaluation.comments })
 
     # Render the summary data to an HTML template
-    html = render_to_string('pages/faculty_evaluations_summary_report.html', {'summary_data': summary_data, 'image_path': image_path, 'comments_data': comments_data, 'current_academic_year': current_academic_year, 'current_semester': current_semester})
+    html = render_to_string('pages/faculty_evaluations_summary_report.html', {'summary_data': summary_data, 'image_path': image_path, 'comments_data': comments_data, 'academic_year': academic_year, 'semester': semester})
 
     # Create the PDF
     response = HttpResponse(content_type='application/pdf')
@@ -2240,37 +2266,49 @@ def faculty_evaluations_summary_report_pdf(request):
 def peer_to_peer_summary_report_pdf(request):
     """
     Generates a PDF summary report of peer-to-peer evaluations.
-
-    Args:
-        request: The HTTP request object.
-
-    Returns:
-        An HTTP response containing the PDF report.
     """
+    # Build the path to the logo image
     image_path = os.path.join(settings.BASE_DIR, static('images/cvsulogo.png'))
+    
+    # Get current academic year and semester
     evaluation_status = EvaluationStatus.objects.first()  # Assuming there's only one status entry
     current_academic_year = evaluation_status.academic_year 
     current_semester = evaluation_status.semester
-    user_department = request.user.faculty.department  # Get the department of the logged-in user
+    academic_year =  request.GET.get('academic_year', current_academic_year)
+    semester =  request.GET.get('semester', current_semester)
 
-    # Apply filters from the EvaluationFilter based on the request data
-    evaluation_filter = EvaluationFilter(request.GET, queryset=PeertoPeerEvaluation.objects.filter(academic_year=current_academic_year, semester=current_semester, peer__department=user_department))
+    # Get the department of the logged-in user
+    user_department = request.user.faculty.department
+
+    # Filter peer-to-peer evaluations for the current academic year, semester, and department
+    evaluation_filter = EvaluationFilter(
+        request.GET,
+        queryset=PeertoPeerEvaluation.objects.filter(
+            academic_year=academic_year,
+            semester=semester,
+            peer__department=user_department
+        )
+    )
     filtered_evaluations = evaluation_filter.qs
 
-    # Get all faculty in the same department as the logged-in user
+    # Get all faculties in the same department
     faculties = Faculty.objects.filter(department=user_department).distinct()
 
     summary_data = []
     comments_data = []
 
-    # Loop through each faculty and calculate the required aggregates
+    # Loop through each faculty and calculate aggregates
     for faculty in faculties:
         faculty_id = faculty.id
-        faculty_name = faculty.full_name()  
+        faculty_name = faculty.full_name()  # Assumes full_name() returns a string
+
+        # Filter evaluations where this faculty is the peer
         evaluations = filtered_evaluations.filter(peer=faculty_id)
         num_evaluators = evaluations.count()
 
         if num_evaluators > 0:
+            # Initialize sums for each category.
+            # Note: These keys must match those returned by calculate_category_averages().
             category_sums = {
                 'Subject Matter Content': 0,
                 'Organization': 0,
@@ -2279,36 +2317,55 @@ def peer_to_peer_summary_report_pdf(request):
                 'Presentation': 0,
                 'Classroom Management': 0,
                 'Sensitivity and Support to Students': 0,
-                'Overall': 0
+                
             }
 
+            MAX_SCORE = 5
+            NUM_CATEGORIES = len(category_sums)  # Exclude 'Overall' key
+
+            # Loop through evaluations and sum the averages per category.
             for evaluation in evaluations:
-                category_averages = evaluation.calculate_average_rating()
-                for category, average in category_averages.items():
-                    if average is not None:
-                        category_sums[category] += average
-                category_sums['Overall'] += evaluation.average_rating
+                # Use the new function in the model that returns a dictionary of averages.
+                result = evaluation.calculate_category_averages()
+                # Debug print to check the structure of the returned result:
+                # print("DEBUG: calculate_category_averages() returned:", result)
 
-            # Calculate averages
-            category_averages = {category: round(total / num_evaluators, 2) for category, total in category_sums.items()}
-            avg_rating = category_averages['Overall']
+                if isinstance(result, dict):
+                    for category, avg in result.items():
+                        if avg is not None and category in category_sums:
+                            category_sums[category] += avg
 
-            if avg_rating is not None:
-                if 1.0 <= avg_rating <= 1.49:
+            # Calculate the average for each category for the current faculty.
+            category_averages = {
+                category: round(total / num_evaluators, 2)
+                for category, total in category_sums.items()
+            }
+            # Optionally, compute an overall average as the mean of all category averages.
+            overall_avg = round(sum(category_averages.values()) / len(category_averages), 2)
+           
+            # Calculate overall percentage of category averages
+            total_score = sum(category_averages[category] for category in category_sums if category != 'Overall')
+            max_possible_score = MAX_SCORE * NUM_CATEGORIES
+            overall_percentage = round((total_score / max_possible_score) * 100, 2)
+           
+            # Determine the rating category based on the overall average rating.
+            if overall_avg is not None:
+                if 1.0 <= overall_avg <= 1.49:
                     rating_category = "Poor"
-                elif 1.5 <= avg_rating <= 2.49:
+                elif 1.5 <= overall_avg <= 2.49:
                     rating_category = "Unsatisfactory"
-                elif 2.5 <= avg_rating <= 3.49:
+                elif 2.5 <= overall_avg <= 3.49:
                     rating_category = "Satisfactory"
-                elif 3.5 <= avg_rating <= 4.49:
+                elif 3.5 <= overall_avg <= 4.49:
                     rating_category = "Very Satisfactory"
-                elif 4.5 <= avg_rating <= 5.0:
+                elif 4.5 <= overall_avg <= 5.0:
                     rating_category = "Outstanding"
                 else:
                     rating_category = "No Rating"
             else:
                 rating_category = "No Rating"
 
+            # Append the summarized data for this faculty.
             summary_data.append({
                 'faculty': faculty_name,
                 'num_evaluators': num_evaluators,
@@ -2319,29 +2376,32 @@ def peer_to_peer_summary_report_pdf(request):
                 'presentation_avg': category_averages['Presentation'],
                 'classroom_management_avg': category_averages['Classroom Management'],
                 'sensitivity_support_students_avg': category_averages['Sensitivity and Support to Students'],
-                'overall_avg': category_averages['Overall'],
+                'overall_avg': overall_avg,
+                'overall_percentage': overall_percentage,
                 'rating_category': rating_category
             })
 
-            for evaluation in evaluations: 
-                comments_data.append({ 
-                    'faculty': faculty_name, 
-                    'requires_less_task_for_credit': evaluation.requires_less_task_for_credit, 
+            # Collect comments data for each evaluation of this faculty.
+            for evaluation in evaluations:
+                comments_data.append({
+                    'faculty': faculty_name,
+                    'requires_less_task_for_credit': evaluation.requires_less_task_for_credit,
                     'strengths_of_the_faculty': evaluation.strengths_of_the_faculty,
                     'other_suggestions_for_improvement': evaluation.other_suggestions_for_improvement,
-                    'comments': evaluation.comments 
+                    'comments': evaluation.comments
                 })
 
-    # Render the summary data to an HTML template
+    # Render the summary data to an HTML template.
     html = render_to_string('pages/peer_to_peer_summary_report.html', {
-        'summary_data': summary_data, 
-        'image_path': image_path, 
-        'comments_data': comments_data, 
-        'current_academic_year': current_academic_year, 
-        'current_semester': current_semester
+        'summary_data': summary_data,
+        'image_path': image_path,
+        'comments_data': comments_data,
+        'academic_year': academic_year,
+        'semester': semester,
+        'user_department': user_department
     })
 
-    # Create the PDF
+    # Create the PDF response using xhtml2pdf.
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="peer_to_peer_summary_report.pdf"'
     pisa_status = pisa.CreatePDF(html, dest=response, link_callback=link_callback)
@@ -2350,375 +2410,70 @@ def peer_to_peer_summary_report_pdf(request):
         return HttpResponse('We had some errors with code %s' % pisa_status.err)
     return response
 
-
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['admin'])
 def admin_view_evaluation_form(request, pk):
     faculty_evaluation_form = get_object_or_404(LikertEvaluation, pk=pk)
     questions = FacultyEvaluationQuestions.objects.all().order_by('order')
     is_admin = request.user.groups.filter(name='admin').exists()
-    outstanding_count = LikertEvaluation.objects.filter(pk=pk).filter(
-        command_and_knowledge_of_the_subject=5
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        depth_of_mastery=5
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(pk=pk).filter(
-        practice_in_respective_discipline=5
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        up_to_date_knowledge=5
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        integrates_subject_to_practical_circumstances=5
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        organizes_the_subject_matter=5
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        provides_orientation_on_course_content=5
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        efforts_of_class_preparation=5
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        summarizes_main_points=5
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        monitors_online_class=5
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        holds_interest_of_students=5
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        provides_relevant_feedback=5
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        encourages_participation=5
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        shows_enthusiasm=5
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        shows_sense_of_humor=5
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        teaching_methods=5
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        flexible_learning_strategies=5
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        student_engagement=5
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        clear_examples=5
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        focused_on_objectives=5
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        starts_with_motivating_activities=5
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        speaks_in_clear_and_audible_manner=5
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        uses_appropriate_medium_of_instruction=5
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        establishes_online_classroom_environment=5
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        observes_proper_classroom_etiquette=5
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        uses_time_wisely=5
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        gives_ample_time_for_students_to_prepare=5
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        updates_the_students_of_their_progress=5
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        demonstrates_leadership_and_professionalism=5
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        understands_possible_distractions=5
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        sensitivity_to_student_culture=5
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        responds_appropriately=5
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        assists_students_on_concerns=5
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        guides_the_students_in_accomplishing_tasks=5
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        extends_consideration_to_students=5
-    ).count()    
     
-    # Continue for other fields
-    
-    very_satisfactory_count = LikertEvaluation.objects.filter(pk=pk).filter(
-        command_and_knowledge_of_the_subject=4
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        depth_of_mastery=4
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        practice_in_respective_discipline=4
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        up_to_date_knowledge=4
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        integrates_subject_to_practical_circumstances=4
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        organizes_the_subject_matter=4
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        provides_orientation_on_course_content=4
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        efforts_of_class_preparation=4
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        summarizes_main_points=4
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        monitors_online_class=4
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        holds_interest_of_students=4
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        provides_relevant_feedback=4
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        encourages_participation=4
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        shows_enthusiasm=4
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        shows_sense_of_humor=4
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        teaching_methods=4
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        flexible_learning_strategies=4
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        student_engagement=4
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        clear_examples=4
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        focused_on_objectives=4
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        starts_with_motivating_activities=4
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        speaks_in_clear_and_audible_manner=4
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        uses_appropriate_medium_of_instruction=4
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        establishes_online_classroom_environment=4
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        observes_proper_classroom_etiquette=4
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        uses_time_wisely=4
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        gives_ample_time_for_students_to_prepare=4
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        updates_the_students_of_their_progress=4
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        demonstrates_leadership_and_professionalism=4
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        understands_possible_distractions=4
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        sensitivity_to_student_culture=4
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        responds_appropriately=4
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        assists_students_on_concerns=4
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        guides_the_students_in_accomplishing_tasks=4
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        extends_consideration_to_students=4
-    ).count()    
-    
-    satisfactory_count = LikertEvaluation.objects.filter(pk=pk).filter(
-        command_and_knowledge_of_the_subject=3
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        depth_of_mastery=3
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        practice_in_respective_discipline=3
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        up_to_date_knowledge=3
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        integrates_subject_to_practical_circumstances=3
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        organizes_the_subject_matter=3
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        provides_orientation_on_course_content=3
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        efforts_of_class_preparation=3
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        summarizes_main_points=3
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        monitors_online_class=3
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        holds_interest_of_students=3
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        provides_relevant_feedback=3
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        encourages_participation=3
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        shows_enthusiasm=3
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        shows_sense_of_humor=3
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        teaching_methods=3
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        flexible_learning_strategies=3
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        student_engagement=3
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        clear_examples=3
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        focused_on_objectives=3
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        starts_with_motivating_activities=3
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        speaks_in_clear_and_audible_manner=3
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        uses_appropriate_medium_of_instruction=3
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        establishes_online_classroom_environment=3
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        observes_proper_classroom_etiquette=3
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        uses_time_wisely=3
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        gives_ample_time_for_students_to_prepare=3
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        updates_the_students_of_their_progress=3
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        demonstrates_leadership_and_professionalism=3
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        understands_possible_distractions=3
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        sensitivity_to_student_culture=3
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        responds_appropriately=3
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        assists_students_on_concerns=3
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        guides_the_students_in_accomplishing_tasks=3
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        extends_consideration_to_students=3
-    ).count()    
-    
-    unsatisfactory_count = LikertEvaluation.objects.filter(pk=pk).filter(
-        command_and_knowledge_of_the_subject=2
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        depth_of_mastery=2
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        practice_in_respective_discipline=2
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        up_to_date_knowledge=2
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        integrates_subject_to_practical_circumstances=2
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        organizes_the_subject_matter=2
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        provides_orientation_on_course_content=2
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        efforts_of_class_preparation=2
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        summarizes_main_points=2
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        monitors_online_class=2
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        holds_interest_of_students=2
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        provides_relevant_feedback=2
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        encourages_participation=2
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        shows_enthusiasm=2
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        shows_sense_of_humor=2
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        teaching_methods=2
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        flexible_learning_strategies=2
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        student_engagement=2
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        clear_examples=2
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        focused_on_objectives=2
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        starts_with_motivating_activities=2
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        speaks_in_clear_and_audible_manner=2
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        uses_appropriate_medium_of_instruction=2
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        establishes_online_classroom_environment=2
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        observes_proper_classroom_etiquette=2
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        uses_time_wisely=2
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        gives_ample_time_for_students_to_prepare=2
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        updates_the_students_of_their_progress=2
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        demonstrates_leadership_and_professionalism=2
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        understands_possible_distractions=2
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        sensitivity_to_student_culture=2
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        responds_appropriately=2
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        assists_students_on_concerns=2
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        guides_the_students_in_accomplishing_tasks=2
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        extends_consideration_to_students=2
-    ).count()    
+    rating_fields = [
+        'command_and_knowledge_of_the_subject',
+        'depth_of_mastery',
+        'practice_in_respective_discipline',
+        'up_to_date_knowledge',
+        'integrates_subject_to_practical_circumstances',
+        'organizes_the_subject_matter',
+        'provides_orientation_on_course_content',
+        'efforts_of_class_preparation',
+        'summarizes_main_points',
+        'monitors_online_class',
+        'holds_interest_of_students',
+        'provides_relevant_feedback',
+        'encourages_participation',
+        'shows_enthusiasm',
+        'shows_sense_of_humor',
+        'teaching_methods',
+        'flexible_learning_strategies',
+        'student_engagement',
+        'clear_examples',
+        'focused_on_objectives',
+        'starts_with_motivating_activities',
+        'speaks_in_clear_and_audible_manner',
+        'uses_appropriate_medium_of_instruction',
+        'establishes_online_classroom_environment',
+        'observes_proper_classroom_etiquette',
+        'uses_time_wisely',
+        'gives_ample_time_for_students_to_prepare',
+        'updates_the_students_of_their_progress',
+        'demonstrates_leadership_and_professionalism',
+        'understands_possible_distractions',
+        'sensitivity_to_student_culture',
+        'responds_appropriately',
+        'assists_students_on_concerns',
+        'guides_the_students_in_accomplishing_tasks',
+        'extends_consideration_to_students'
+    ]
+    # Initialize counters
+    outstanding_count = 0
+    very_satisfactory_count = 0
+    satisfactory_count = 0
+    unsatisfactory_count = 0
+    poor_count = 0
 
-    poor_count = LikertEvaluation.objects.filter(pk=pk).filter(
-        command_and_knowledge_of_the_subject=1
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        depth_of_mastery=1
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        practice_in_respective_discipline=1
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        up_to_date_knowledge=1
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        integrates_subject_to_practical_circumstances=1
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        organizes_the_subject_matter=1
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        provides_orientation_on_course_content=1
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        efforts_of_class_preparation=1
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        summarizes_main_points=1
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        monitors_online_class=1
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        holds_interest_of_students=1
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        provides_relevant_feedback=1
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        encourages_participation=1
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        shows_enthusiasm=1
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        shows_sense_of_humor=1
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        teaching_methods=1
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        flexible_learning_strategies=1
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        student_engagement=1
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        clear_examples=1
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        focused_on_objectives=1
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        starts_with_motivating_activities=1
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        speaks_in_clear_and_audible_manner=1
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        uses_appropriate_medium_of_instruction=1
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        establishes_online_classroom_environment=1
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        observes_proper_classroom_etiquette=1
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        uses_time_wisely=1
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        gives_ample_time_for_students_to_prepare=1
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        updates_the_students_of_their_progress=1
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        demonstrates_leadership_and_professionalism=1
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        understands_possible_distractions=1
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        sensitivity_to_student_culture=1
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        responds_appropriately=1
-    ).count() + LikertEvaluation.objects.filter(pk=pk).filter(
-        assists_students_on_concerns=1
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        guides_the_students_in_accomplishing_tasks=1
-    ).count()  + LikertEvaluation.objects.filter(pk=pk).filter(
-        extends_consideration_to_students=1
-    ).count()    
-    
+    # Calculate counts in memory
+    for field in rating_fields:
+        value = getattr(faculty_evaluation_form, field)
+        if value == 5:
+            outstanding_count += 1
+        elif value == 4:
+            very_satisfactory_count += 1
+        elif value == 3:
+            satisfactory_count += 1
+        elif value == 2:
+            unsatisfactory_count += 1
+        elif value == 1:
+            poor_count += 1
 
     return render(request, 'pages/admin_view_evaluation_form.html', {'faculty_evaluation_form': faculty_evaluation_form, 'faculty': faculty, 'questions': questions, 'outstanding_count': outstanding_count, 'very_satisfactory_count': very_satisfactory_count, 'satisfactory_count': satisfactory_count, 'unsatisfactory_count': unsatisfactory_count, 'poor_count': poor_count, 'is_admin': is_admin})
 
@@ -2742,8 +2497,33 @@ def admin_event_list(request):
     events = Event.objects.filter(admin_status='Approved').order_by('-updated') 
     event_filter = EventFilter(request.GET, queryset=events)
     events = event_filter.qs 
-    # ordering functionality
-   
+     # Annotate events with average rating and evaluator count depending on event type.
+    events = events.annotate(
+    avg_rating=Case(
+        When(
+            event_type__name__in=['School Event', 'Training Workshop'],
+            then=Coalesce(Avg('schooleventmodel__average_rating'), Value(0))
+        ),
+        When(
+            event_type__name='Webinar/Seminar',
+            then=Coalesce(Avg('webinarseminarmodel__average_rating'), Value(0))
+        ),
+        default=Value(0),
+        output_field=FloatField()
+    ),
+    evaluator_count=Case(
+         When(
+             event_type__name__in=['School Event', 'Training Workshop'],
+             then=Count('schooleventmodel__id')
+         ),
+         When(
+             event_type__name='Webinar/Seminar',
+             then=Count('webinarseminarmodel__id')
+         ),
+         default=Value(0),
+         output_field=IntegerField()
+    )
+)
     ordering = request.GET.get('ordering', "")
 
      
@@ -2753,7 +2533,7 @@ def admin_event_list(request):
     paginator = Paginator(events, 10) 
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-    return render(request,'pages/admin_event_list.html',{'events': events, 'page_obj': page_obj, 'event_filter': event_filter, 'is_admin': is_admin})
+    return render(request,'pages/admin_event_list.html',{'events': events, 'page_obj': page_obj, 'event_filter': event_filter, 'is_admin': is_admin, })
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['admin'])
@@ -2788,29 +2568,53 @@ def admin_delete_event(request, pk):
 @allowed_users(allowed_roles=['admin'])
 def admin_event_evaluations(request, pk):
     is_admin = request.user.groups.filter(name='admin').exists()
+    # Fetch the event
     event = get_object_or_404(Event, pk=pk)
-    # Filter evaluations from both SchoolEventModel and WebinarSeminarModel
-    school_event_evaluations = list(SchoolEventModel.objects.filter(event=event))
-    webinar_seminar_evaluations = list(WebinarSeminarModel.objects.filter(event=event))
 
-    # Combine the results into one list
-    evaluations = school_event_evaluations + webinar_seminar_evaluations
-    
-    paginator = Paginator(evaluations, 10) 
+    # Determine which model and filter to use based on the event type
+    if event.event_type.name in ['School Event', 'Training Workshop']:
+        evaluations_queryset = SchoolEventModel.objects.filter(event=event)
+        filter_class = SchoolEventFilter
+        total_average_rating = SchoolEventModel.get_event_average_rating(event)
+    elif event.event_type.name == 'Webinar/Seminar':
+        evaluations_queryset = WebinarSeminarModel.objects.filter(event=event)
+        filter_class = WebinarSeminarEventFilter
+        total_average_rating = WebinarSeminarModel.get_event_average_rating(event)
+    else:
+        evaluations_queryset = None
+        filter_class = None
+        total_average_rating = 'Invalid event type'
+
+    # Apply filters if applicable
+    if filter_class and evaluations_queryset is not None:
+        event_filter = filter_class(request.GET, queryset=evaluations_queryset)
+        filtered_evaluations = event_filter.qs
+    else:
+        event_filter = None
+        filtered_evaluations = evaluations_queryset
+
+    # Ensure filtered_evaluations is not None before paginating
+    if filtered_evaluations is None:
+        filtered_evaluations = []
+
+    paginator = Paginator(filtered_evaluations, 10) 
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
     context = {
         'event': event,
-        'evaluations': evaluations,
+        'filtered_evaluations': filtered_evaluations,
+        'total_average_rating': total_average_rating,
         'page_obj': page_obj, 
-        'is_admin': is_admin
+        'is_admin': is_admin,
+        'event_filter': event_filter
     }
     return render(request, 'pages/admin_event_evaluations.html', context)
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['admin', 'society president', 'faculty', 'head of OSAS'])
 def eventevaluations_excel(request):
+    # Set up the Excel response
     response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
     response['Content-Disposition'] = 'attachment; filename=event_evaluations.xlsx'
 
@@ -2819,15 +2623,19 @@ def eventevaluations_excel(request):
     ws = wb.active
     ws.title = "Event Evaluations"
 
-    # Retrieve the event ID from the request
+    # Retrieve the event ID and filter parameters from the request
     event_id = request.GET.get('event_id')
     event = get_object_or_404(Event, pk=event_id)
+    
+    # Retrieve filter parameters from GET
+    predicted_sentiment = request.GET.get('predicted_sentiment')
+    academic_year = request.GET.get('academic_year')
+    semester = request.GET.get('semester')
+    rating_category = request.GET.get('rating_category')  # if you want to filter by rating category too
 
-    # First, check for school events
+    # Determine which model to query based on event type
     evaluations = SchoolEventModel.objects.filter(event=event)
     event_type = 'school_event'
-
-    # If no school events were found, check for webinar events
     if not evaluations.exists():
         evaluations = WebinarSeminarModel.objects.filter(event=event)
         event_type = 'webinar_event'
@@ -2836,7 +2644,20 @@ def eventevaluations_excel(request):
     if not evaluations.exists():
         return HttpResponse("No evaluations found for this event.")
 
-    # Write the headers (Consider breaking this long line if readability suffers)
+    # Apply filters if provided
+    if predicted_sentiment:
+        evaluations = evaluations.filter(predicted_sentiment=predicted_sentiment)
+    if academic_year:
+        evaluations = evaluations.filter(academic_year=academic_year)
+    if semester:
+        evaluations = evaluations.filter(semester=semester)
+    
+    # If you have a rating category filter and the models use a method like get_rating_category(),
+    # you might need to filter in Python rather than at the database level:
+    if rating_category:
+        evaluations = [e for e in evaluations if e.get_rating_category() == rating_category]
+
+    # Write the headers
     headers = [
         'Event', 'Suggestions and Comments', 'Average Rating', 'Rating Category',
         'Academic Year', 'Semester', 'Date Submitted'
@@ -2846,25 +2667,26 @@ def eventevaluations_excel(request):
     # Adjust column widths
     for col_num, header in enumerate(headers, 1):
         col_letter = get_column_letter(col_num)
-        ws.column_dimensions[col_letter].width = 20  # Customize as needed
+        ws.column_dimensions[col_letter].width = 20
 
-    # Loop through and write the evaluation data
-    for i in evaluations:
+    # Write the evaluation data
+    # If evaluations is a QuerySet, we can iterate; if we filtered by rating_category above, it is now a list.
+    for evaluation in evaluations:
         ws.append([
-            i.event.title,
-            i.suggestions_and_comments,
-            i.average_rating,
-            i.get_rating_category(),
-            i.academic_year,
-            i.semester,
-            i.created.strftime('%Y-%m-%d %H:%M:%S')
+            evaluation.event.title,
+            evaluation.suggestions_and_comments,
+            evaluation.average_rating,
+            evaluation.get_rating_category(),
+            evaluation.academic_year,
+            evaluation.semester,
+            evaluation.created.strftime('%Y-%m-%d %H:%M:%S')
         ])
 
-    # Align the header cells
+    # Center-align the header row
     for cell in ws["1:1"]:
         cell.alignment = Alignment(horizontal='center')
 
-    # Save the workbook to the response
+    # Save the workbook into the response and return it
     wb.save(response)
     return response
 
@@ -3432,7 +3254,59 @@ def edit_stakeholders_feedback_form_question(request, pk):
 @allowed_users(allowed_roles=['admin'])
 def faculty(request):
     is_admin = request.user.groups.filter(name='admin').exists()
-    faculty = Faculty.objects.all()  
+    evaluation_status = EvaluationStatus.objects.first()
+    current_academic_year = evaluation_status.academic_year 
+    current_semester = evaluation_status.semester
+    faculty = Faculty.objects.all().annotate(
+    num_of_evaluators=Count(
+        'sectionsubjectfaculty__likertevaluation',
+        filter=Q(sectionsubjectfaculty__likertevaluation__academic_year=current_academic_year, sectionsubjectfaculty__likertevaluation__semester=current_semester)
+    ),
+    average_rating=Round(
+        Coalesce(
+            Avg(
+                'sectionsubjectfaculty__likertevaluation__average_rating',
+                filter=Q(sectionsubjectfaculty__likertevaluation__academic_year=current_academic_year, sectionsubjectfaculty__likertevaluation__semester=current_semester)
+            ),
+            Value(0.0, output_field=FloatField())
+        ),
+        2,
+        output_field=FloatField()
+    ),
+).annotate(
+    rating_category=Case(
+        # If average_rating is null, return "Not yet evaluated"
+        When(average_rating__isnull=True, then=Value("Not yet evaluated")),
+        # If average_rating <= 1.99 -> "Poor"
+        When(average_rating__lte=Value(1.99, output_field=FloatField()), then=Value("Poor")),
+        # If 2.0 <= average_rating <= 2.99 -> "Unsatisfactory"
+        When(
+            average_rating__gte=Value(2.0, output_field=FloatField()),
+            average_rating__lte=Value(2.99, output_field=FloatField()),
+            then=Value("Unsatisfactory")
+        ),
+        # If 3.0 <= average_rating <= 3.99 -> "Satisfactory"
+        When(
+            average_rating__gte=Value(3.0, output_field=FloatField()),
+            average_rating__lte=Value(3.99, output_field=FloatField()),
+            then=Value("Satisfactory")
+        ),
+        # If 4.0 <= average_rating <= 4.99 -> "Very Satisfactory"
+        When(
+            average_rating__gte=Value(4.0, output_field=FloatField()),
+            average_rating__lte=Value(4.99, output_field=FloatField()),
+            then=Value("Very Satisfactory")
+        ),
+        # If average_rating >= 5.0 -> "Outstanding"
+        When(
+            average_rating__gte=Value(5.0, output_field=FloatField()),
+            then=Value("Outstanding")
+        ),
+        default=Value("Not yet evaluated"),
+        output_field=CharField()
+    )
+)
+      
         #filtering functionality
     faculty_filter = FacultyFilter(request.GET, queryset=faculty)
     filtered_faculty = faculty_filter.qs
@@ -4330,35 +4204,37 @@ def hr_dashboard(request):
     recent_comments = data.values('suggestions_and_comments', 'predicted_sentiment')[:3]
 
         # Calculate average ratings for each agency
-    agencies = StakeholderAgency.objects.annotate(
-    avg_rating=Avg('stakeholderfeedbackmodel__average_rating')
-    ).values('name', 'avg_rating')
+    agencies = (
+        data.values('agency__name')
+        .annotate(avg_rating=Avg('average_rating'))
+        .order_by('-avg_rating')
+    )
 
     agency_ratings = {
-        agency['name']: round(agency['avg_rating'], 1) 
-        for agency in agencies
+        agency['agency__name']: round(agency['avg_rating'], 1)
+        for agency in agencies if agency['avg_rating'] is not None
     }
  
 
      # Fetch evaluations and categorize them
-    positive_wordclouds = StakeholderFeedbackModel.objects.filter(predicted_sentiment='Positive')
-    negative_wordclouds = StakeholderFeedbackModel.objects.filter(predicted_sentiment='Negative')
-    neutral_wordclouds = StakeholderFeedbackModel.objects.filter(predicted_sentiment='Neutral')
-    all_wordclouds = StakeholderFeedbackModel.objects.all()
+    # positive_wordclouds = StakeholderFeedbackModel.objects.filter(predicted_sentiment='Positive')
+    # negative_wordclouds = StakeholderFeedbackModel.objects.filter(predicted_sentiment='Negative')
+    # neutral_wordclouds = StakeholderFeedbackModel.objects.filter(predicted_sentiment='Neutral')
+    # all_wordclouds = StakeholderFeedbackModel.objects.all()
 
     # Combine texts for word clouds
-    positive_text = " ".join([eval.suggestions_and_comments for eval in positive_wordclouds])
-    negative_text = " ".join([eval.suggestions_and_comments for eval in negative_wordclouds])
-    neutral_text = " ".join([eval.suggestions_and_comments for eval in neutral_wordclouds])
-    all_text = " ".join([eval.suggestions_and_comments for eval in all_wordclouds])
+    # positive_text = " ".join([eval.suggestions_and_comments for eval in positive_wordclouds])
+    # negative_text = " ".join([eval.suggestions_and_comments for eval in negative_wordclouds])
+    # neutral_text = " ".join([eval.suggestions_and_comments for eval in neutral_wordclouds])
+    # all_text = " ".join([eval.suggestions_and_comments for eval in all_wordclouds])
 
     # Generate word clouds
-    wordclouds = {
-        'Positive': generate_wordcloud(positive_text, colormap='Greens'),
-        'Negative': generate_wordcloud(negative_text, colormap='Reds'),
-        'Neutral': generate_wordcloud(neutral_text, colormap='Blues'),
-        'All': generate_wordcloud(all_text, colormap='viridis'),
-    }
+    # wordclouds = {
+    #     'Positive': generate_wordcloud(positive_text, colormap='Greens'),
+    #     'Negative': generate_wordcloud(negative_text, colormap='Reds'),
+    #     'Neutral': generate_wordcloud(neutral_text, colormap='Blues'),
+    #     'All': generate_wordcloud(all_text, colormap='viridis'),
+    # }
     context = {
         'user': user,
         'evaluation_status': evaluation_status,
@@ -4380,7 +4256,6 @@ def hr_dashboard(request):
         'negative_evaluations': negative_evaluations,
         'neutral_evaluations': neutral_evaluations,
         'agency_ratings': agency_ratings,
-        'wordclouds': wordclouds
     }
 
     return render(request, 'pages/hr_dashboard.html', context)
@@ -5128,6 +5003,137 @@ def faculty_evaluations_individual_summary_report_pdf(request):
     return response
 
 @login_required(login_url='signin')
+@allowed_users(allowed_roles=['faculty', 'head of OSAS', 'department head/program coordinator'])
+def peer_to_peer_individual_summary_report_pdf(request):
+    """
+    Generates a PDF summary report of peer-to-peer evaluations for the currently logged in faculty.
+    """
+    # Build the path to the logo image.
+    image_path = os.path.join(settings.BASE_DIR, static('images/cvsulogo.png'))
+    
+    # Get current academic year and semester (or fallback to GET parameters).
+    evaluation_status = EvaluationStatus.objects.first()  # Assuming a single status entry exists.
+    current_academic_year = evaluation_status.academic_year 
+    current_semester = evaluation_status.semester
+    academic_year = request.GET.get('academic_year', current_academic_year)
+    semester = request.GET.get('semester', current_semester)
+
+    # Get the current faculty (logged in user) and its department.
+    current_faculty = Faculty.objects.filter(email=request.user.username).first()   
+
+    # Filter peer-to-peer evaluations for the current academic year, semester, and department.
+    # Note: We filter so that the evaluations are for which the current faculty is the "peer".
+    evaluation_filter = EvaluationFilter(
+        request.GET,
+        queryset=PeertoPeerEvaluation.objects.filter(
+            academic_year=academic_year,
+            semester=semester,
+            peer=current_faculty  # current faculty as the evaluated peer
+        )
+    )
+    filtered_evaluations = evaluation_filter.qs
+
+    # Use the current faculty's full name.
+    faculty_name = current_faculty.full_name()  # Assumes this returns a string.
+    
+    # Get the evaluations for the current faculty.
+    evaluations = filtered_evaluations
+    num_evaluators = evaluations.count()
+
+    summary_data = []
+    comments_data = []
+
+    if num_evaluators > 0:
+        category_sums = {
+            'Subject Matter Content': 0,
+            'Organization': 0,
+            'Teacher-Student Rapport': 0,
+            'Teaching Methods': 0,
+            'Presentation': 0,
+            'Classroom Management': 0,
+            'Sensitivity and Support to Students': 0,
+            'Overall': 0
+        }
+
+        MAX_SCORE = 5
+        NUM_CATEGORIES = len(category_sums) - 1  # Exclude 'Overall' key
+
+        for evaluation in evaluations:
+            category_averages = evaluation.calculate_category_averages()
+            for category, average in category_averages.items():
+                if average is not None:
+                    category_sums[category] += average
+            category_sums['Overall'] += evaluation.average_rating
+
+        # Calculate averages
+        category_averages = {category: round(total / num_evaluators, 2) for category, total in category_sums.items()}
+        avg_rating = category_averages['Overall']
+
+        # Calculate overall percentage of category averages
+        total_score = sum(category_averages[category] for category in category_sums if category != 'Overall')
+        max_possible_score = MAX_SCORE * NUM_CATEGORIES
+        overall_percentage = round((total_score / max_possible_score) * 100, 2)
+
+        if avg_rating is not None:
+            if 1.0 <= avg_rating <= 1.49:
+                rating_category = "Poor"
+            elif 1.5 <= avg_rating <= 2.49:
+                rating_category = "Unsatisfactory"
+            elif 2.5 <= avg_rating <= 3.49:
+                rating_category = "Satisfactory"
+            elif 3.5 <= avg_rating <= 4.49:
+                rating_category = "Very Satisfactory"
+            elif 4.5 <= avg_rating <= 5.0:
+                rating_category = "Outstanding"
+            else:
+                rating_category = "No Rating"
+        else:
+            rating_category = "No Rating"
+
+        summary_data.append({
+            'faculty': faculty_name,
+            'num_evaluators': num_evaluators,
+            'subject_matter_content_avg': category_averages['Subject Matter Content'],
+            'organization_avg': category_averages['Organization'],
+            'teacher_student_rapport_avg': category_averages['Teacher-Student Rapport'],
+            'teaching_methods_avg': category_averages['Teaching Methods'],
+            'presentation_avg': category_averages['Presentation'],
+            'classroom_management_avg': category_averages['Classroom Management'],
+            'sensitivity_support_students_avg': category_averages['Sensitivity and Support to Students'],
+            'overall_avg': category_averages['Overall'],
+            'overall_percentage': overall_percentage,
+            'rating_category': rating_category
+        })
+        # Collect comments data for each evaluation.
+        for evaluation in evaluations:
+            comments_data.append({
+                'faculty': faculty_name,
+                'requires_less_task_for_credit': evaluation.requires_less_task_for_credit,
+                'strengths_of_the_faculty': evaluation.strengths_of_the_faculty,
+                'other_suggestions_for_improvement': evaluation.other_suggestions_for_improvement,
+                'comments': evaluation.comments
+            })
+
+    # Render the summary data to an HTML template.
+    html = render_to_string('pages/peer_to_peer_individual_summary_report_pdf.html', {
+        'summary_data': summary_data,
+        'image_path': image_path,
+        'comments_data': comments_data,
+        'academic_year': academic_year,
+        'semester': semester,
+        'faculty_name': faculty_name
+    })
+
+    # Create the PDF response using xhtml2pdf.
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="peer_to_peer_individual_summary_report_pdf.pdf"'
+    pisa_status = pisa.CreatePDF(html, dest=response, link_callback=link_callback)
+
+    if pisa_status.err:
+        return HttpResponse('We had some errors with code %s' % pisa_status.err)
+    return response
+
+@login_required(login_url='signin')
 @allowed_users(allowed_roles=['student', 'faculty', 'head of OSAS', 'department head/program coordinator'])
 def mark_notifications_read(request):
     if request.method == 'POST':
@@ -5327,9 +5333,15 @@ def faculty_evaluations_excel(request):
     wb = Workbook()
     ws = wb.active
     ws.title = "Faculty Evaluations"
-
+    
+    evaluation_status = EvaluationStatus.objects.first()
+    current_academic_year = evaluation_status.academic_year 
+    current_semester = evaluation_status.semester
+    
+    academic_year = request.GET.get('academic_year', current_academic_year)
+    semester = request.GET.get('semester', current_semester)
     # Apply filters from the EvaluationFilter based on the request data
-    evaluation_filter = EvaluationFilter(request.GET, queryset=LikertEvaluation.objects.filter(section_subject_faculty__faculty=faculty))
+    evaluation_filter = EvaluationFilter(request.GET, queryset=LikertEvaluation.objects.filter(section_subject_faculty__faculty=faculty, academic_year=academic_year, semester=semester))
 
     # Get the filtered queryset
     filtered_evaluations = evaluation_filter.qs
@@ -5477,7 +5489,32 @@ def faculty_event_evaluations(request):
      event_filter = EventFilter(request.GET, queryset=event)
      event = event_filter.qs 
      ordering = request.GET.get('ordering', "")
-
+     event = event.annotate(
+     avg_rating=Case(
+        When(
+            event_type__name__in=['School Event', 'Training Workshop'],
+            then=Coalesce(Avg('schooleventmodel__average_rating'), Value(0))
+        ),
+        When(
+            event_type__name='Webinar/Seminar',
+            then=Coalesce(Avg('webinarseminarmodel__average_rating'), Value(0))
+        ),
+        default=Value(0),
+        output_field=FloatField()
+    ),
+    evaluator_count=Case(
+         When(
+             event_type__name__in=['School Event', 'Training Workshop'],
+             then=Count('schooleventmodel__id')
+         ),
+         When(
+             event_type__name='Webinar/Seminar',
+             then=Count('webinarseminarmodel__id')
+         ),
+         default=Value(0),
+         output_field=IntegerField()
+    )
+)
         
      if ordering:
         event = event.order_by(ordering) 
@@ -5656,10 +5693,11 @@ def reject_event(request, event_id):
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['faculty', 'head of OSAS', 'department head/program coordinator'])
 def view_faculty_event_evaluations(request, pk):
-    user=request.user
-    faculty = Faculty.objects.filter(email=request.user.username).first()   
+    user = request.user
+    faculty = Faculty.objects.filter(email=request.user.username).first()
     is_department_head = request.user.groups.filter(name='department head/program coordinator').exists()
 
+    # Notifications
     event_notifications = Notification.objects.filter(recipient=user, level='success')
     messages_notifications = Notification.objects.filter(recipient=user, level='info')
     unread_notifications = Notification.objects.filter(recipient=user, level='success', unread=True)
@@ -5668,31 +5706,54 @@ def view_faculty_event_evaluations(request, pk):
     notifications_unread_count = unread_notifications.count()
     messages_unread_count = unread_messages.count()
 
+    # Fetch the event
     event = get_object_or_404(Event, pk=pk)
-    # Filter evaluations from both SchoolEventModel and WebinarSeminarModel
-    school_event_evaluations = list(SchoolEventModel.objects.filter(event=event))
-    webinar_seminar_evaluations = list(WebinarSeminarModel.objects.filter(event=event))
-    total_average_rating = SchoolEventModel.get_event_average_rating(pk)
-    # Combine the results into one list
-    evaluations = school_event_evaluations + webinar_seminar_evaluations
-    paginator = Paginator(evaluations, 10) 
+
+    # Determine which model and filter to use based on the event type
+    if event.event_type.name in ['School Event', 'Training Workshop']:
+        evaluations_queryset = SchoolEventModel.objects.filter(event=event)
+        filter_class = SchoolEventFilter
+        total_average_rating = SchoolEventModel.get_event_average_rating(event)
+    elif event.event_type.name == 'Webinar/Seminar':
+        evaluations_queryset = WebinarSeminarModel.objects.filter(event=event)
+        filter_class = WebinarSeminarEventFilter
+        total_average_rating = WebinarSeminarModel.get_event_average_rating(event)
+    else:
+        evaluations_queryset = None
+        filter_class = None
+        total_average_rating = 'Invalid event type'
+
+    # Apply filters if applicable
+    if filter_class and evaluations_queryset is not None:
+        event_filter = filter_class(request.GET, queryset=evaluations_queryset)
+        filtered_evaluations = event_filter.qs
+    else:
+        event_filter = None
+        filtered_evaluations = evaluations_queryset
+
+    # Ensure filtered_evaluations is not None before paginating
+    if filtered_evaluations is None:
+        filtered_evaluations = []
+
+    paginator = Paginator(filtered_evaluations, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
     context = {
         'faculty': faculty,
         'event': event,
-        'evaluations': evaluations,
-        'page_obj': page_obj, 
-        'event_notifications': event_notifications,
-        'notifications_unread_count': notifications_unread_count,
-        'messages_notifications': messages_notifications,
-        'messages_unread_count': messages_unread_count,
+        'filtered_evaluations': filtered_evaluations,
+        'event_filter': event_filter,
+        'total_average_rating': total_average_rating,
         'is_department_head': is_department_head,
-        'total_average_rating': total_average_rating
+        'notifications_unread_count': notifications_unread_count,
+        'messages_unread_count': messages_unread_count,
+        'event_notifications': event_notifications,
+        'messages_notifications': messages_notifications,
+        'page_obj': page_obj,
     }
-    return render(request, 'pages/view_faculty_event_evaluations.html', context)
 
+    return render(request, 'pages/view_faculty_event_evaluations.html', context)
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['faculty', 'head of OSAS', 'department head/program coordinator'])
@@ -6675,25 +6736,60 @@ def peer_to_peer_evaluations(request):
 @allowed_users(allowed_roles=['faculty', 'head of OSAS', 'department head/program coordinator'])
 def peer_to_peer_evaluations_csv(request):
     faculty = Faculty.objects.filter(email=request.user.username).first()
-    response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = 'attachment; filename=peer_to_peer_evaluations.csv'
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename=pper_to_peer_evaluations.xlsx'
 
-    # Create a csv writer
-    writer = csv.writer(response)
+    # Create a workbook and a worksheet
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Peer-to-Peer Evaluations"
 
+    evaluation_status = EvaluationStatus.objects.first()
+    current_academic_year = evaluation_status.academic_year 
+    current_semester = evaluation_status.semester
+
+    academic_year = request.GET.get('academic_year', current_academic_year)
+    semester = request.GET.get('semester', current_semester)
     # Apply filters from the EvaluationFilter based on the request data
-    evaluation_filter = EvaluationFilter(request.GET, queryset=PeertoPeerEvaluation.objects.filter(peer=faculty))
+    evaluation_filter = EvaluationFilter(request.GET, queryset=PeertoPeerEvaluation.objects.filter(peer=faculty, academic_year=academic_year, semester=semester))
 
     # Get the filtered queryset
     filtered_evaluations = evaluation_filter.qs
 
-    # Add column headings to csv file
+    # Add column headings to the worksheet
+    columns = ['Faculty', 'Average', 'Rating', 'Overall Impression', 'Polarity', 'Academic Year', 'Semester']
+    ws.append(columns)
 
-    writer.writerow(['Average', 'Rating', 'Overall Impression', 'Polarity', 'Academic Year', 'Semester'])
+    # Loop through and output the data
+    for evaluation in filtered_evaluations:
+        row = [
+            str(evaluation.peer),
+            str(evaluation.average_rating),
+            str(evaluation.get_rating_category()),
+            str(evaluation.comments),
+            str(evaluation.predicted_sentiment),
+            str(evaluation.academic_year),
+            str(evaluation.semester)
+        ]
+        ws.append(row)
 
-    # Loop thru and output
-    for i in filtered_evaluations:
-        writer.writerow([i.average_rating, i.get_rating_category(), i.comments, i.predicted_sentiment, i.academic_year, i.semester ])
+    # Auto-adjust column widths
+    for col in ws.columns:
+        max_length = 0
+        column = col[0].column_letter  # Get the column name
+        for cell in col:
+            try:
+                if len(str(cell.value)) > max_length:
+                    max_length = len(str(cell.value))
+            except:
+                pass
+        adjusted_width = (max_length + 2)
+        ws.column_dimensions[column].width = adjusted_width
+
+    # Save the workbook to a BytesIO stream
+    output = BytesIO()
+    wb.save(output)
+    response.write(output.getvalue())
 
     return response
 
@@ -6714,367 +6810,63 @@ def view_peer_to_peer_evaluation_form(request, pk):
     
     questions = PeertoPeerEvaluationQuestions.objects.all().order_by('order')
     faculty_evaluation_form = PeertoPeerEvaluation.objects.get(pk=pk)
-    outstanding_count = PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        command_and_knowledge_of_the_subject=5
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        depth_of_mastery=5
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(pk=pk).filter(
-        practice_in_respective_discipline=5
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        up_to_date_knowledge=5
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        integrates_subject_to_practical_circumstances=5
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        organizes_the_subject_matter=5
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        provides_orientation_on_course_content=5
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        efforts_of_class_preparation=5
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        summarizes_main_points=5
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        monitors_online_class=5
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        holds_interest_of_students=5
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        provides_relevant_feedback=5
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        encourages_participation=5
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        shows_enthusiasm=5
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        shows_sense_of_humor=5
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        teaching_methods=5
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        flexible_learning_strategies=5
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        student_engagement=5
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        clear_examples=5
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        focused_on_objectives=5
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        starts_with_motivating_activities=5
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        speaks_in_clear_and_audible_manner=5
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        uses_appropriate_medium_of_instruction=5
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        establishes_online_classroom_environment=5
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        observes_proper_classroom_etiquette=5
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        uses_time_wisely=5
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        gives_ample_time_for_students_to_prepare=5
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        updates_the_students_of_their_progress=5
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        demonstrates_leadership_and_professionalism=5
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        understands_possible_distractions=5
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        sensitivity_to_student_culture=5
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        responds_appropriately=5
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        assists_students_on_concerns=5
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        guides_the_students_in_accomplishing_tasks=5
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        extends_consideration_to_students=5
-    ).count()    
-    
-    # Continue for other fields
-    
-    very_satisfactory_count = PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        command_and_knowledge_of_the_subject=4
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        depth_of_mastery=4
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        practice_in_respective_discipline=4
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        up_to_date_knowledge=4
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        integrates_subject_to_practical_circumstances=4
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        organizes_the_subject_matter=4
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        provides_orientation_on_course_content=4
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        efforts_of_class_preparation=4
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        summarizes_main_points=4
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        monitors_online_class=4
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        holds_interest_of_students=4
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        provides_relevant_feedback=4
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        encourages_participation=4
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        shows_enthusiasm=4
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        shows_sense_of_humor=4
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        teaching_methods=4
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        flexible_learning_strategies=4
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        student_engagement=4
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        clear_examples=4
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        focused_on_objectives=4
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        starts_with_motivating_activities=4
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        speaks_in_clear_and_audible_manner=4
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        uses_appropriate_medium_of_instruction=4
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        establishes_online_classroom_environment=4
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        observes_proper_classroom_etiquette=4
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        uses_time_wisely=4
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        gives_ample_time_for_students_to_prepare=4
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        updates_the_students_of_their_progress=4
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        demonstrates_leadership_and_professionalism=4
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        understands_possible_distractions=4
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        sensitivity_to_student_culture=4
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        responds_appropriately=4
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        assists_students_on_concerns=4
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        guides_the_students_in_accomplishing_tasks=4
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        extends_consideration_to_students=4
-    ).count()    
-    
-    satisfactory_count = PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        command_and_knowledge_of_the_subject=3
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        depth_of_mastery=3
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        practice_in_respective_discipline=3
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        up_to_date_knowledge=3
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        integrates_subject_to_practical_circumstances=3
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        organizes_the_subject_matter=3
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        provides_orientation_on_course_content=3
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        efforts_of_class_preparation=3
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        summarizes_main_points=3
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        monitors_online_class=3
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        holds_interest_of_students=3
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        provides_relevant_feedback=3
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        encourages_participation=3
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        shows_enthusiasm=3
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        shows_sense_of_humor=3
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        teaching_methods=3
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        flexible_learning_strategies=3
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        student_engagement=3
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        clear_examples=3
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        focused_on_objectives=3
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        starts_with_motivating_activities=3
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        speaks_in_clear_and_audible_manner=3
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        uses_appropriate_medium_of_instruction=3
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        establishes_online_classroom_environment=3
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        observes_proper_classroom_etiquette=3
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        uses_time_wisely=3
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        gives_ample_time_for_students_to_prepare=3
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        updates_the_students_of_their_progress=3
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        demonstrates_leadership_and_professionalism=3
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        understands_possible_distractions=3
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        sensitivity_to_student_culture=3
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        responds_appropriately=3
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        assists_students_on_concerns=3
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        guides_the_students_in_accomplishing_tasks=3
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        extends_consideration_to_students=3
-    ).count()    
-    
-    unsatisfactory_count = PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        command_and_knowledge_of_the_subject=2
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        depth_of_mastery=2
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        practice_in_respective_discipline=2
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        up_to_date_knowledge=2
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        integrates_subject_to_practical_circumstances=2
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        organizes_the_subject_matter=2
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        provides_orientation_on_course_content=2
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        efforts_of_class_preparation=2
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        summarizes_main_points=2
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        monitors_online_class=2
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        holds_interest_of_students=2
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        provides_relevant_feedback=2
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        encourages_participation=2
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        shows_enthusiasm=2
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        shows_sense_of_humor=2
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        teaching_methods=2
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        flexible_learning_strategies=2
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        student_engagement=2
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        clear_examples=2
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        focused_on_objectives=2
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        starts_with_motivating_activities=2
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        speaks_in_clear_and_audible_manner=2
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        uses_appropriate_medium_of_instruction=2
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        establishes_online_classroom_environment=2
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        observes_proper_classroom_etiquette=2
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        uses_time_wisely=2
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        gives_ample_time_for_students_to_prepare=2
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        updates_the_students_of_their_progress=2
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        demonstrates_leadership_and_professionalism=2
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        understands_possible_distractions=2
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        sensitivity_to_student_culture=2
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        responds_appropriately=2
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        assists_students_on_concerns=2
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        guides_the_students_in_accomplishing_tasks=2
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        extends_consideration_to_students=2
-    ).count()    
+    rating_fields = [
+        'command_and_knowledge_of_the_subject',
+        'depth_of_mastery',
+        'practice_in_respective_discipline',
+        'up_to_date_knowledge',
+        'integrates_subject_to_practical_circumstances',
+        'organizes_the_subject_matter',
+        'provides_orientation_on_course_content',
+        'efforts_of_class_preparation',
+        'summarizes_main_points',
+        'monitors_online_class',
+        'holds_interest_of_students',
+        'provides_relevant_feedback',
+        'encourages_participation',
+        'shows_enthusiasm',
+        'shows_sense_of_humor',
+        'teaching_methods',
+        'flexible_learning_strategies',
+        'student_engagement',
+        'clear_examples',
+        'focused_on_objectives',
+        'starts_with_motivating_activities',
+        'speaks_in_clear_and_audible_manner',
+        'uses_appropriate_medium_of_instruction',
+        'establishes_online_classroom_environment',
+        'observes_proper_classroom_etiquette',
+        'uses_time_wisely',
+        'gives_ample_time_for_students_to_prepare',
+        'updates_the_students_of_their_progress',
+        'demonstrates_leadership_and_professionalism',
+        'understands_possible_distractions',
+        'sensitivity_to_student_culture',
+        'responds_appropriately',
+        'assists_students_on_concerns',
+        'guides_the_students_in_accomplishing_tasks',
+        'extends_consideration_to_students'
+    ]
+    # Initialize counters
+    outstanding_count = 0
+    very_satisfactory_count = 0
+    satisfactory_count = 0
+    unsatisfactory_count = 0
+    poor_count = 0
 
-    poor_count = PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        command_and_knowledge_of_the_subject=1
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        depth_of_mastery=1
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        practice_in_respective_discipline=1
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        up_to_date_knowledge=1
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        integrates_subject_to_practical_circumstances=1
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        organizes_the_subject_matter=1
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        provides_orientation_on_course_content=1
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        efforts_of_class_preparation=1
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        summarizes_main_points=1
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        monitors_online_class=1
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        holds_interest_of_students=1
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        provides_relevant_feedback=1
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        encourages_participation=1
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        shows_enthusiasm=1
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        shows_sense_of_humor=1
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        teaching_methods=1
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        flexible_learning_strategies=1
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        student_engagement=1
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        clear_examples=1
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        focused_on_objectives=1
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        starts_with_motivating_activities=1
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        speaks_in_clear_and_audible_manner=1
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        uses_appropriate_medium_of_instruction=1
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        establishes_online_classroom_environment=1
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        observes_proper_classroom_etiquette=1
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        uses_time_wisely=1
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        gives_ample_time_for_students_to_prepare=1
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        updates_the_students_of_their_progress=1
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        demonstrates_leadership_and_professionalism=1
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        understands_possible_distractions=1
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        sensitivity_to_student_culture=1
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        responds_appropriately=1
-    ).count() + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        assists_students_on_concerns=1
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        guides_the_students_in_accomplishing_tasks=1
-    ).count()  + PeertoPeerEvaluation.objects.filter(pk=pk).filter(
-        extends_consideration_to_students=1
-    ).count()    
+    # Calculate counts in memory
+    for field in rating_fields:
+        value = getattr(faculty_evaluation_form, field)
+        if value == 5:
+            outstanding_count += 1
+        elif value == 4:
+            very_satisfactory_count += 1
+        elif value == 3:
+            satisfactory_count += 1
+        elif value == 2:
+            unsatisfactory_count += 1
+        elif value == 1:
+            poor_count += 1
     
     return render(request, 'pages/view_peer_to_peer_evaluation_form.html', {'faculty_evaluation_form': faculty_evaluation_form, 'faculty': faculty, 'outstanding_count': outstanding_count, 'very_satisfactory_count': very_satisfactory_count, 'satisfactory_count': satisfactory_count, 'unsatisfactory_count': unsatisfactory_count, 'poor_count': poor_count, 'questions': questions, 'event_notifications': event_notifications,
         'notifications_unread_count': notifications_unread_count,
@@ -7168,7 +6960,23 @@ def department_head_view_department(request):
       previous_rank=Window(
             expression=Rank(),
             order_by=F('previous_average_rating').desc(nulls_last=True)
-        )
+        ),
+      num_of_evaluators=Count(
+            'sectionsubjectfaculty__likertevaluation',
+            filter=Q(
+                sectionsubjectfaculty__likertevaluation__academic_year=academic_year,
+                sectionsubjectfaculty__likertevaluation__semester=semester,
+                sectionsubjectfaculty__likertevaluation__admin_status='Approved'
+            ),
+        ),  
+      previous_num_of_evaluators=Count(
+            'sectionsubjectfaculty__likertevaluation',
+            filter=Q(
+                sectionsubjectfaculty__likertevaluation__academic_year=previous_academic_year,
+                sectionsubjectfaculty__likertevaluation__semester=previous_semester,
+                sectionsubjectfaculty__likertevaluation__admin_status='Approved'
+            ),
+        ),  
     ).order_by('-average_rating')  
 
     
@@ -7216,7 +7024,8 @@ def department_head_view_department(request):
         'academic_years': academic_years,
         'semesters': semesters,
         'academic_year': academic_year,
-        'semester': semester
+        'semester': semester,
+
     }
 
     return render(request, 'pages/department_head_view_department.html', context)
@@ -7307,7 +7116,14 @@ def department_head_view_department_peer_to_peer(request):
       previous_rank=Window(
             expression=Rank(),
             order_by=F('previous_average_rating').desc(nulls_last=True)
-        )
+        ),
+      num_of_evaluators=Count(
+            'peertopeerevaluation',
+            filter=Q(
+                peertopeerevaluation__academic_year=academic_year,
+                peertopeerevaluation__semester=semester,
+            ),
+        ),
     ).order_by('-average_rating')  
 
     
@@ -7526,9 +7342,10 @@ def department_head_faculty_evaluations(request, pk):
     current_academic_year = evaluation_status.academic_year 
     current_semester = evaluation_status.semester
     current_status = evaluation_status.evaluation_status
-    
+    academic_year = request.GET.get('academic_year', current_academic_year)
+    semester = request.GET.get('semester', current_semester)
     teacher = get_object_or_404(Faculty, pk=pk)
-    teacher_evaluations = LikertEvaluation.objects.filter(section_subject_faculty__faculty=teacher,academic_year=current_academic_year, semester=current_semester)
+    teacher_evaluations = LikertEvaluation.objects.filter(section_subject_faculty__faculty=teacher,academic_year=academic_year, semester=semester)
    
          # Create mutable copy of GET parameters
     filter_params = request.GET.copy()
@@ -7568,9 +7385,73 @@ def department_head_faculty_evaluations(request, pk):
         'messages_notifications': messages_notifications,
         'notifications_unread_count': notifications_unread_count,
         'messages_unread_count': messages_unread_count,
-        'faculty': faculty, 'faculty_evaluation_filter': faculty_evaluation_filter, 'page_obj':page, 'is_paginated': True, 'paginator':evaluation_paginator, 'teacher_evaluations': page.object_list,'current_status': current_status, 'current_academic_year': current_academic_year, 'current_semester': current_semester}
+        'faculty': faculty, 'faculty_evaluation_filter': faculty_evaluation_filter, 'page_obj':page, 'is_paginated': True, 'paginator':evaluation_paginator, 'teacher_evaluations': page.object_list,'current_status': current_status, 'current_academic_year': current_academic_year, 'current_semester': current_semester, }
 
     return render(request, 'pages/department_head_faculty_evaluations.html', context)
+
+@login_required(login_url='signin')
+@allowed_users(allowed_roles=['head of OSAS', 'department head/program coordinator'])
+def department_head_peer_to_peer_evaluations(request, pk):
+    user = request.user
+    is_department_head = request.user.groups.filter(name='department head/program coordinator').exists()
+    faculty = Faculty.objects.filter(email=request.user.username).first()   
+    event_notifications = Notification.objects.filter(recipient=user, level='success')
+    messages_notifications = Notification.objects.filter(recipient=user, level='info')
+    unread_notifications = Notification.objects.filter(recipient=user, level='success', unread=True)
+    unread_messages = Notification.objects.filter(recipient=user, level='info', unread=True)
+
+    notifications_unread_count = unread_notifications.count()
+    messages_unread_count = unread_messages.count()
+    evaluation_status = EvaluationStatus.objects.first()
+    current_academic_year = evaluation_status.academic_year 
+    current_semester = evaluation_status.semester
+    current_status = evaluation_status.evaluation_status
+    academic_year = request.GET.get('academic_year', current_academic_year)
+    semester = request.GET.get('semester', current_semester)
+    teacher = get_object_or_404(Faculty, pk=pk)
+    teacher_evaluations = PeertoPeerEvaluation.objects.filter(peer=teacher,academic_year=academic_year, semester=semester)
+   
+    # Create mutable copy of GET parameters
+    filter_params = request.GET.copy()
+
+    # Set defaults only when values are missing or empty
+    if not filter_params.get('academic_year'):
+        filter_params['academic_year'] = current_academic_year
+    if not filter_params.get('semester'):
+        filter_params['semester'] = current_semester
+
+    #filter and search
+    faculty_evaluation_filter = PeertoPeerEvaluationFilter(filter_params, queryset=PeertoPeerEvaluation.objects.filter(peer=teacher))
+    
+    if not request.GET or (request.GET.get('academic_year') == '' and request.GET.get('semester') == ''):
+        teacher_evaluations = PeertoPeerEvaluation.objects.filter(peer=teacher, academic_year=current_academic_year, semester=current_semester)
+    else:    
+        teacher_evaluations = faculty_evaluation_filter.qs
+    
+    # ordering functionality
+   
+    ordering = request.GET.get('ordering', "")
+
+     
+    if ordering:
+        teacher_evaluations = teacher_evaluations.order_by(ordering) 
+
+    #pagination
+    page_number = request.GET.get('page', 1)
+    evaluation_paginator = Paginator(teacher_evaluations, 10)
+
+    try:
+        page = evaluation_paginator.page(page_number)
+    except EmptyPage:
+        page = evaluation_paginator.page(evaluation_paginator.num_pages)
+
+    context = {'teacher': teacher, 'teacher_evaluations':  teacher_evaluations, 'is_department_head': is_department_head, 'event_notifications': event_notifications,
+        'messages_notifications': messages_notifications,
+        'notifications_unread_count': notifications_unread_count,
+        'messages_unread_count': messages_unread_count,
+        'faculty': faculty, 'faculty_evaluation_filter': faculty_evaluation_filter, 'page_obj':page, 'is_paginated': True, 'paginator':evaluation_paginator, 'teacher_evaluations': page.object_list,'current_status': current_status, 'current_academic_year': current_academic_year, 'current_semester': current_semester, 'academic_year':academic_year, 'semester':semester }
+
+    return render(request, 'pages/department_head_peer_to_peer_evaluations.html', context)
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['head of OSAS', 'department head/program coordinator'])
@@ -7674,8 +7555,14 @@ def department_head_approve_all_pending_evaluations(request):
 
 @login_required(login_url='signin')
 @allowed_users(allowed_roles=['head of OSAS', 'department head/program coordinator'])
-def department_head_faculty_evaluations_csv(request):
-    faculty = Faculty.objects.filter(email=request.user.username).first()
+def department_head_faculty_evaluations_csv(request, faculty_pk=None):
+    if faculty_pk is not None:
+        teacher = get_object_or_404(Faculty, pk=faculty_pk)
+    else:
+        # Option B: If passed as a query parameter
+        faculty_pk = request.GET.get('faculty_pk')
+        teacher = get_object_or_404(Faculty, pk=faculty_pk)
+
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename=faculty_evaluations.csv'
 
@@ -7684,9 +7571,10 @@ def department_head_faculty_evaluations_csv(request):
     evaluation_status = EvaluationStatus.objects.first()
     current_academic_year = evaluation_status.academic_year 
     current_semester = evaluation_status.semester
-
+    academic_year = request.GET.get('academic_year', current_academic_year)
+    semester = request.GET.get('semester', current_semester)
     # Apply filters from the EvaluationFilter based on the request data
-    evaluation_filter = EvaluationFilter(request.GET, queryset=LikertEvaluation.objects.filter(section_subject_faculty__faculty=faculty, academic_year=current_academic_year, semester=current_semester))
+    evaluation_filter = EvaluationFilter(request.GET, queryset=LikertEvaluation.objects.filter(section_subject_faculty__faculty=teacher, academic_year=academic_year, semester=semester))
 
     # Get the filtered queryset
     filtered_evaluations = evaluation_filter.qs
@@ -7698,6 +7586,41 @@ def department_head_faculty_evaluations_csv(request):
     # Loop thru and output
     for i in filtered_evaluations:
         writer.writerow([i.section_subject_faculty.subjects, i.section_subject_faculty.faculty, i.average_rating, i.get_rating_category(), i.comments, i.predicted_sentiment, i.academic_year, i.semester ])
+
+    return response
+
+@login_required(login_url='signin')
+@allowed_users(allowed_roles=['head of OSAS', 'department head/program coordinator'])
+def department_head_peer_to_peer_faculty_evaluations_csv(request, faculty_pk=None):
+    if faculty_pk is not None:
+        teacher = get_object_or_404(Faculty, pk=faculty_pk)
+    else:
+        # Option B: If passed as a query parameter
+        faculty_pk = request.GET.get('faculty_pk')
+        teacher = get_object_or_404(Faculty, pk=faculty_pk)
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename=peer_to_peer_evaluations.csv'
+
+    # Create a csv writer
+    writer = csv.writer(response)
+    evaluation_status = EvaluationStatus.objects.first()
+    current_academic_year = evaluation_status.academic_year 
+    current_semester = evaluation_status.semester
+    academic_year = request.GET.get('academic_year', current_academic_year)
+    semester = request.GET.get('semester', current_semester)
+    # Apply filters from the EvaluationFilter based on the request data
+    evaluation_filter = EvaluationFilter(request.GET, queryset=PeertoPeerEvaluation.objects.filter(peer=teacher, academic_year=academic_year, semester=semester))
+
+    # Get the filtered queryset
+    filtered_evaluations = evaluation_filter.qs
+
+    # Add column headings to csv file
+
+    writer.writerow(['Faculty', 'Average', 'Rating', 'Overall Impression', 'Polarity', 'Academic Year', 'Semester'])
+
+    # Loop thru and output
+    for i in filtered_evaluations:
+        writer.writerow([i.peer, i.average_rating, i.get_rating_category(), i.comments, i.predicted_sentiment, i.academic_year, i.semester ])
 
     return response
 
@@ -7776,6 +7699,85 @@ def department_head_view_evaluation_form(request, pk):
             poor_count += 1
 
     return render(request, 'pages/department_head_view_evaluation_form.html', {'faculty_evaluation_form': faculty_evaluation_form, 'faculty': faculty, 'questions': questions, 'outstanding_count': outstanding_count, 'very_satisfactory_count': very_satisfactory_count, 'satisfactory_count': satisfactory_count, 'unsatisfactory_count': unsatisfactory_count, 'poor_count': poor_count, 'faculty': faculty, 'is_department_head': is_department_head, 'event_notifications': event_notifications,
+        'messages_notifications': messages_notifications,
+        'notifications_unread_count': notifications_unread_count,
+        'messages_unread_count': messages_unread_count,})
+
+@login_required(login_url='signin')
+@allowed_users(allowed_roles=['head of OSAS','department head/program coordinator'])
+def department_head_peer_to_peer_view_evaluation_form(request, pk):
+    faculty_evaluation_form = get_object_or_404(PeertoPeerEvaluation, pk=pk)
+    questions = FacultyEvaluationQuestions.objects.all().order_by('order')
+    user = request.user
+    is_department_head = request.user.groups.filter(name='department head/program coordinator').exists()
+    faculty = Faculty.objects.filter(email=request.user.username).first()   
+    event_notifications = Notification.objects.filter(recipient=user, level='success')
+    messages_notifications = Notification.objects.filter(recipient=user, level='info')
+    unread_notifications = Notification.objects.filter(recipient=user, level='success', unread=True)
+    unread_messages = Notification.objects.filter(recipient=user, level='info', unread=True)
+
+    notifications_unread_count = unread_notifications.count()
+    messages_unread_count = unread_messages.count()
+         # List of all rating fields to check
+    rating_fields = [
+        'command_and_knowledge_of_the_subject',
+        'depth_of_mastery',
+        'practice_in_respective_discipline',
+        'up_to_date_knowledge',
+        'integrates_subject_to_practical_circumstances',
+        'organizes_the_subject_matter',
+        'provides_orientation_on_course_content',
+        'efforts_of_class_preparation',
+        'summarizes_main_points',
+        'monitors_online_class',
+        'holds_interest_of_students',
+        'provides_relevant_feedback',
+        'encourages_participation',
+        'shows_enthusiasm',
+        'shows_sense_of_humor',
+        'teaching_methods',
+        'flexible_learning_strategies',
+        'student_engagement',
+        'clear_examples',
+        'focused_on_objectives',
+        'starts_with_motivating_activities',
+        'speaks_in_clear_and_audible_manner',
+        'uses_appropriate_medium_of_instruction',
+        'establishes_online_classroom_environment',
+        'observes_proper_classroom_etiquette',
+        'uses_time_wisely',
+        'gives_ample_time_for_students_to_prepare',
+        'updates_the_students_of_their_progress',
+        'demonstrates_leadership_and_professionalism',
+        'understands_possible_distractions',
+        'sensitivity_to_student_culture',
+        'responds_appropriately',
+        'assists_students_on_concerns',
+        'guides_the_students_in_accomplishing_tasks',
+        'extends_consideration_to_students'
+    ]
+    # Initialize counters
+    outstanding_count = 0
+    very_satisfactory_count = 0
+    satisfactory_count = 0
+    unsatisfactory_count = 0
+    poor_count = 0
+
+    # Calculate counts in memory
+    for field in rating_fields:
+        value = getattr(faculty_evaluation_form, field)
+        if value == 5:
+            outstanding_count += 1
+        elif value == 4:
+            very_satisfactory_count += 1
+        elif value == 3:
+            satisfactory_count += 1
+        elif value == 2:
+            unsatisfactory_count += 1
+        elif value == 1:
+            poor_count += 1
+
+    return render(request, 'pages/department_head_peer_to_peer_view_evaluation_form.html', {'faculty_evaluation_form': faculty_evaluation_form, 'faculty': faculty, 'questions': questions, 'outstanding_count': outstanding_count, 'very_satisfactory_count': very_satisfactory_count, 'satisfactory_count': satisfactory_count, 'unsatisfactory_count': unsatisfactory_count, 'poor_count': poor_count, 'faculty': faculty, 'is_department_head': is_department_head, 'event_notifications': event_notifications,
         'messages_notifications': messages_notifications,
         'notifications_unread_count': notifications_unread_count,
         'messages_unread_count': messages_unread_count,})

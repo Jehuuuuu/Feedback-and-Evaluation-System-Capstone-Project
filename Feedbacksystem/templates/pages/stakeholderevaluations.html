@@ -1,12 +1,17 @@
 {% extends "pages/admin.html" %}
-
+{% load static %}
 {% block title %}Evaluations{% endblock %}
 
 {% block header %}
 <div class="row">
     <div class="col-md-7">
-      <h4>Stakeholder Feedback and Evaluations {{selected_academic_year}}</h4>
-     
+      <div class="d-flex gap-2">
+        <a href="{{ request.META.HTTP_REFERER }}" class="pt-1" >
+          <img src="{% static 'images/Back.svg' %}" alt="back button" height="35px" width="35px">
+             </a>
+        <h4>Stakeholder Feedback and Evaluations {{selected_academic_year}}</h4>
+        
+      </div>
     </div>
     <div class="col-lg-4 col-md-5 mt-1 evaluations_search" style="margin-left: auto;">
       <form method="get" action="" class="d-flex" style="gap: 1em;">
@@ -54,7 +59,7 @@
 <div class="row g-0">
     <div class="col-lg-2 col-sm-4 col-12 mb-1">
         <button type="button" class="btn btn-warning custom-btn" style="color: black; text-decoration: none;" data-bs-toggle="modal" data-bs-target="#exampleModal">
-            <i class="bi bi-pencil-square"></i> <b>Filter Options</b>
+          <i class="bi bi-funnel-fill"></i> Filter Options
         </button>
     </div>
      <!-- Sort Dropdown -->
@@ -69,7 +74,7 @@
     </div>
 
     <div class="col-lg-4 col-md-2">
-      <a href="{% url 'stakeholder_evaluations_excel' %}?{{ request.GET.urlencode }}" class="btn btn-success"><i class="bi bi-file-earmark-excel-fill"></i>Export as Excel File</a>
+      <a href="{% url 'stakeholder_evaluations_excel' %}?{{ request.GET.urlencode }}" class="btn custom-btn"><i class="bi bi-file-earmark-excel-fill"></i> Export Data</a>
     </div>
   </div>
 
@@ -80,6 +85,7 @@
     <div class="table-responsive mt-2 ">
       <table class="table table-bordered table-responsive">
           <tr>
+              <th  scope="col">#</th>
               <th  scope="col">Agency</th>
               <th  scope="col">Date of Visit</th>
               <th  scope="col">Average Rating</th>
@@ -90,6 +96,7 @@
           </tr>
           {% for i in page_obj %}
           <tr>
+              <td>{{ forloop.counter|add:page_obj.start_index|add:"-1" }}</td>
               <td>{{ i.agency }} </td>
               <td>{{ i.date }} </td>
               <td>
@@ -110,7 +117,7 @@
                 {% endif %}>
                 <b>{{ i.get_rating_category }}</b></span>
               </td>
-              <td>{{ i.suggestions_and_comments }}</td>
+              <td>{{ i.suggestions_and_comments|truncatechars:50 }}</td>
               <td>
                 <span {% if i.predicted_sentiment == 'Positive'%} style="color: #339933;" 
                     {% elif i.predicted_sentiment == 'Negative' %} style="color:  #cc0000;" 
@@ -118,10 +125,10 @@
                 <b>{{ i.predicted_sentiment }}</b>
                   </span>
               </td>
-              <td style="display: flex; flex-direction: row; align-items: center;">
-                <a href="{% url 'admin_view_stakeholder_form' i.pk %}" style="margin-right: 10px; text-decoration: none;">
-                  <button class="btn btn-primary d-flex align-items-center" style=" padding:1px 2px 1px 7px">
-                    <i class="bi bi-eye-fill" style="font-size:20px; margin-right: 5px;"></i></button></a>
+              <td>
+                <a href="{% url 'admin_view_stakeholder_form' i.pk %}">
+                  <button class="btn btn-primary ">
+                    <i class="bi bi-eye-fill"></i></button></a>
     
           </tr>
           {% endfor %}

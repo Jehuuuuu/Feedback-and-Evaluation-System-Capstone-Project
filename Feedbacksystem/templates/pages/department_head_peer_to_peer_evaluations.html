@@ -1,120 +1,111 @@
 {% extends "pages/facultydashboard.html" %}
 
-{% block title %}SET Evaluations{% endblock %}
+{% block title %}Evaluations{% endblock %}
 
 {% block header %}
-<div class="row">
-    <div class="col-md-6">
-      <h2>Student Feedback and Evaluations</h2>
-      <p style="margin: 0; padding: 0;"> Showing data from A.Y. {{request.GET.academic_year|default:current_academic_year}} 
+
+    <div class="row">
+        <div class="col-md-6">
+        <h4> Evaluations for {{ teacher.first_name }} {{ teacher.last_name }} </h4>
+          <p style="margin: 0; padding: 0;"> Showing data from A.Y. {{request.GET.academic_year|default:current_academic_year}} 
         {% if request.GET.semester %}
-            <!-- Semester is explicitly provided -->
+
             {{ request.GET.semester }}
+
         {% elif request.GET.semester == "" %}
-            <!-- Semester is blank; show all data -->
+
             All Semesters
         {% else %}
-            <!-- No semester provided; default to current semester -->
             {{ current_semester }}
-        {% endif %} 
-      </p>
-    </div>
-    <div class="col-lg-5 col-md-5 mt-1 evaluations_search" style="margin-left: auto;">
-      <form method="get" action="" class="d-flex" style="gap: 1em;">
-          {{faculty_evaluation_filter.form.search.label_tag}}
-          {{faculty_evaluation_filter.form.search}}
-      <button type="submit" class="btn custom-btn"><i class="bi bi-search"></i></button>
-        </form>
+        {% endif %} </p>
+        </div>
+        <div class="col-lg-5 col-md-5 mt-1 evaluations_search" style="margin-left: auto;">
+          <form method="get" action="" class="d-flex" style="gap: 1em;">
+              {{faculty_evaluation_filter.form.search.label_tag}}
+              {{faculty_evaluation_filter.form.search}}
+          <button type="submit" class="btn custom-btn"><i class="bi bi-search"></i></button>
+            </form>
+          </div>
       </div>
-  </div>
-  <hr>
-    {% endblock header %}
-    {% block feature %}
-    <!-- For making sorting functionality -->
+      <hr>
+{% endblock header %}
+
+{% block feature %}
+{% if avg_rating %}
+{% endif %}
 <div class="row g-0 ">
-    <!-- Filter Options Button -->
     <div class="col-lg-2 col-md-3 col-sm-4 col-12 mb-1">
-      <button type="button" class="btn btn-warning custom-btn" data-bs-toggle="modal" data-bs-target="#exampleModal">
-        <i class="bi bi-funnel-fill"></i> Filter Options
-      </button>
-    </div>
-    
-    <!-- Sort Dropdown -->
-    <div class="col-lg-4 col-md-5 col-sm-7 col-12 mb-1" style="margin-right: 0.5em;">
-      <select class="form-select" name="sort" id="sort-list" onchange="location = finalurl();">
-        <option value="" id="placeholder" disabled selected hidden>Sort</option>
-        <option id="average_rating" value="average_rating">Average Rating: Ascending</option>
-        <option id="-average_rating" value="-average_rating">Average Rating: Descending</option>
-      </select>
-    </div>
-  
-    {% if faculty.email_sent == True and not is_filtered %}
-    <div class="col-lg-4 col-md-2">
-        <a href="{% url 'faculty_evaluations_excel' %}?{{ request.GET.urlencode }}" class="btn custom-btn"><i class="bi bi-file-earmark-excel-fill"></i> Export Data</a>
-    </div>
-    {% endif %}
-    
-  </div>
-    <div class="table-responsive mt-2">
-        <table class="table table-bordered ">
-            <tr>
-                <th scope="col">#</th>
-                <th scope="col">Subject</th>
-                <th scope="col">Average</th>
-                <th scope="col">Rating</th>
-                <th scope="col">Overall Impression</th>
-                <th scope="col">Polarity</th>
-                <th scope="col">Academic Year</th>
-                <th scope="col">Semester</th>
-                <th scope="col">Options</th>
-            </tr>
-            
-            {% for i in teacher_evaluations %}
-            <tr>
-              <td>{{ forloop.counter|add:page_obj.start_index|add:"-1" }}</td>
-                <td>{{ i.section_subject_faculty.subjects }} </td>
-                <td>
-                  <span {% if i.average_rating >= 5.0 %} style="color: #339933;" 
-                  {% elif i.average_rating >= 4.0 %} style="color: #66CC66;" 
-                  {% elif i.average_rating >= 3.0 %} style="color: #F0C808;" 
-                  {% elif i.average_rating >= 2.0 %} style="color: #FF9900;" 
-                  {% elif i.average_rating >= 1.0 %} style="color: #cc0000;" 
-                  {% endif %} > <b>{{ i.average_rating }} </b>
-                  </span>
-                </td>
-                <td>
+        <button type="button" class="btn btn-warning custom-btn" data-bs-toggle="modal" data-bs-target="#exampleModal">
+          <i class="bi bi-pencil-square"></i> Filter Options
+        </button>
+      </div>
+      
+      <!-- Sort Dropdown -->
+      <div class="col-lg-4 col-md-5 col-sm-7 col-12 mb-1" style="margin-right: 0.5em;">
+        <select class="form-select" name="sort" id="sort-list" onchange="location = finalurl();">
+          <option value="" id="placeholder" disabled selected hidden>Sort</option>
+          <option id="average_rating" value="average_rating">Average Rating: Ascending</option>
+          <option id="-average_rating" value="-average_rating">Average Rating: Descending</option>
+        </select>
+      </div>
+<div class="col-lg-4 col-md-2"><a href="{% url 'department_head_peer_to_peer_faculty_evaluations_csv' teacher.pk %}?{{ request.GET.urlencode }}" class="btn custom-btn"><i class="bi bi-file-earmark-excel-fill"></i>Export Data</a></div>
+</div>
+<div class="table-responsive">
+    <table class="table table-bordered mt-2 ">
+        <tr>
+            <th scope="col">#</th>
+            <th scope="col">Average</th>
+            <th scope="col">Rating</th>
+            <th scope="col">Overall Impression</th>
+            <th scope="col">Polarity</th>
+            <th scope="col">Academic Year</th>
+            <th scope="col">Semester</th>
+            <th scope="col">Options</th>
+        </tr>
+        {% for i in teacher_evaluations %}
+        <tr>
+            <td>{{ forloop.counter|add:page_obj.start_index|add:"-1" }}</td>
+            <td>
                 <span {% if i.average_rating >= 5.0 %} style="color: #339933;" 
                 {% elif i.average_rating >= 4.0 %} style="color: #66CC66;" 
                 {% elif i.average_rating >= 3.0 %} style="color: #F0C808;" 
                 {% elif i.average_rating >= 2.0 %} style="color: #FF9900;" 
                 {% elif i.average_rating >= 1.0 %} style="color: #cc0000;" 
-                {% endif %}>
-                <b>{{ i.get_rating_category }}</b></span>
-               </td>
-                <td>{{ i.comments|truncatechars:50 }}</td>
-                <td>
-                  <span {% if i.predicted_sentiment == 'Positive'%} style="color: #339933;" 
-                      {% elif i.predicted_sentiment == 'Negative' %} style="color:  #cc0000;" 
-                      {% endif %}>
-                  <b>{{ i.predicted_sentiment }}</b>
-                    </span>
-                </td>
-                <td>{{ i.academic_year }}</td>
-                <td>{{ i.semester }}</td>
-                <td>
-                    <a href="{% url 'view_evaluation_form' i.pk %}" style=" text-decoration: none;">
-                        <button class="btn btn-primary ">
-                          <i class="bi bi-eye-fill"></i></button></a>
-            
-                    </td>
-            </tr>
-        
-            {% endfor %}
-        
-        </table>
-    </div>
+                {% endif %} > <b>{{ i.average_rating }} </b>
+            </span>
+            </td>
+            <td>
+              <span {% if i.average_rating >= 5.0 %} style="color: #339933;" 
+              {% elif i.average_rating >= 4.0 %} style="color: #66CC66;" 
+              {% elif i.average_rating >= 3.0 %} style="color: #F0C808;" 
+              {% elif i.average_rating >= 2.0 %} style="color: #FF9900;" 
+              {% elif i.average_rating >= 1.0 %} style="color: #cc0000;" 
+              {% endif %}>
+              <b>{{ i.get_rating_category }}</b></span>
+            </td>
+            <td>{{ i.comments|truncatechars:50 }}</td>
+            <td>
+                <span {% if i.predicted_sentiment == 'Positive'%} style="color: #339933;" 
+                    {% elif i.predicted_sentiment == 'Negative' %} style="color:  #cc0000;" 
+                    {% endif %}>
+                <b>{{ i.predicted_sentiment }}</b>
+                  </span>
+              </td>
+            <td>{{ i.academic_year }}</td>
+            <td>{{ i.semester }}</td>
+            <td>
+    
+            <a href="{% url 'department_head_peer_to_peer_view_evaluation_form'  i.pk  %}"><button class="btn btn-primary"><i class="bi bi-eye-fill"></i></button></a>
+    
+   
+    
+            </td>
+        </tr>
+    
+        {% endfor %}
+    
+    </table>
 </div>
-
 {% if is_paginated %}
 <nav class="pagination justify-content-center" aria-label="...">
   <ul class="pagination">
@@ -143,7 +134,6 @@
       {% endif %}
   </ul>
 </nav>
-{% endif %}
 
 <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -210,4 +200,5 @@
     }
   
   </script>
+{% endif %}
 {% endblock feature %}
