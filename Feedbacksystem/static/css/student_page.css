@@ -536,7 +536,7 @@ width: 100%;
 }
 .faculty_evaluation_table th,
 .faculty_evaluation_table td {
-  font-size: 0.65rem; /* Adjust the font size */
+  font-size: 0.75rem; /* Adjust the font size */
   padding: 0.5em; /* Adjust the padding */
   }
 #faculty-select option{

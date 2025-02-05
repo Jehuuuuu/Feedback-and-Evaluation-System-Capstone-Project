@@ -260,7 +260,11 @@ margin-top: 1em;
 margin-top: 1em;
 margin-left: 0.5em;
 }
-
+main {
+  height: calc(80vh); /* Adjust to leave space for padding */
+  overflow-y: auto; /* Add a vertical scrollbar when content overflows */
+  margin-top: 5rem;
+}
 }
   
  

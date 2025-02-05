@@ -73,8 +73,20 @@
                     </div>
                 </div>
                 <button type="button" class="btn btn-warning btn-sm mb-2 mt-2" onclick="clearAll()">Clear Selections</button>
-                    <p>{{ form.evaluation_status.label_tag }} {{ form.evaluation_status }}</p>
-                    
+                <div class="form-group">
+                    {{ form.evaluation_status.label_tag }}
+                    {{ form.evaluation_status }}
+                    </div>
+                <div id="start-date-div" class="form-group">
+                    {{ form.evaluation_start_datetime.label_tag }}
+                    {{ form.evaluation_start_datetime }}
+                </div>
+                
+                <div class="form-group">
+                    {{ form.evaluation_end_datetime.label_tag }}
+                    {{ form.evaluation_end_datetime }}
+                </div>
+                    <p class="mt-2">{{ form.requires_attendance.label_tag }} {{ form.requires_attendance }}</p>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -83,7 +95,9 @@
         </div>
       </div>
     </div>
-  </div>
+  </div>    
+</div>
+        {% if event %}
         <div class="table-responsive">
             <table class="table table-bordered" style="margin-top: 1em;">
                 <tr>
@@ -106,16 +120,26 @@
                     <td>{{ i.event_type }}</td>
                     <td>{{ i.attendees_summary }}</td>
                     <td>{{ i.evaluation_identifier }}</td>
-                    <td style="display: flex; flex-direction: row; gap:1em; align-items: center; height: 100px;"> <a href="{% url 'president_view_event_evaluations' i.pk %}" style="text-decoration: none;"><button class="btn btn-primary d-flex align-items-center" style=" padding:1px 2px 1px 7px"><i class="bi bi-eye-fill" style="font-size:20px; margin-right: 5px;"></i> </button></a>
-
-                        <a href="{% url 'president_edit_event_evaluations'  i.pk  %}" style="text-decoration: none;"><button class="btn btn-warning d-flex align-items-center" style=" padding:1px 2px 1px 7px"><i class="bi bi-pencil-square" style="font-size:20px; margin-right: 5px;"></i></button></a>
-            
-                        <a href="{% url 'president_delete_event_evaluations'  i.pk  %}" style="text-decoration: none;"><button class="btn btn-danger d-flex align-items-center" style="padding:4px 2px 4px 7px" ><i style="font-size:17px; margin-right: 5px;"  class="bi bi-trash-fill" ></i></button></a>
-            
+                    <td> <a href="{% url 'president_view_event_evaluations' i.pk %}" style="text-decoration: none;"><button class="btn btn-primary" ><i class="bi bi-eye-fill"></i> </button></a>
                         </td>
                       {% endfor %}
                 </tr>
                    </table>
+               {% else %}
+                   <div class="alert alert-info d-flex align-items-start gap-3 mt-2" role="alert">
+                       <i class="bi bi-calendar-plus fs-4"></i>
+                       <div>
+                           <h5 class="alert-heading mb-3">Your Event Dashboard is Empty</h5>
+                           <p class="mb-2">
+                               You haven't created any events yet. This page only displays events 
+                               <strong>you've personally created</strong>.
+                           </p>
+                           <p class="mb-0">
+                               Get started by scheduling your first event:
+                           </p>
+                       </div>
+                   </div>
+               {% endif %}
         </div>
        </div>   
 
