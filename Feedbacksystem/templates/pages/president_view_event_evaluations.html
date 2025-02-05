@@ -13,11 +13,12 @@
 
 </form>
 
-<form action="{% url 'eventevaluations_csv' %}" method="get">
+<form action="{% url 'eventevaluations_excel' %}?{{ request.GET.urlencode }}" method="get">
     <input type="hidden" name="event_id" value="{{ event.id }}">
     <input type="hidden" name="{{ request.GET.urlencode }}">
-    <button type="submit" class="btn btn-primary">Export CSV</button>
+    <button type="submit" class="btn custom-btn "><i class="bi bi-file-earmark-excel-fill"></i> Export Data</button>
 </form>
+
 <table class="table table-bordered table-responsive  " style="margin-top: 1em;">
     <tr>
         <th scope="col">Event</th>
