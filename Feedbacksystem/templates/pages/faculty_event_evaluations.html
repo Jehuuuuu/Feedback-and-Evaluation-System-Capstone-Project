@@ -23,21 +23,20 @@
     <hr>   
     {% endblock header %}
     {% block feature %}
-
-        {% if form.non_field_errors %}
-            <div class="alert alert-danger">
-                {% for error in form.non_field_errors %}
-                    <p>{{ error }}</p>
-                {% endfor %}
-            </div>
-        {% endif %}
         
         <div class="row g-2">
             <div class="col-12 col-md-auto mb-1"><button class = "btn btn-warning custom-btn" data-bs-toggle="modal" data-bs-target="#createEventModal"> <i class="bi bi-plus-square-fill"> </i> Create Event </button></div>
         {% if is_head_of_osas %}
-            <div class="col-12 col-md-auto mb-1">
-                <a href="{% url 'pending_events' %}" class="btn custom-btn" ><i class="bi bi-hourglass-split"></i> Pending Events</a>
-            </div>
+        <div class="col-12 col-md-auto mb-1">
+            <a href="{% url 'pending_events' %}" class="btn custom-btn">
+                <i class="bi bi-hourglass-split"></i> Pending Events
+                {% if pending_count > 0 %}
+                    <span class="badge rounded-pill bg-danger">{{ pending_count }}</span>
+                {% endif %}
+            </a>
+        </div>
+        
+        
         {% endif %}
 
          <!-- Create Event Modal -->

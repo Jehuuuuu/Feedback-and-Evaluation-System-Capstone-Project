@@ -2,10 +2,21 @@
 {% load static %}
 {% block title %}Events{% endblock %}
 {% block header %}
-<h2>Manage Events</h2>
+<h2>Manage Your Events</h2>
 <hr>
     {% endblock header %}
     {% block feature %}
+    {% if messages %}
+    <div class="container col-md-10 col-12 message_container">
+        {% for message in messages %}
+        <div class="alert alert-dismissible {% if message.tags == 'error' %}alert-danger{% elif message.tags == 'success' %}alert-success{% endif %}" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
     <div class="table-responsive">
         <a class = "btn btn-warning custom-btn" data-bs-toggle="modal" data-bs-target="#exampleModal"> <i class="bi bi-plus-square-fill"> </i>Create Event </a>
   
@@ -20,7 +31,7 @@
         <div class="modal-body">
             <form method="post" action="" enctype="multipart/form-data">
                 {% csrf_token %}
-                <div class="form-group">
+              <div class="form-group">
                 {{ form.title.label_tag }}
                 {{ form.title }}
                 </div>
@@ -39,6 +50,10 @@
                 <div class="form-group">
                 {{ form.event_type.label_tag }}
                 {{ form.event_type }}
+                </div>
+                <div class="form-group">
+                {{ form.event_venue_type.label_tag }}
+                {{ form.event_venue_type }}
                 </div>
                 <div class="form-group">
                 {{ form.event_picture.label_tag }}

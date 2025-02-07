@@ -1144,19 +1144,61 @@ def society_president_events(request):
      event = Event.objects.filter(author=user, admin_status='Approved').order_by('-updated')
      form = EventCreationForm()
      if request.method == 'POST':
-        form = EventCreationForm(request.POST)
+        form = EventCreationForm(request.POST, request.FILES)
+        
+        today = datetime.today().date()
+
+
         if form.is_valid():
             event = form.save(commit=False)
             event.author = request.user  # Set the author to the currently logged-in user
             form.save()
-            #event = form.save(commit=False)
-            #event.published_by = faculty 
-            #event.save()
+            messages.success(request, "The event has been submitted for approval to the head of OSAS.")
+            evaluation_start_date_str = request.POST.get("evaluation_start_datetime")  
+            evaluation_end_date_str = request.POST.get("evaluation_end_datetime") 
 
+            event_pk = event.pk
+            print(event_pk)
+            if evaluation_start_date_str:
+
+                start_date = datetime.strptime(evaluation_start_date_str, "%Y-%m-%d").date()
+
+                # Check if the end date exceeds today's date
+                if start_date > today:
+                    # Schedule the task if the date is valid
+                    trigger = DateTrigger(run_date=start_date) 
+                    scheduler.add_job(start_event_evaluations, trigger=trigger, args=[event_pk])
+                elif start_date == today:
+                    # Schedule the task if the date is valid
+                    run_date = datetime.now() + timedelta(minutes=1)
+                    trigger = DateTrigger(run_date=run_date) 
+                    scheduler.add_job(start_event_evaluations, trigger=trigger, args=[event_pk])
+                else:
+                    # Display an error if the date exceeds today
+                    messages.error(request, "The start date cannot be in the past.")
+                    return redirect('faculty_event_evaluations')
+
+            if evaluation_end_date_str:
+                end_date = datetime.strptime(evaluation_end_date_str, "%Y-%m-%d").date()
+
+                # Check if the release date exceeds today's date
+                if end_date > today:
+                    # Schedule the task if the date is valid
+                    trigger = DateTrigger(run_date=end_date)
+                    scheduler.add_job(end_event_evaluations, trigger=trigger, args=[event_pk])
+                else:
+                    # Display an error if the date exceeds today
+                    messages.error(request, "The end date cannot be in the past.")
+                    return redirect('faculty_event_evaluations')
+       
             return redirect('society_president_events')
         else:
-            # Print form errors for debugging
-            print(form.errors)
+            # Add form errors to messages
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"Error in {field}: {error}")
+
+            return redirect('society_president_events')
      for i in event:
         # Get combined courses and departments names
         attendees_text = ", ".join(course.name for course in i.course_attendees.all()) + " | " + ", ".join(dept.name for dept in i.department_attendees.all())
@@ -5480,8 +5522,12 @@ def faculty_event_evaluations(request):
 
      notifications_unread_count = unread_notifications.count()
      messages_unread_count = unread_messages.count()    
+
+     pending_events = Event.objects.filter(admin_status='Pending')
+     pending_count = pending_events.count()   
      if is_head_of_osas == True:
           event = Event.objects.filter(admin_status='Approved').select_related('author').order_by('-updated')
+
      else:
         event = Event.objects.filter(author=user, admin_status='Approved').order_by('-updated')
 
@@ -5533,6 +5579,7 @@ def faculty_event_evaluations(request):
             if request.user.groups.filter(name='head of OSAS').exists(): 
                 event.admin_status = 'Approved'
                 form.save()
+                messages.success(request, "The event has been successfully posted.")
                 saved_event = Event.objects.get(pk=event.pk)
 
                     #Notifications      
@@ -5559,7 +5606,23 @@ def faculty_event_evaluations(request):
                     description=notification_description,
                     level='success'
                 )
+               
             form.save()
+            messages.success(request, "The event has been submitted for approval to the head of OSAS.")
+
+            head_of_osas_group = Group.objects.get(name='head of OSAS')
+            head_of_osas_users = User.objects.filter(groups=head_of_osas_group)
+
+            notification_description = f"A new event '{event.title}' has been submitted for approval."
+
+            # Send notification to the head of OSAS
+            notify.send(
+                sender=request.user,
+                recipient=head_of_osas_users,
+                verb="Event Approval Needed",
+                description=notification_description,
+                level='success'
+            )
             evaluation_start_date_str = request.POST.get("evaluation_start_datetime")  
             evaluation_end_date_str = request.POST.get("evaluation_end_datetime") 
 
@@ -5619,7 +5682,7 @@ def faculty_event_evaluations(request):
      context = {'event': event, 'faculty': faculty, 'form':form, 'event_notifications': event_notifications,
         'notifications_unread_count': notifications_unread_count,
         'messages_notifications': messages_notifications,
-        'messages_unread_count': messages_unread_count, 'is_head_of_osas': is_head_of_osas, 'page_obj': page_obj, 'event_filter': event_filter, 'is_department_head': is_department_head}
+        'messages_unread_count': messages_unread_count, 'is_head_of_osas': is_head_of_osas, 'page_obj': page_obj, 'event_filter': event_filter, 'is_department_head': is_department_head, 'pending_count': pending_count}
      return render(request, 'pages/faculty_event_evaluations.html', context)
 
 @login_required(login_url='signin')

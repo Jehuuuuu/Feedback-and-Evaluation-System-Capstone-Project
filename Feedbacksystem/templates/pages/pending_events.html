@@ -20,7 +20,7 @@
 
             {% for i in page_obj %}
             <tr>
-                <td><a href="#" data-bs-toggle="modal" data-bs-target="#eventModal{{ i.id }}" style="color: black;">{{ i.title }}</a> </td>
+                <td><a href="#" data-bs-toggle="modal" data-bs-target="#eventModal{{ i.id }}" style="color: black; text-decoration: underline;">{{ i.title }}</a> </td>
                 <td style="width: 100px; display: flex; flex-direction: row; gap: 0.5em;">  
                  <a href="{% url 'approve_event' i.id %}"><button class="btn btn-success" style="padding:1px 2px 1px 7px"><i class="bi bi-check-lg" style="font-size:20px; margin-right: 5px;"></i></button></a> 
                  <a href="{% url 'reject_event' i.id %}"><button class="btn btn-danger" style="padding:1px 2px 1px 7px"><i class="bi bi-x-lg" style="font-size:20px; margin-right: 5px;"></i></button></a> 
@@ -29,27 +29,37 @@
 
                 
         <!-- Modal -->
-    <div class="modal fade" id="eventModal{{ i.id }}" tabindex="-1" aria-labelledby="eventModalLabel{{ i.id }}" aria-hidden="true">
-        <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-            <h1 class="modal-title fs-5" id="eventModalLabel{{ i.id }}">{{i.title}}</h1>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p>Date: {{ i.get_author_name }}</p>
-                <p>Date: {{ i.date }}</p>
-                <p>Time: {{ i.time }}</p>
-                <p>Location: {{ i.location }}</p>
-                <p>Description: {{ i.description }}</p>
-                <p>Evaluation Status: {{ i.evaluation_identifier }}</p>
-            </div>
-            <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>  
+        <div class="modal fade" id="eventModal{{ i.id }}" tabindex="-1" aria-labelledby="eventModalLabel{{ i.id }}" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5" id="eventModalLabel{{ i.id }}">{{ i.title }}</h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <!-- Event Picture -->
+                        {% if i.event_picture %}
+                            <div class="text-center mb-3">
+                                <img src="{{ i.event_picture.url }}" alt="{{ i.title }}" class="img-fluid rounded" style="max-height: 300px; object-fit: cover;">
+                            </div>
+                        {% endif %}
+        
+                        <p><strong>Author:</strong> {{ i.get_author_name }}</p>
+                        <p><strong>Date:</strong> {{ i.date }}</p>
+                        <p><strong>Time:</strong> {{ i.time }}</p>
+                        <p><strong>Location:</strong> {{ i.location }}</p>
+                        <p><strong>Event Type:</strong> {{ i.event_type }}</p>
+                        <p><strong>Event Venue Type:</strong> {{ i.event_venue_type }}</p>
+                        <p><strong>Description:</strong> {{ i.description }}</p>
+                       
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
             </div>
         </div>
-        </div>
-    </div>
+        
 
     
             {% endfor %}
