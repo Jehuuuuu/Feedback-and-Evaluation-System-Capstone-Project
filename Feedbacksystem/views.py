@@ -4124,7 +4124,7 @@ def deleteSubject(request, pk):
 def users(request):
     is_admin = request.user.groups.filter(name='admin').exists()
 # Get all users
-    users = User.objects.filter(is_active=True, is_superuser=False).order_by('-date_joined')
+    users = User.objects.filter(is_active=True).order_by('-date_joined')
     user_filter = UserFilter(request.GET, queryset=users)
     users = user_filter.qs
 

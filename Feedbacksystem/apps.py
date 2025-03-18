@@ -11,5 +11,5 @@ class FeedbacksystemConfig(AppConfig):
         from .scheduler import scheduler
 
         scheduler.start()
- 
-        print("Scheduler started successfully!")
+         
+        import Feedbacksystem.signals

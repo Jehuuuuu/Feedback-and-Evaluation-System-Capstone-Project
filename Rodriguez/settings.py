@@ -48,10 +48,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'Feedbacksystem',
     'django_filters',
     'import_export',
     'notifications',
+    'Feedbacksystem.apps.FeedbacksystemConfig'
 ]
 
 MIDDLEWARE = [
